@@ -1,10 +1,8 @@
-import keras.activations
-import keras.initializers
 import numpy as np
 import pytest
 
-from networks import layer_creator
-from networks.layers.dense import MyDense
+from src.networks import layer_creator
+from src.networks.layers.dense import MyDense
 from tests.utils import array_compare, init_params
 
 

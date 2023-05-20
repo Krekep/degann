@@ -7,7 +7,7 @@ from typing import Tuple, List
 import numpy as np
 from matplotlib import pyplot as plt
 
-from networks import imodel
+from src.networks import imodel
 
 
 def system_ode_from_string(system: str) -> List[List[str]]:

@@ -1,11 +1,10 @@
 from collections import defaultdict
 
 from tensorflow import Tensor
-import keras.activations, keras.initializers
+import keras.initializers
 import numpy as np
 
-from networks import activations
-from networks.layers.dense import MyDense
+from src.networks.layers.dense import MyDense
 
 
 def _check_dimension(x) -> tuple:

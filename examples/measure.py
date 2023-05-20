@@ -1,11 +1,9 @@
 import time
-from typing import Tuple
 import numpy as np
-from equations.utils import build_plot
-from networks import callbacks
-from networks.imodel import IModel
+from src.networks import callbacks
+from src.networks.imodel import IModel
 from random import random
-from testlaunches.functions import ST_S_ODE_3_table
+from src.testlaunches.functions import ST_S_ODE_3_table
 
 
 def mean(a):
@@ -28,25 +26,29 @@ def confidence_interval(times):
     right = m + z_95 * s / (len(times) ** 0.5)
     return left, right, m, z_95 * s / (len(times) ** 0.5)
 
+
 #
 # Measure predict time row by row
 #
 
 input_size = 1
-shapes = [[10, 10, 10, 10, 10], [100, 100, 100], [500, 500, 500]]  # sizes of hidden layers
+shapes = [
+    [10, 10, 10, 10, 10],
+    [100, 100, 100],
+    [500, 500, 500],
+]  # sizes of hidden layers
 output_size = 1
 
 # X data size
 single_data_size_call = [500, 5_000, 25_000]
 # X data
-single_x_data_call = [np.array([[[random() * 10]] for _ in range(0, size)]) for size in single_data_size_call]
+single_x_data_call = [
+    np.array([[[random() * 10]] for _ in range(0, size)])
+    for size in single_data_size_call
+]
 
 for i, shape in enumerate(shapes):
-    nn = IModel(
-        input_size,
-        shape,
-        output_size
-    )
+    nn = IModel(input_size, shape, output_size)
     for size in single_x_data_call:
         times = []
         for _ in range(20):
@@ -57,7 +59,9 @@ for i, shape in enumerate(shapes):
             call_time = end_time - start_time
             times.append(call_time)
         l, r, m, d = confidence_interval(times)
-        print(f"Confidence interval for neural network {shape} single time prediction on {len(size)} data size is [{l}, {r}] s, mean is {m} s, dev is +-{d}")
+        print(
+            f"Confidence interval for neural network {shape} single time prediction on {len(size)} data size is [{l}, {r}] s, mean is {m} s, dev is +-{d}"
+        )
     nn.export_to_cpp(f"time_measure_{i}")
 
 #
@@ -97,12 +101,14 @@ for _ in range(20):
         nn_data_y,
         epochs=epochs,
         verbose=0,
-        callbacks=[time_measurer]  # pass callback as parameter
+        callbacks=[time_measurer],  # pass callback as parameter
     )
-    times.append(nn.network.trained_time['train_time'])
+    times.append(nn.network.trained_time["train_time"])
 
     # build_plot(nn, (0.0, 40.0), 0.02, true_data=[nn_data_x, nn_data_y])
 
     nn.export_to_cpp("train_time_measure")
 l, r, m, d = confidence_interval(times)
-print(f"Confidence interval for neural network {shapes} train time on {len(nn_data_x)} data size is [{l}, {r}] s, mean is {m} s, dev is +-{d}")
+print(
+    f"Confidence interval for neural network {shapes} train time on {len(nn_data_x)} data size is [{l}, {r}] s, mean is {m} s, dev is +-{d}"
+)

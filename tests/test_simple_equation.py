@@ -1,8 +1,8 @@
 import pytest
 import numpy as np
-from networks.imodel import IModel
+from src.networks.imodel import IModel
 from tests.utils import array_compare, init_params
-from equations import simple_equation
+from src.equations import simple_equation
 
 
 @pytest.mark.parametrize(

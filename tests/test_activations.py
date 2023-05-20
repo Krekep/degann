@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from networks.activations import perceptron_threshold
-from tests.utils import array_compare, init_params
+from src.networks.activations import perceptron_threshold
+from tests.utils import array_compare
 
 
 @pytest.mark.parametrize(

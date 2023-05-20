@@ -1,7 +1,5 @@
 import numpy as np
-from scipy import stats
-from testlaunches.functions import *
-from typing import Union, List, Tuple, Callable
+from typing import Tuple, Callable
 
 __all__ = ["func_to_tables"]
 

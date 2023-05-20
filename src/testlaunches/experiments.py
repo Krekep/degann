@@ -1,10 +1,8 @@
 import keras.backend
 import numpy as np
 
-from networks.trainer import full_search
-from networks import utils
+from src.networks import full_search, utils
 import csv
-from memory_profiler import profile
 
 
 def load_tables(folder: str, table_name: str, input_size: int = 1):

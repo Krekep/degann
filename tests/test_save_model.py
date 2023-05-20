@@ -1,10 +1,8 @@
 import pytest
 import numpy as np
 
-import networks.activations
-import tests.utils
-from networks.imodel import IModel
-from tests.utils import array_compare, init_params, file_compare
+from src.networks.imodel import IModel
+from tests.utils import array_compare, file_compare
 
 
 @pytest.mark.parametrize(
@@ -27,15 +25,15 @@ def test_predict_is_same(inp, shape, act_init, decorator_params):
     )
 
     expected = nn.feedforward(inp).numpy()
-    nn.export_to_file("./tests/data/test_export")
+    nn.export_to_file("../tests/data/test_export")
 
     nn_loaded = IModel(
         shape[0],
         shape[1],
         shape[2],
     )
-    nn_loaded.from_file("./tests/data/test_export")
-    nn_loaded.export_to_file("./tests/data/test_export1")
+    nn_loaded.from_file("../tests/data/test_export")
+    nn_loaded.export_to_file("../tests/data/test_export1")
     actual = nn_loaded.feedforward(inp).numpy()
 
     assert array_compare(actual, expected)
@@ -80,14 +78,16 @@ def test_file_is_same(inp, shape):
         shape[1],
         shape[2],
     )
-    nn.export_to_file("./tests/data/test_export")
+    nn.export_to_file("../tests/data/test_export")
 
     nn_loaded = IModel(
         shape[0],
         shape[1],
         shape[2],
     )
-    nn_loaded.from_file("./tests/data/test_export")
-    nn_loaded.export_to_file("./tests/data/test_export1")
+    nn_loaded.from_file("../tests/data/test_export")
+    nn_loaded.export_to_file("../tests/data/test_export1")
 
-    assert file_compare("./tests/data/test_export.apg", "./tests/data/test_export1.apg")
+    assert file_compare(
+        "../tests/data/test_export.apg", "../tests/data/test_export1.apg"
+    )

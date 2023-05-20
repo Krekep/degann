@@ -1,8 +1,8 @@
 import pytest
 import numpy as np
 from tests.utils import array_compare
-from equations import utils
-from equations.system_ode import SystemODE
+from src.equations import utils
+from src.equations.system_ode import SystemODE
 
 
 @pytest.mark.parametrize(

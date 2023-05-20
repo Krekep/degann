@@ -1,5 +1,4 @@
-from testlaunches import build_tables
-from testlaunches import experiments
+from src.testlaunches import experiments, build_tables
 
 if __name__ == "__main__":
     names = []

@@ -1,9 +1,8 @@
 import numpy as np
 from scipy.integrate import solve_ivp
-import matplotlib.pyplot as plt
 
-from equations.system_ode import SystemODE
-from typing import Union, List, Tuple
+from src.equations.system_ode import SystemODE
+from typing import Tuple
 
 
 def LF_ODE_1_solution(x):

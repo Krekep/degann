@@ -2,10 +2,9 @@ from typing import Optional, List, Tuple, Dict
 
 import tensorflow as tf
 from tensorflow import keras
-from keras import layers
 
-from networks import activations
-from networks.config_format import LAYER_DICT_NAMES
+from src.networks import activations
+from src.networks.config_format import LAYER_DICT_NAMES
 
 
 def _dec_params_to_list(

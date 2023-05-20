@@ -10,13 +10,11 @@ import numpy as np
 import tensorflow as tf
 import keras.backend as k
 
-from networks import imodel, activations
+from src.networks import activations
+from src.networks import imodel
 
-from networks import losses
-from networks.callbacks import MemoryCleaner, MeasureTrainTime, LightHistory
-from networks.losses import get_loss
-from networks.metrics import get_metric, get_all_metric_functions
-from networks.optimizers import get_all_optimizers
+from src.networks.callbacks import MemoryCleaner, MeasureTrainTime, LightHistory
+from src.networks.metrics import get_all_metric_functions
 
 _default_shapes = [
     [10, 10, 10, 10, 10, 10],

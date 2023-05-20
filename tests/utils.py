@@ -1,8 +1,6 @@
 import numpy as np
 from tensorflow import keras
 
-import networks.activations
-
 
 def array_compare(a, b, eps=-6):
     fl = True

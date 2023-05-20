@@ -3,16 +3,13 @@ from collections import defaultdict
 from typing import List, Callable, Optional, Dict
 import json
 
-import keras
-import keras.activations
 import keras.initializers
 import numpy as np
 import tensorflow as tf
-from keras.utils.tf_utils import ListWrapper
 
-from networks import activations, cpp_utils
-from networks.config_format import LAYER_DICT_NAMES, HEADER_OF_FILE
-from networks.topology.densenet import DenseNet
+from src.networks import cpp_utils
+from src.networks.config_format import LAYER_DICT_NAMES, HEADER_OF_FILE
+from src.networks.topology.densenet import DenseNet
 
 
 def _get_act_and_init(

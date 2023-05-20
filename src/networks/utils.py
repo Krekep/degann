@@ -4,7 +4,7 @@ Provide some helpful functions
 
 from typing import Tuple
 
-from networks import imodel
+from src.networks import imodel
 
 import pickle
 import numpy as np

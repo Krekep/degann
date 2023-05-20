@@ -4,7 +4,7 @@ from typing import Callable
 import tensorflow as tf
 from tensorflow import keras
 
-from networks.losses import get_all_loss_functions
+from src.networks.losses import get_all_loss_functions
 
 
 # Non-differentiable

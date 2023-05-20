@@ -10,8 +10,8 @@ from scipy.integrate import solve_ivp
 
 from matplotlib import pyplot as plt
 
-from equations import utils
-from networks.utils import export_csv_table
+from src.equations import utils
+from src.networks.utils import export_csv_table
 
 __all__ = ["SystemODE"]
 

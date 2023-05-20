@@ -1,11 +1,11 @@
 from typing import List, Optional, Dict
 
 import tensorflow as tf
-from keras.utils.tf_utils import ListWrapper
 from tensorflow import keras
 
-from networks import layer_creator, optimizers, losses, metrics
-from networks.layers.dense import MyDense
+from src.networks import layer_creator, losses, metrics
+from src.networks import optimizers
+from src.networks.layers.dense import MyDense
 
 
 class DenseNet(tf.keras.Model):
