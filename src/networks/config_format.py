@@ -15,7 +15,7 @@ LAYER_DICT_NAMES = {
 VERSION = 0.2
 
 HEADER_OF_FILE = f"""
-Package: GANN
+Package: DEGANN
 version: {VERSION}
 Author: Alimov Pavel Gennadievich
 """

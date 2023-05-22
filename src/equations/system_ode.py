@@ -6,11 +6,10 @@ from types import FunctionType
 from typing import Union, List, Tuple
 
 import numpy as np
+from matplotlib import pyplot as plt
 from scipy.integrate import solve_ivp
 
-from matplotlib import pyplot as plt
-
-from src.equations import utils
+from . import equation_utils
 from src.networks.utils import export_csv_table
 
 __all__ = ["SystemODE"]
@@ -67,7 +66,7 @@ class SystemODE(object):
             code = compile(string_func, "<string>", "exec")
 
             self._func.append(FunctionType(code.co_consts[0], globals(), "temp"))
-            self._initial_values.append(utils.extract_iv(cond[1])[1])
+            self._initial_values.append(equation_utils.extract_iv(cond[1])[1])
 
     def solve(
         self, interval: Tuple[float, float], points: Union[int, list] = None

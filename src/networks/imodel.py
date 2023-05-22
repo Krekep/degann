@@ -1,7 +1,7 @@
+import json
 import os
 from collections import defaultdict
 from typing import List, Callable, Optional, Dict
-import json
 
 import keras.initializers
 import numpy as np

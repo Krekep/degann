@@ -6,13 +6,12 @@ import random
 import time
 from typing import Union, Tuple, List, Dict, Any
 
+import keras.backend as k
 import numpy as np
 import tensorflow as tf
-import keras.backend as k
 
 from src.networks import activations
 from src.networks import imodel
-
 from src.networks.callbacks import MemoryCleaner, MeasureTrainTime, LightHistory
 from src.networks.metrics import get_all_metric_functions
 
@@ -406,8 +405,12 @@ def experiments_train(
             val_x = np.concatenate([val_data[0]] * max(1, (val_max_size // size[0])))
             val_y = np.concatenate([val_data[1]] * max(1, (val_max_size // size[0])))
 
-            predict_x = np.split(val_data[0][0:predict_max_size], predict_max_size)
-            predict_y = np.split(val_data[1][0:predict_max_size], predict_max_size)
+            predict_x = np.split(
+                val_data[0][0:predict_max_size], min(size[0], predict_max_size)
+            )
+            predict_y = np.split(
+                val_data[1][0:predict_max_size], min(size[0], predict_max_size)
+            )
 
             validation_history = nn.evaluate(
                 val_x,

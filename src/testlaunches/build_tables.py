@@ -1,5 +1,7 @@
-import numpy as np
 from typing import Tuple, Callable
+
+import numpy as np
+from .functions import *
 
 __all__ = ["func_to_tables"]
 

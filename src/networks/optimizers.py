@@ -1,6 +1,5 @@
 from typing import Callable
 
-import tensorflow as tf
 from tensorflow import keras
 
 _optimizers: dict = {

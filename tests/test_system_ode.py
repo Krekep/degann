@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from tests.utils import array_compare
-from src.equations import utils
+from src.equations import equation_utils
 from src.equations.system_ode import SystemODE
 
 
@@ -18,7 +18,7 @@ from src.equations.system_ode import SystemODE
     ],
 )
 def test_solve_system_ode(eq, interval, points, expected):
-    parsed = utils.system_ode_from_string(eq)
+    parsed = equation_utils.system_ode_from_string(eq)
 
     s = SystemODE()
     s.prepare_equations(len(parsed), parsed)

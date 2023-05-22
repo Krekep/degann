@@ -11,5 +11,12 @@ if __name__ == "__main__":
     data = experiments.prepare_tables(names, "data")
     val_data = experiments.prepare_tables(names, "validation_data")
 
-    config = {}
+    config = {
+        "epochs": [3],
+        "optimizers": ["Adam"],
+        "rates": [1e-3],
+        "net_shapes": [[5, 5], [10]],
+        "activations": ["relu"],
+        "use_rand_net": False,
+    }
     experiments.do_experiments(names, data, val_data, **config)

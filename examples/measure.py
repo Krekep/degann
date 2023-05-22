@@ -1,5 +1,7 @@
 import time
 import numpy as np
+
+from src.equations import build_plot
 from src.networks import callbacks
 from src.networks.imodel import IModel
 from random import random
@@ -64,6 +66,8 @@ for i, shape in enumerate(shapes):
         )
     nn.export_to_cpp(f"time_measure_{i}")
 
+from random import randint
+
 #
 # Measure train time
 #
@@ -71,14 +75,20 @@ print("*********")
 nn_data_x = [i / 100 for i in range(0, 4_001)]  # X data
 table = ST_S_ODE_3_table(nn_data_x)
 temp = np.hsplit(table, np.array([1, 4]))
-nn_data_x = temp[0]  # X data
-nn_data_y = temp[1]  # Y data
+train_idx = [randint(0, len(nn_data_x) - 1) for _ in range(80)]
+nn_data_x = temp[0][train_idx, :]  # X data
+nn_data_y = temp[1][train_idx, :]  # Y data
+
+true_idx = [randint(0, len(nn_data_x) - 1) for _ in range(20)]
+true_x = nn_data_x[true_idx, :]
+true_y = nn_data_y[true_idx, :]
+
 shapes = [10, 10, 10, 10, 10, 10]  # sizes of hidden layers
 
 acts = ["swish"] * 6 + ["linear"]  # activation functions for layers
 
 los = "Huber"  # loss function for training
-epochs = 50
+epochs = 100
 
 input_len = 1
 output_len = 3
@@ -105,7 +115,7 @@ for _ in range(20):
     )
     times.append(nn.network.trained_time["train_time"])
 
-    # build_plot(nn, (0.0, 40.0), 0.02, true_data=[nn_data_x, nn_data_y])
+    build_plot(nn, (0.0, 40.0), 0.02, true_data=[true_x, true_y])
 
     nn.export_to_cpp("train_time_measure")
 l, r, m, d = confidence_interval(times)

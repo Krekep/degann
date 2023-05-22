@@ -1,9 +1,9 @@
 import gc
 import time
 
+import keras.backend as k
 from keras.callbacks import Callback
 from keras.callbacks import History
-import keras.backend as k
 
 
 class MemoryCleaner(Callback):

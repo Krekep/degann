@@ -1,8 +1,8 @@
 from collections import defaultdict
 
-from tensorflow import Tensor
 import keras.initializers
 import numpy as np
+from tensorflow import Tensor
 
 from src.networks.layers.dense import MyDense
 

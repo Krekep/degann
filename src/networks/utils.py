@@ -2,12 +2,12 @@
 Provide some helpful functions
 """
 
+import pickle
 from typing import Tuple
 
-from src.networks import imodel
-
-import pickle
 import numpy as np
+
+from src.networks import imodel
 
 
 def export_network(path: str, net: imodel.IModel) -> None:

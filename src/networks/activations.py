@@ -1,7 +1,6 @@
 from typing import Callable
 
 import tensorflow as tf
-import keras
 
 
 def perceptron_threshold(x, threshold: float = 1.0):

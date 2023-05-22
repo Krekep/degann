@@ -3,8 +3,8 @@ from typing import List, Tuple
 import numpy as np
 from matplotlib import pyplot as plt
 
-from src.networks import utils
 from src.networks import imodel
+from src.networks import utils
 
 
 def _build_table(
