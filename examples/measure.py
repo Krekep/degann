@@ -1,11 +1,11 @@
 import time
 import numpy as np
 
-from src.equations import build_plot
-from src.networks import callbacks
-from src.networks.imodel import IModel
+from degann.equations import build_plot
+from degann.networks import callbacks
+from degann.networks.imodel import IModel
 from random import random
-from src.testlaunches.functions import ST_S_ODE_3_table
+from degann.testlaunches.functions import ST_S_ODE_3_table
 
 
 def mean(a):

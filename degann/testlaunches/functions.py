@@ -3,7 +3,7 @@ from typing import Tuple
 import numpy as np
 from scipy.integrate import solve_ivp
 
-from src.equations.system_ode import SystemODE
+from degann.equations.system_ode import SystemODE
 
 
 def LF_ODE_1_solution(x):

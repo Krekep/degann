@@ -3,8 +3,8 @@ from typing import Optional, List, Tuple, Dict
 import tensorflow as tf
 from tensorflow import keras
 
-from src.networks import activations
-from src.networks.config_format import LAYER_DICT_NAMES
+from degann.networks import activations
+from degann.networks.config_format import LAYER_DICT_NAMES
 
 
 def _dec_params_to_list(

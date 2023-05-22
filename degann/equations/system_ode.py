@@ -10,7 +10,7 @@ from matplotlib import pyplot as plt
 from scipy.integrate import solve_ivp
 
 from . import equation_utils
-from src.networks.utils import export_csv_table
+from degann.networks.utils import export_csv_table
 
 __all__ = ["SystemODE"]
 

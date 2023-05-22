@@ -4,7 +4,7 @@ import keras.initializers
 import numpy as np
 from tensorflow import Tensor
 
-from src.networks.layers.dense import MyDense
+from degann.networks.layers.dense import MyDense
 
 
 def _check_dimension(x) -> tuple:

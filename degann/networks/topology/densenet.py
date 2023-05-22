@@ -3,9 +3,9 @@ from typing import List, Optional, Dict
 import tensorflow as tf
 from tensorflow import keras
 
-from src.networks import layer_creator, losses, metrics
-from src.networks import optimizers
-from src.networks.layers.dense import MyDense
+from degann.networks import layer_creator, losses, metrics
+from degann.networks import optimizers
+from degann.networks.layers.dense import MyDense
 
 
 class DenseNet(tf.keras.Model):

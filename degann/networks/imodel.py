@@ -7,9 +7,9 @@ import keras.initializers
 import numpy as np
 import tensorflow as tf
 
-from src.networks import cpp_utils
-from src.networks.config_format import LAYER_DICT_NAMES, HEADER_OF_FILE
-from src.networks.topology.densenet import DenseNet
+from degann.networks import cpp_utils
+from degann.networks.config_format import LAYER_DICT_NAMES, HEADER_OF_FILE
+from degann.networks.topology.densenet import DenseNet
 
 
 def _get_act_and_init(

@@ -10,10 +10,10 @@ import keras.backend as k
 import numpy as np
 import tensorflow as tf
 
-from src.networks import activations
-from src.networks import imodel
-from src.networks.callbacks import MemoryCleaner, MeasureTrainTime, LightHistory
-from src.networks.metrics import get_all_metric_functions
+from degann.networks import activations
+from degann.networks import imodel
+from degann.networks.callbacks import MemoryCleaner, MeasureTrainTime, LightHistory
+from degann.networks.metrics import get_all_metric_functions
 
 _default_shapes = [
     [10, 10, 10, 10, 10, 10],

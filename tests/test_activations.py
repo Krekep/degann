@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from src.networks.activations import perceptron_threshold
+from degann.networks.activations import perceptron_threshold
 from tests.utils import array_compare
 
 

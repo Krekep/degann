@@ -1,6 +1,6 @@
-from src.networks import activations
-from src.networks.imodel import IModel
-from src.networks.topology.densenet import DenseNet
+from degann.networks import activations
+from degann.networks.imodel import IModel
+from degann.networks.topology.densenet import DenseNet
 from tests.utils import init_params
 
 act_func, weight_initializer1, bias_initializer = init_params(

@@ -1,4 +1,4 @@
-from src.testlaunches import experiments, build_tables
+from degann.testlaunches import experiments, build_tables
 
 if __name__ == "__main__":
     names = []

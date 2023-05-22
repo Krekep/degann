@@ -3,7 +3,7 @@ import csv
 import keras.backend
 import numpy as np
 
-from src.networks import full_search, utils
+from degann.networks import full_search, utils
 
 
 def load_tables(folder: str, table_name: str, input_size: int = 1):

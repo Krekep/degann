@@ -2,8 +2,8 @@ import time
 
 import numpy as np
 
-from src.networks import losses, callbacks
-from src.networks import IModel
+from degann.networks import losses, callbacks
+from degann.networks import IModel
 from tests.utils import init_params
 
 #
@@ -138,7 +138,7 @@ nn.export_to_file("test_desc")
 # Predict sin with different loss functions and build plot for every loss
 #
 
-from src.equations import build_plot
+from degann.equations import build_plot
 from math import sin
 import matplotlib.pyplot as plt
 
@@ -182,7 +182,7 @@ plt.show()
 # Train two networks with different activations and optimizers for predict solution of y' + 3y = 0
 #
 
-from src.testlaunches.functions import LF_ODE_1_solution, ST_S_ODE_3_table
+from degann.testlaunches.functions import LF_ODE_1_solution, ST_S_ODE_3_table
 
 x_data = np.array([[i / 50] for i in range(0, 51)])  # X data, 200 points
 f_x_data = np.array([LF_ODE_1_solution(x) for x in x_data])  # Y data

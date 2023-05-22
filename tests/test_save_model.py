@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 
-from src.networks.imodel import IModel
+from degann.networks.imodel import IModel
 from tests.utils import array_compare, file_compare
 
 

@@ -7,7 +7,7 @@ from typing import Tuple
 
 import numpy as np
 
-from src.networks import imodel
+from degann.networks import imodel
 
 
 def export_network(path: str, net: imodel.IModel) -> None:

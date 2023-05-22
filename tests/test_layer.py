@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from src.networks import layer_creator
-from src.networks.layers.dense import MyDense
+from degann.networks import layer_creator
+from degann.networks.layers.dense import MyDense
 from tests.utils import array_compare, init_params
 
 

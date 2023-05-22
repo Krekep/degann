@@ -1,8 +1,8 @@
 import pytest
 import numpy as np
 
-from src.networks.topology.densenet import DenseNet
-from src.networks.imodel import IModel
+from degann.networks.topology.densenet import DenseNet
+from degann.networks.imodel import IModel
 from tests.utils import array_compare, init_params
 
 
