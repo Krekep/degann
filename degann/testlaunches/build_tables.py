@@ -54,8 +54,6 @@ list_sol_functions = [
     (LF_ODE_3_solution, (0, 1)),
     (NLF_ODE_1_solution, (0.1, 1)),
     (NLF_ODE_2_solution, (0.1, 1)),
-    (NLF_ODE_3_solution, (0.1, 1)),
-    (NLF_ODE_4_solution, (0.1, 1)),
     (ST_LF_ODE_1_solution, (0, 1)),
     (LH_ODE_1_solution, (0, 1)),
     (LH_ODE_2_solution, (0, 1)),

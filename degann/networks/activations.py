@@ -20,7 +20,7 @@ _activation_name = {
     "swish": tf.keras.activations.swish,
     "tanh": tf.keras.activations.tanh,
     "softplus": tf.keras.activations.softplus,
-    "softmax": tf.keras.activations.softmax,
+    # "softmax": tf.keras.activations.softmax,
     "softsign": tf.keras.activations.softsign,
 }
 

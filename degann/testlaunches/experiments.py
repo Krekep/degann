@@ -44,6 +44,7 @@ def do_experiments(
 
         for key in train_results[0][0]:
             env_params[key] = []
+        env_params["function"] = []
 
         nn_params["shape"] = []
         nn_params["activations"] = []
@@ -59,18 +60,8 @@ def do_experiments(
 
             for key in train_params[0]:
                 val = train_params[0][key]
-                # if key in ["loss_func", "optimizer", "metrics", "validation_metrics"]:
-                #     if key in ["metrics", "validation_metrics"]:
-                #         for i in range(len(val)):
-                #             val[i] = type(val[i]).__name__
-                #     elif key in ["optimizer"]:
-                #         # TODO: Why "type()" for optimizer return "type"?
-                #         val = str(val)
-                #         dot_idx = val.rfind(".") + 1
-                #         val = val[dot_idx:-2]
-                #     else:
-                #         val = type(val).__name__
                 env_params[key] += [val] * expected_size
+            env_params["function"] += [func_name] * expected_size
 
             for param in train_params[1]:
                 for nn in train_params[1][param]:

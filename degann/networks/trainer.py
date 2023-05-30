@@ -10,10 +10,11 @@ import keras.backend as k
 import numpy as np
 import tensorflow as tf
 
-from degann.networks import activations
+from degann.networks import activations, losses
 from degann.networks import imodel
 from degann.networks.callbacks import MemoryCleaner, MeasureTrainTime, LightHistory
 from degann.networks.metrics import get_all_metric_functions
+from degann.networks.optimizers import get_all_optimizers
 
 _default_shapes = [
     [10, 10, 10, 10, 10, 10],
@@ -332,6 +333,21 @@ def experiments_train(
 
     x_data = tf.convert_to_tensor(x_data, dtype=tf.float32)
     y_data = tf.convert_to_tensor(y_data, dtype=tf.float32)
+    val_x = None
+    val_y = None
+    if val_data is not None:
+        val_max_size = 20_000
+        predict_max_size = 1_000
+        size = val_data[0].shape
+
+        val_x = np.concatenate([val_data[0]] * max(1, (val_max_size // size[0])))
+        val_y = np.concatenate([val_data[1]] * max(1, (val_max_size // size[0])))
+        # predict_x = np.split(
+        #     val_data[0][0:predict_max_size], min(size[0], predict_max_size)
+        # )
+        # predict_y = np.split(
+        #     val_data[1][0:predict_max_size], min(size[0], predict_max_size)
+        # )
 
     nets = []
     for parameters in args["nets_param"]:
@@ -398,20 +414,6 @@ def experiments_train(
         history.append(temp_his_last_res)
 
         if val_data is not None:
-            val_max_size = 20_000
-            predict_max_size = 1_000
-            size = val_data[0].shape
-
-            val_x = np.concatenate([val_data[0]] * max(1, (val_max_size // size[0])))
-            val_y = np.concatenate([val_data[1]] * max(1, (val_max_size // size[0])))
-
-            predict_x = np.split(
-                val_data[0][0:predict_max_size], min(size[0], predict_max_size)
-            )
-            predict_y = np.split(
-                val_data[1][0:predict_max_size], min(size[0], predict_max_size)
-            )
-
             validation_history = nn.evaluate(
                 val_x,
                 val_y,
@@ -426,13 +428,13 @@ def experiments_train(
                 "predict_time"
             ]
 
-            temp_val_last_res["predict_single_time"] = 0
-
-            start_time = time.perf_counter()
-            for row in predict_x:
-                nn.feedforward(row)
-            end_time = time.perf_counter()
-            temp_val_last_res["predict_single_time"] = end_time - start_time
+            # temp_val_last_res["predict_single_time"] = 0
+            #
+            # start_time = time.perf_counter()
+            # for row in predict_x:
+            #     nn.feedforward(row)
+            # end_time = time.perf_counter()
+            # temp_val_last_res["predict_single_time"] = end_time - start_time
             val_history.append(temp_val_last_res)
 
         nets_param["shape"].append(
@@ -476,27 +478,16 @@ def full_search(
 
     # default config
     args = {
-        # "rates": [1e-2, 5e-3, 1e-3],
-        # "epochs_data": [50, 200],
-        # "normalize_data": [False],
-        # "losses_functions": [
-        #             key
-        #             for key in losses.get_all_loss_functions()
-        #         ],
-        # "optimizers": [
-        #     key
-        #     for key in get_all_optimizers()
-        # ],
+        "loss_functions": [key for key in losses.get_all_loss_functions()],
+        "optimizers": [key for key in get_all_optimizers()],
         "metrics": [key for key in get_all_metric_functions()],
         "validation_metrics": [key for key in get_all_metric_functions()],
         "net_shapes": _default_shapes,
         "activations": [key for key in activations.get_all_activations()],
         "validation_split": [0.2],
-        "rates": [1e-2],
-        "epochs": [10],
+        "rates": [1e-2, 5e-3, 1e-3],
+        "epochs": [50, 200],
         "normalize": [False],
-        "loss_functions": ["MeanSquaredError"],
-        "optimizers": ["Adam"],
     }
 
     for arg in args:
@@ -551,11 +542,11 @@ def full_search(
                             metaparams[-1].update(kwargs)
 
     best_nets: List[List[dict, float, float, imodel.IModel]] = []
-    if kwargs.get("debug") or True:
+    if kwargs.get("debug"):
         print(f"Grid search size {len(metaparams)}")
         print("Amount of networks for each set of parameters", len(nets_param))
     for i, params in enumerate(metaparams):
-        if kwargs.get("debug") or True:
+        if kwargs.get("debug"):
             print(f"Number of set {i}")
         if kwargs.get("experiments"):
             temp_train_results = experiments_train(

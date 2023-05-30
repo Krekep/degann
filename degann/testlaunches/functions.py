@@ -37,16 +37,6 @@ def NLF_ODE_1_solution(x):
 
 
 def NLF_ODE_2_solution(x):
-    """solution function for xy' + y - 2x = 0, y(0.1) = 20.1"""
-    return x + 2 / x
-
-
-def NLF_ODE_3_solution(x):
-    """solution function for y' + (y*cos(x) - 1)/sin(x) = 0, y(0.1) = 2.1 / sin(0.1)"""
-    return (x + 2) / np.sin(x)
-
-
-def NLF_ODE_4_solution(x):
     """solution function for sin(x)*y' + y*cos(x) - 1 = 0, y(0.1) = 2.1 / sin(0.1)"""
     return (x + 2) / np.sin(x)
 

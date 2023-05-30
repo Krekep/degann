@@ -1,10 +1,10 @@
 import time
+from random import randint, random
 import numpy as np
 
 from degann.equations import build_plot
 from degann.networks import callbacks
 from degann.networks.imodel import IModel
-from random import random
 from degann.testlaunches.functions import ST_S_ODE_3_table
 
 
@@ -66,8 +66,6 @@ for i, shape in enumerate(shapes):
         )
     nn.export_to_cpp(f"time_measure_{i}")
 
-from random import randint
-
 #
 # Measure train time
 #
@@ -75,7 +73,7 @@ print("*********")
 nn_data_x = [i / 100 for i in range(0, 4_001)]  # X data
 table = ST_S_ODE_3_table(nn_data_x)
 temp = np.hsplit(table, np.array([1, 4]))
-train_idx = [randint(0, len(nn_data_x) - 1) for _ in range(80)]
+train_idx = [randint(0, len(nn_data_x) - 1) for _ in range(40)]
 nn_data_x = temp[0][train_idx, :]  # X data
 nn_data_y = temp[1][train_idx, :]  # Y data
 
@@ -88,7 +86,7 @@ shapes = [10, 10, 10, 10, 10, 10]  # sizes of hidden layers
 acts = ["swish"] * 6 + ["linear"]  # activation functions for layers
 
 los = "Huber"  # loss function for training
-epochs = 100
+epochs = 200
 
 input_len = 1
 output_len = 3
@@ -115,7 +113,7 @@ for _ in range(20):
     )
     times.append(nn.network.trained_time["train_time"])
 
-    build_plot(nn, (0.0, 40.0), 0.02, true_data=[true_x, true_y])
+    build_plot(nn, (0.0, 40.0), 0.1, true_data=[true_x, true_y])
 
     nn.export_to_cpp("train_time_measure")
 l, r, m, d = confidence_interval(times)
