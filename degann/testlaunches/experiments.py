@@ -7,7 +7,7 @@ from degann.networks import full_search, utils
 
 
 def load_tables(folder: str, table_name: str, input_size: int = 1):
-    table = utils.import_csv_table(f"./solution_tables/{folder}/{table_name}.csv")
+    table = utils.import_csv_table(f".{folder}/{table_name}.csv")
     table = utils.shuffle_table(table)
     return utils.split_table_by_inp(table, input_size)
 

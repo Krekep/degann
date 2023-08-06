@@ -76,7 +76,7 @@ def func_to_tables(
         for folder, s in zip(["data", "validation_data"], [step, val_step]):
             x = prepare_uniform_interval(interval, s)
             table = func(x)
-            np.savetxt(f"./solution_tables/{folder}/{name}.csv", table, delimiter=",")
+            np.savetxt(f".{folder}/{name}.csv", table, delimiter=",")
 
 
 if __name__ == "__main__":
