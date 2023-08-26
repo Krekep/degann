@@ -14,7 +14,13 @@ from degann import (
 )
 from degann.networks import imodel
 from degann.networks.nn_code import decode
-from degann.networks.expert import simulated_annealing, distance_const, distance_lin, temperature_lin, temperature_exp
+from degann.networks.expert import (
+    simulated_annealing,
+    distance_const,
+    distance_lin,
+    temperature_lin,
+    temperature_exp,
+)
 from degann.networks.generate import generate_neighbor, random_generate
 
 name_to_funcs = {
@@ -31,7 +37,7 @@ name_to_funcs = {
 distances = [
     (distance_const(150), "dc,150,"),
     (distance_const(200), "dc,200,"),
-    (distance_lin(30, 200), "dl,30_200,")
+    (distance_lin(30, 200), "dl,30_200,"),
 ]
 for func_name in ["LH_ODE_1"]:
     nn_data_x = np.array([[i / 1000] for i in range(100, 1_001)])  # X data
@@ -66,11 +72,12 @@ for func_name in ["LH_ODE_1"]:
                                 method=neigh_m,
                                 temperature_method=temp_m,
                                 logging=True,
-                                file_name=f"{func_name}_{max_iter}_{dist_name}_{neigh_m.__name__[:5]}_{temp_m.__name__[-3:]}"
+                                file_name=f"{func_name}_{max_iter}_{dist_name}_{neigh_m.__name__[:5]}_{temp_m.__name__[-3:]}",
                             )
                             end_t = time.perf_counter()
-                            print(i, net["block_size"], nn_loss, nn_epoch, end_t - start_t)
-
+                            print(
+                                i, net["block_size"], nn_loss, nn_epoch, end_t - start_t
+                            )
 
         # f = open(f"random_{func_name}_{loss_name}.txt", "w")
         # f.write("shape loss epoch\n")

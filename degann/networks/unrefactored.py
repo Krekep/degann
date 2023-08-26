@@ -33,8 +33,17 @@ val_data_y = nn_data_y[val_idx, :]  # validation Y data
 nn_data_x = nn_data_x[train_idx, :]  # X data
 nn_data_y = nn_data_y[train_idx, :]  # Y data
 
-history = {"shapes": [], "activations": [], "code": [], "epoch": [], "optimizer": [], "loss function": [], "loss": [],
-           "validation loss": [], "train_time": []}
+history = {
+    "shapes": [],
+    "activations": [],
+    "code": [],
+    "epoch": [],
+    "optimizer": [],
+    "loss function": [],
+    "loss": [],
+    "validation loss": [],
+    "train_time": [],
+}
 
 lower_ep = 520
 upper_ep = 520
@@ -62,7 +71,7 @@ for _ in range(10):
         (val_data_x, val_data_y),
         logging=True,
         file_name=file_name,
-        verbose=1
+        verbose=1,
     )
 #
 # print("Start 4")

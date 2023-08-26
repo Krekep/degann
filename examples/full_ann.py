@@ -3,8 +3,20 @@ from random import randint
 
 import numpy as np
 
-from degann import (full_search_step, LH_ODE_1_solution, alph_n_full, alph_a, IModel, simulated_annealing,
-                    temperature_exp, generate_neighbor, distance_const, encode, random_generate, distance_lin, )
+from degann import (
+    full_search_step,
+    LH_ODE_1_solution,
+    alph_n_full,
+    alph_a,
+    IModel,
+    simulated_annealing,
+    temperature_exp,
+    generate_neighbor,
+    distance_const,
+    encode,
+    random_generate,
+    distance_lin,
+)
 
 code = "e8e6e6"
 
@@ -37,7 +49,7 @@ for i in range(10):
             (nn_data_x, nn_data_y),
             # logging=True,
             # file_name=file_name,
-            val_data=(val_data_x, val_data_y)
+            val_data=(val_data_x, val_data_y),
         )
         if curr_l < best_l:
             best_l = curr_l
@@ -61,7 +73,7 @@ for i in range(10):
         method=generate_neighbor,
         temperature_method=temperature_exp,
         logging=True,
-        file_name=f"LH_ODE_1_{code}"
+        file_name=f"LH_ODE_1_{code}",
     )
 
     nn.from_dict(net)
@@ -71,4 +83,3 @@ for i in range(10):
     print(f"**{i}**")
     nn_code = encode(nn)
     f.write(f"{nn_code},{val_l},{nn_loss},{nn_epoch},{loss_f},{opt_n}\n")
-

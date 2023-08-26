@@ -49,7 +49,7 @@ full_search(
     (val_data_x, val_data_y),
     logging=True,
     file_name=file_name,
-    verbose=1
+    verbose=1,
 )
 print("END 1, 2", datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
 full_search(
@@ -62,7 +62,7 @@ full_search(
     (val_data_x, val_data_y),
     logging=True,
     file_name=file_name,
-    verbose=1
+    verbose=1,
 )
 print("END 3", datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
 
@@ -80,7 +80,7 @@ for i in range(4, 11):
                 val_data=(val_data_x, val_data_y),
                 logging=True,
                 file_name=file_name,
-                callbacks=[time_viewer]
+                callbacks=[time_viewer],
             )
 print("END 4, 11", datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
 
@@ -99,5 +99,5 @@ for _ in range(1000):
         logging=True,
         file_name=file_name,
         val_data=(val_data_x, val_data_y),
-        callbacks=[time_viewer]
+        callbacks=[time_viewer],
     )

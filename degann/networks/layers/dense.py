@@ -164,4 +164,3 @@ class MyDense(keras.layers.Layer):
     @property
     def get_activation(self) -> str:
         return self.activation_name
-
