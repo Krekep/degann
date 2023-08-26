@@ -43,7 +43,7 @@ class DenseNet(tf.keras.Model):
             decorator_params = decorator_params * (len(block_size) + 1)
 
         super(DenseNet, self).__init__(**kwargs)
-        self.blocks = []
+        self.blocks: List[MyDense] = []
 
         if not isinstance(activation_func, list):
             activation_func = [activation_func] * (len(block_size) + 1)
@@ -272,8 +272,9 @@ class DenseNet(tf.keras.Model):
         for layer_config in config["layer"]:
             layers.append(layer_creator.from_dict(layer_config))
 
-        for layer_num in range(len(self.blocks)):
-            self.blocks[layer_num] = layers[layer_num]
+        self.blocks: List[MyDense] = []
+        for layer_num in range(len(layers)):
+            self.blocks.append(layers[layer_num])
 
         self.out_layer = layer_creator.from_dict(config["out_layer"])
 
@@ -286,4 +287,4 @@ class DenseNet(tf.keras.Model):
         -------
         activation: list
         """
-        return self.activation_funcs.copy()
+        return [layer.get_activation for layer in self.blocks]

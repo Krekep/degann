@@ -464,6 +464,22 @@ class IModel(object):
         with open(path + ".apg", "w") as f:
             f.write(HEADER_OF_FILE + json.dumps(config, indent=2))
 
+    def from_dict(self, config, **kwargs):
+        """
+        Import neural network from dictionary
+
+        Parameters
+        ----------
+        config: dict
+            Network configuration
+
+        Returns
+        -------
+
+        """
+        self._shape = config["block_size"]
+        self.network.from_dict(config, **kwargs)
+
     def from_file(self, path, **kwargs):
         """
         Import neural network as parameters from file
