@@ -184,8 +184,8 @@ class CodeParameter(MetaParameter):
 class EpochParameter(MetaParameter):
     log_value = 1.1
     pow_scale = 3
-    min_epoch = 50
-    max_epoch = 500
+    min_epoch = 100
+    max_epoch = 700
 
     def __init__(self, epoch):
         self.epoch = epoch

@@ -23,12 +23,12 @@ alph_n_div4 = "048c"
 alph_a = "0689"
 
 
-def encode(nn: imodel.IModel):
+def encode(nn: imodel.IModel, offset: int = None):
     blocks = nn.get_shape
     activations = nn.get_activations
     res = ""
 
-    offset = min(blocks)
+    offset = min(blocks) if offset is None else offset
     for layer, act in zip(blocks, activations):
         curr = hex(layer - offset)[2:] + act_to_hex[act]
         res += curr

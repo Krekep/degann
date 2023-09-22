@@ -4,6 +4,7 @@ import random
 from datetime import datetime
 from itertools import product
 from typing import Callable, List, Tuple
+import tensorflow as tf
 
 from degann.networks.callbacks import MeasureTrainTime
 from degann.networks import imodel
@@ -15,6 +16,22 @@ from degann.networks.generate import (
     random_generate,
     generate_neighbor,
 )
+
+_algorithms_for_random_generator = {
+    0: "auto_select",
+    1: "philox",
+    2: "threefry"
+}
+
+
+def update_random_generator():
+    new_g = tf.random.Generator.from_non_deterministic_state(
+        alg=_algorithms_for_random_generator[random.randint(0, len(_algorithms_for_random_generator) - 1)]
+
+    )
+    tf.random.set_global_generator(
+        new_g
+    )
 
 
 def temperature_exp(t, alpha, **kwargs):
@@ -40,19 +57,19 @@ def distance_lin(offset, multiplier):
 
 
 def simulated_annealing(
-    in_size,
-    out_size,
-    data,
-    val_data=None,
-    k_max: int = 100,
-    start_net: dict = None,
-    method: Callable = generate_neighbor,
-    temperature_method: Callable = temperature_lin,
-    distance_method: Callable = distance_const(150),
-    opt: str = "Adam",
-    loss: str = "Huber",
-    file_name: str = "",
-    logging: bool = False,
+        in_size,
+        out_size,
+        data,
+        val_data=None,
+        k_max: int = 100,
+        start_net: dict = None,
+        method: Callable = generate_neighbor,
+        temperature_method: Callable = temperature_lin,
+        distance_method: Callable = distance_const(150),
+        opt: str = "Adam",
+        loss: str = "Huber",
+        file_name: str = "",
+        logging: bool = False,
 ):
     gen = random_generate()
     if start_net is None:
@@ -97,8 +114,8 @@ def simulated_annealing(
         neighbor_loss = neighbor_hist.history["loss"][-1]
 
         if (
-            neighbor_loss < curr_loss
-            or math.e ** ((curr_loss - neighbor_loss) / t) > random.random()
+                neighbor_loss < curr_loss
+                or math.e ** ((curr_loss - neighbor_loss) / t) > random.random()
         ):
             curr_best = neighbor
             gen = gen_neighbor
@@ -126,9 +143,9 @@ def simulated_annealing(
             if logging:
                 fn = f"{file_name}_{len(data[0])}_ann_{loss}_{opt}"
                 with open(
-                    f"./{fn}.csv",
-                    "a",
-                    newline="",
+                        f"./{fn}.csv",
+                        "a",
+                        newline="",
                 ) as outfile:
                     writer = csv.writer(outfile)
                     writer.writerows(zip(*history.values()))
@@ -156,9 +173,9 @@ def simulated_annealing(
     if logging:
         fn = f"{file_name}_{len(data[0])}_annealing_{loss}_{opt}"
         with open(
-            f"./{fn}.csv",
-            "a",
-            newline="",
+                f"./{fn}.csv",
+                "a",
+                newline="",
         ) as outfile:
             writer = csv.writer(outfile)
             writer.writerows(zip(*history.values()))
@@ -166,22 +183,25 @@ def simulated_annealing(
 
 
 def random_search(
-    data,
-    opt,
-    loss,
-    iterations,
-    val_data=None,
-    callbacks=None,
-    logging=False,
-    file_name: str = "",
+        in_size,
+        out_size,
+        data,
+        opt,
+        loss,
+        iterations,
+        val_data=None,
+        callbacks=None,
+        logging=False,
+        file_name: str = "",
 ):
     best_net = None
     best_loss = 1e6
     best_epoch = None
     for _ in range(iterations):
+        update_random_generator()
         gen = random_generate()
         b, a = decode(gen[0].value(), offset=8)
-        curr_best = imodel.IModel(1, b, 1, a + ["linear"])
+        curr_best = imodel.IModel(in_size, b, out_size, a + ["linear"])
         curr_best.compile(optimizer=opt, loss_func=loss)
         curr_epoch = gen[1].value()
         hist = curr_best.train(
@@ -211,71 +231,134 @@ def random_search(
         if logging:
             fn = f"{file_name}_{len(data[0])}_random_{loss}_{opt}"
             with open(
-                f"./{fn}.csv",
-                "a",
-                newline="",
+                    f"./{fn}.csv",
+                    "a",
+                    newline="",
             ) as outfile:
                 writer = csv.writer(outfile)
                 writer.writerows(zip(*history.values()))
     return best_loss, best_epoch, loss, opt, best_net
 
 
-def full_search_step(
-    code,
-    num_epoch,
-    opt,
-    loss,
-    data,
-    val_data=None,
-    logging=False,
-    file_name: str = "",
-    callbacks=None,
+def random_search_endless(
+        in_size,
+        out_size,
+        data,
+        opt,
+        loss,
+        threshold,
+        val_data=None,
+        callbacks=None,
+        logging=False,
+        file_name: str = "",
+        verbose=False,
 ):
-    history = dict()
-    b, a = decode(code, block_size=1, offset=8)
-    nn = imodel.IModel(1, b, 1, a + ["linear"])
-    nn.compile(optimizer=opt, loss_func=loss)
-    temp_his = nn.train(
-        data[0], data[1], epochs=num_epoch, verbose=0, callbacks=callbacks
+    nn_loss, nn_epoch, loss_f, opt_n, net = random_search(
+        in_size,
+        out_size,
+        data,
+        opt,
+        loss,
+        1,
+        val_data=val_data,
+        callbacks=callbacks,
+        logging=logging,
+        file_name=file_name,
     )
+    i = 1
+    best_net = net
+    best_loss = nn_loss
+    best_epoch = nn_epoch
+    while nn_loss > threshold or i >= 1e6:
+        if verbose:
+            print(f"Random search until less than threshold. Last loss = {nn_loss}. Iterations = {i}")
+        nn_loss, nn_epoch, loss_f, opt_n, net = random_search(
+            in_size,
+            out_size,
+            data,
+            opt,
+            loss,
+            1,
+            val_data=val_data,
+            callbacks=callbacks,
+            logging=logging,
+            file_name=file_name,
+        )
+        i += 1
+        if nn_loss < best_loss:
+            best_net = net
+            best_loss = nn_loss
+            best_epoch = nn_epoch
+    return best_loss, best_epoch, loss, opt, best_net, i
 
-    history["shapes"] = [nn.get_shape]
-    history["activations"] = [a]
-    history["code"] = [code]
-    history["epoch"] = [num_epoch]
-    history["optimizer"] = [opt]
-    history["loss function"] = [loss]
-    history["loss"] = [temp_his.history["loss"][-1]]
-    history["validation loss"] = (
-        [nn.evaluate(val_data[0], val_data[1], verbose=0, return_dict=True)["loss"]]
-        if val_data is not None
-        else [None]
-    )
-    history["train_time"] = [nn.network.trained_time["train_time"]]
 
-    if logging:
-        file_name = f"{file_name}_{len(data[0])}_{num_epoch}_{loss}_{opt}"
-        with open(
-            f"./{file_name}.csv",
-            "a",
-            newline="",
-        ) as outfile:
-            writer = csv.writer(outfile)
-            writer.writerows(zip(*history.values()))
-    return (history["loss"][0], history["validation loss"][0], nn.to_dict())
+def full_search_step(
+        code,
+        num_epoch,
+        opt,
+        loss,
+        data,
+        repeat: int = 1,
+        offset: int = 8,
+        val_data=None,
+        logging=False,
+        file_name: str = "",
+        callbacks=None,
+):
+    best_net = None
+    best_loss = 1e6
+    best_val_loss = 1e6
+    for _ in range(repeat):
+        update_random_generator()
+        history = dict()
+        b, a = decode(code, block_size=1, offset=offset)
+        nn = imodel.IModel(1, b, 1, a + ["linear"])
+        nn.compile(optimizer=opt, loss_func=loss)
+        temp_his = nn.train(
+            data[0], data[1], epochs=num_epoch, verbose=0, callbacks=callbacks
+        )
+
+        history["shapes"] = [nn.get_shape]
+        history["activations"] = [a]
+        history["code"] = [code]
+        history["epoch"] = [num_epoch]
+        history["optimizer"] = [opt]
+        history["loss function"] = [loss]
+        history["loss"] = [temp_his.history["loss"][-1]]
+        history["validation loss"] = (
+            [nn.evaluate(val_data[0], val_data[1], verbose=0, return_dict=True)["loss"]]
+            if val_data is not None
+            else [None]
+        )
+        history["train_time"] = [nn.network.trained_time["train_time"]]
+
+        if logging:
+            file_name = f"{file_name}_{len(data[0])}_{num_epoch}_{loss}_{opt}"
+            with open(
+                    f"./{file_name}.csv",
+                    "a",
+                    newline="",
+            ) as outfile:
+                writer = csv.writer(outfile)
+                writer.writerows(zip(*history.values()))
+        if history["loss"][0] < best_loss:
+            best_loss = history["loss"][0]
+            best_val_loss = history["validation loss"][0]
+            best_net = nn.to_dict()
+    return (best_loss, best_val_loss, best_net)
 
 
 def full_search(
-    data: tuple,
-    net_size: Tuple[int, int],
-    alph,
-    epoch_bound: Tuple[int, int, int],
-    optimizers: List[str],
-    losses: List[str],
-    val_data=None,
-    logging=False,
-    file_name: str = "",
-    verbose=False,
+        data: tuple,
+        net_size: Tuple[int, int],
+        alph,
+        epoch_bound: Tuple[int, int, int],
+        optimizers: List[str],
+        losses: List[str],
+        val_data=None,
+        logging=False,
+        file_name: str = "",
+        verbose=False,
 ):
     best_net = None
     best_loss = 1e6

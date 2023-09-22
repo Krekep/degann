@@ -19,7 +19,7 @@ from degann.networks.expert import (
     distance_const,
     distance_lin,
     temperature_lin,
-    temperature_exp,
+    temperature_exp, random_search,
 )
 from degann.networks.generate import generate_neighbor, random_generate
 
@@ -79,53 +79,25 @@ for func_name in ["LH_ODE_1"]:
                                 i, net["block_size"], nn_loss, nn_epoch, end_t - start_t
                             )
 
-        # f = open(f"random_{func_name}_{loss_name}.txt", "w")
-        # f.write("shape loss epoch\n")
-        # print("shape loss val_loss epoch time")
-        # avg_loss = 0
-        # avg_val_loss = 0
-        # for i in range(launches):
-        #     start_t = time.perf_counter()
-        #     t_loss = 100000
-        #     t_epoch = 100000
-        #     t_val_loss = 100000
-        #     t_shape = []
-        #     t_acts = []
-        #
-        #     for j in range(max_iter):
-        #         gen = random_generate()
-        #         b, a = decode(gen[0], offset=8)
-        #         nn = imodel.IModel(1, b, 1, a + ["linear"])
-        #         nn.compile(optimizer="Adam", loss_func=loss_name)
-        #         hist = nn.train(nn_data_x, nn_data_y, epochs=gen[1], verbose=0)
-        #         nn_loss = hist.history["loss"][-1]
-        #         val_loss = nn.evaluate(
-        #             val_data_x, val_data_y, verbose=0, return_dict=True
-        #         )["loss"]
-        #         if t_loss > nn_loss:
-        #             t_loss = nn_loss
-        #             t_val_loss = val_loss
-        #             t_epoch = gen[1]
-        #             t_shape = b
-        #             t_acts = a
-        #     end_t = time.perf_counter()
-        #     avg_loss += t_loss
-        #     avg_val_loss += t_val_loss
-        #     f.write(
-        #         str(t_shape)
-        #         + " "
-        #         + str(t_acts)
-        #         + " "
-        #         + str(t_loss)
-        #         + " "
-        #         + str(t_val_loss)
-        #         + " "
-        #         + str(t_epoch)
-        #         + "\n"
-        #     )
-        #     print(i, t_shape, t_acts, t_loss, t_val_loss, t_epoch, end_t - start_t)
-        # avg_loss = avg_loss / launches
-        # avg_val_loss = avg_val_loss / launches
-        # print(f"avg_loss = {avg_loss}, avg_val_loss = {avg_val_loss}")
-        # f.write(f"avg_loss = {avg_loss}, avg_val_loss = {avg_val_loss}\n")
-        # f.close()
+    for loss_name in ["MeanAbsolutePercentageError"]:
+        for opt in ["Adam"]:
+            for max_iter in [50, 100, 150]:
+                print(max_iter)
+                launches = 10
+                for i in range(launches):
+                    start_t = time.perf_counter()
+                    nn_loss, nn_epoch, loss_f, opt_n, net = random_search(
+                        1,
+                        1,
+                        iterations=max_iter,
+                        opt=opt,
+                        data=(nn_data_x, nn_data_y),
+                        val_data=(val_data_x, val_data_y),
+                        loss=loss_name,
+                        logging=True,
+                        file_name=f"{func_name}_{max_iter}",
+                    )
+                    end_t = time.perf_counter()
+                    print(
+                        i, net["block_size"], nn_loss, nn_epoch, end_t - start_t
+                    )
