@@ -12,7 +12,7 @@ LAYER_DICT_NAMES = {
     "decorator_params": "decorator_params",
 }
 
-VERSION = "0.2.4"
+VERSION = "0.3"
 
 HEADER_OF_FILE = f"""
 Package: DEGANN
