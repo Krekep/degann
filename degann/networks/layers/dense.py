@@ -160,3 +160,7 @@ class MyDense(keras.layers.Layer):
     @classmethod
     def from_config(cls, config):
         return cls(**config)
+
+    @property
+    def get_activation(self) -> str:
+        return self.activation_name

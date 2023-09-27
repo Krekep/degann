@@ -7,6 +7,27 @@ def perceptron_threshold(x, threshold: float = 1.0):
     return tf.where(x >= threshold, 1.0, 0.0)
 
 
+def parabolic(x: tf.Tensor, beta: float = 0, p: float = 1 / 5):
+    """
+    Activation function is described in https://rairi.frccsc.ru/en/publications/426
+
+    Parameters
+    ----------
+    x: tf.Tensor
+        Input data vector
+    beta: float
+        Offset along the OY axis
+    p: float
+        Focal parabola parameter
+
+    Returns
+    -------
+    new_x: tf.Tensor
+        Data vector after applying activation function
+    """
+    return tf.where(x >= 0, beta + tf.sqrt(2 * p * x), beta - tf.sqrt(-2 * p * x))
+
+
 _activation_name = {
     # "perceptron_threshold": perceptron_threshold,
     "elu": tf.keras.activations.elu,
@@ -22,6 +43,7 @@ _activation_name = {
     "softplus": tf.keras.activations.softplus,
     # "softmax": tf.keras.activations.softmax,
     "softsign": tf.keras.activations.softsign,
+    "parabolic": parabolic,
 }
 
 

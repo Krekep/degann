@@ -3,8 +3,8 @@ from degann.networks.imodel import IModel
 from degann.networks.topology.densenet import DenseNet
 from tests.utils import init_params
 
-act_func, weight_initializer1, bias_initializer = init_params(
-    act_name="linear", weight_name="ones", bias_name="zeros"
+weight_initializer1, bias_initializer = init_params(
+    weight_name="ones", bias_name="zeros"
 )
 weight_initializer2 = init_params(weight_name="zeros")[0]
 prec_act = activations.perceptron_threshold

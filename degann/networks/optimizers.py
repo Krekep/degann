@@ -4,10 +4,9 @@ from tensorflow import keras
 
 _optimizers: dict = {
     "Adam": keras.optimizers.Adam,
-    "AdamW": keras.optimizers.AdamW,
+    "AdamW": keras.optimizers.experimental.AdamW,
     "Adamax": keras.optimizers.experimental.Adamax,
     "Adadelta": keras.optimizers.experimental.Adadelta,
-    "Adafactor": keras.optimizers.Adafactor,
     "Adagrad": keras.optimizers.experimental.Adagrad,
     "Ftrl": keras.optimizers.experimental.Ftrl,
     "Nadam": keras.optimizers.experimental.Nadam,

@@ -8,8 +8,8 @@ if __name__ == "__main__":
     for func, _ in build_tables.list_table_functions:
         names.append(func.__name__)
 
-    data = experiments.prepare_tables(names, "data")
-    val_data = experiments.prepare_tables(names, "validation_data")
+    data = experiments.prepare_tables(names, "solution_tables/data")
+    val_data = experiments.prepare_tables(names, "solution_tables/validation_data")
 
     config = {
         "epochs": [50, 100, 200],
