@@ -13,6 +13,7 @@ act_to_hex = {
     "tanh": "9",
     "softplus": "a",
     "softsign": "b",
+    "parabolic": "c",
 }
 reverse_act_to_hex = {v: k for k, v in act_to_hex.items()}
 

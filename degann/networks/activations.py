@@ -43,6 +43,7 @@ _activation_name = {
     "softplus": tf.keras.activations.softplus,
     # "softmax": tf.keras.activations.softmax,
     "softsign": tf.keras.activations.softsign,
+    "parabolic": parabolic,
 }
 
 
