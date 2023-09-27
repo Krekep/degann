@@ -2,8 +2,17 @@ from random import randint
 
 import numpy as np
 
-from degann import (random_search_endless, LH_ODE_1_solution, LH_ODE_2_solution, LF_ODE_1_solution, build_plot, IModel, LH_ODE_2_solution,
-                    NLF_ODE_1_solution, encode, )
+from degann import (
+    random_search_endless,
+    LH_ODE_1_solution,
+    LH_ODE_2_solution,
+    LF_ODE_1_solution,
+    build_plot,
+    IModel,
+    LH_ODE_2_solution,
+    NLF_ODE_1_solution,
+    encode,
+)
 
 nn_data_x = np.array([[i / 1000] for i in range(100, 1_001)])  # X data
 true_x = np.array([[i / 20] for i in range(2, 20)])
@@ -24,13 +33,7 @@ func = "sin(10x)"
 t = [10, 5, 3, 1]
 for tt in t:
     loss, epoch, _, _, net, iterations = random_search_endless(
-        1,
-        1,
-        (data_x, data_y),
-        opt_n,
-        loss_f,
-        tt,
-        verbose=1
+        1, 1, (data_x, data_y), opt_n, loss_f, tt, verbose=1
     )
     nn = IModel(1, [], 1)
     nn.from_dict(net)
@@ -43,7 +46,7 @@ for tt in t:
         0.01,
         true_data=(true_x, true_y),
         labels=[code, func],
-        title=f"{tt} loss threshold. {iterations} iterations"
+        title=f"{tt} loss threshold. {iterations} iterations",
     )
 
 """

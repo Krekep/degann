@@ -281,7 +281,7 @@ class DenseNet(tf.keras.Model):
         self.out_layer = layer_creator.from_dict(config["out_layer"])
 
     def export_to_cpp(
-            self, path: str, array_type: str = "[]", path_to_compiler: str = None, **kwargs
+        self, path: str, array_type: str = "[]", path_to_compiler: str = None, **kwargs
     ) -> None:
         """
         Export neural network as feedforward function on c++

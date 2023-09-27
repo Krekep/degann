@@ -19,7 +19,8 @@ from degann.networks.expert import (
     distance_const,
     distance_lin,
     temperature_lin,
-    temperature_exp, random_search,
+    temperature_exp,
+    random_search,
 )
 from degann.networks.generate import generate_neighbor, random_generate
 
@@ -51,8 +52,8 @@ for func_name in ["LH_ODE_1"]:
     nn_data_x = nn_data_x[train_idx, :]  # X data
     nn_data_y = nn_data_y[train_idx, :]  # Y data
 
-    # for loss_name in ["Huber", "MeanAbsolutePercentageError"]:
-    for loss_name in ["MaxAbsoluteDeviation"]:
+    # for loss_name in ["Huber", "MeanAbsolutePercentageError", "MaxAbsoluteDeviation"]:
+    for loss_name in ["MeanAbsolutePercentageError"]:
         for max_iter in [50]:
             for dist_m, dist_name in distances:
                 for neigh_m in [generate_neighbor, random_generate]:
@@ -71,6 +72,7 @@ for func_name in ["LH_ODE_1"]:
                                 distance_method=dist_m,
                                 method=neigh_m,
                                 temperature_method=temp_m,
+                                update_gen_cycle=10,
                                 logging=True,
                                 file_name=f"{func_name}_{max_iter}_{dist_name}_{neigh_m.__name__[:5]}_{temp_m.__name__[-3:]}",
                             )
@@ -79,7 +81,7 @@ for func_name in ["LH_ODE_1"]:
                                 i, net["block_size"], nn_loss, nn_epoch, end_t - start_t
                             )
 
-    for loss_name in ["MaxAbsoluteDeviation"]:
+    for loss_name in ["MeanAbsolutePercentageError"]:
         for opt in ["Adam"]:
             for max_iter in [50, 100, 150]:
                 print(max_iter)
@@ -94,10 +96,9 @@ for func_name in ["LH_ODE_1"]:
                         data=(nn_data_x, nn_data_y),
                         val_data=(val_data_x, val_data_y),
                         loss=loss_name,
+                        update_gen_cycle=10,
                         logging=True,
                         file_name=f"{func_name}_{max_iter}",
                     )
                     end_t = time.perf_counter()
-                    print(
-                        i, net["block_size"], nn_loss, nn_epoch, end_t - start_t
-                    )
+                    print(i, net["block_size"], nn_loss, nn_epoch, end_t - start_t)

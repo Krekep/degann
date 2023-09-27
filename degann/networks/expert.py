@@ -17,14 +17,10 @@ from degann.networks.generate import (
     generate_neighbor,
 )
 
-_algorithms_for_random_generator = {
-    0: "auto_select",
-    1: "philox",
-    2: "threefry"
-}
+_algorithms_for_random_generator = {0: "auto_select", 1: "philox", 2: "threefry"}
 
 
-def update_random_generator(curr_iter: int, cycle_size: int = 10) -> None:
+def update_random_generator(curr_iter: int, cycle_size: int = 0) -> None:
     """
     Set global tensorflow random generator to random state every *cycle_size* times
 
@@ -33,21 +29,20 @@ def update_random_generator(curr_iter: int, cycle_size: int = 10) -> None:
     curr_iter: int
         Counter showing whether it's time to update the random number generator
     cycle_size: int
-        How often should we update random number generator
+        How often should we update random number generator (if not positive, then the generator does not change)
 
     Returns
     -------
     """
-    # if curr_iter % cycle_size == 0:
-    #     new_g = tf.random.Generator.from_non_deterministic_state(
-    #         alg=_algorithms_for_random_generator[random.randint(0, len(_algorithms_for_random_generator) - 1)]
-    #
-    #     )
-    #     tf.random.set_global_generator(
-    #         new_g
-    #     )
-    # else:
-    pass
+    if cycle_size > 0 and curr_iter % cycle_size == 0:
+        new_g = tf.random.Generator.from_non_deterministic_state(
+            alg=_algorithms_for_random_generator[
+                random.randint(0, len(_algorithms_for_random_generator) - 1)
+            ]
+        )
+        tf.random.set_global_generator(new_g)
+    else:
+        pass
 
 
 def temperature_exp(t: float, alpha: float, **kwargs) -> float:
@@ -102,6 +97,7 @@ def distance_const(d: float) -> Callable:
     d_c: Callable
         Function returning a constant distance
     """
+
     def d_c(**kwargs) -> float:
         return d
 
@@ -122,6 +118,7 @@ def distance_lin(offset, multiplier):
     d_l: Callable
         Function returning a new distance depending on current temperature
     """
+
     def d_l(temperature, **kwargs):
         return offset + temperature * multiplier
 
@@ -129,19 +126,20 @@ def distance_lin(offset, multiplier):
 
 
 def simulated_annealing(
-        in_size,
-        out_size,
-        data,
-        val_data=None,
-        k_max: int = 100,
-        start_net: dict = None,
-        method: Callable = generate_neighbor,
-        temperature_method: Callable = temperature_lin,
-        distance_method: Callable = distance_const(150),
-        opt: str = "Adam",
-        loss: str = "Huber",
-        file_name: str = "",
-        logging: bool = False,
+    in_size,
+    out_size,
+    data,
+    val_data=None,
+    k_max: int = 100,
+    start_net: dict = None,
+    method: Callable = generate_neighbor,
+    temperature_method: Callable = temperature_lin,
+    distance_method: Callable = distance_const(150),
+    opt: str = "Adam",
+    loss: str = "Huber",
+    update_gen_cycle: int = 0,
+    file_name: str = "",
+    logging: bool = False,
 ):
     gen = random_generate()
     if start_net is None:
@@ -171,6 +169,7 @@ def simulated_annealing(
     k = 0
     t = 1
     while k < k_max - 1 and curr_loss > 1e-20:
+        update_random_generator(k, cycle_size=update_gen_cycle)
         t = temperature_method(k=k, k_max=k_max, t=1, alpha=0.97)
         distance = distance_method(temperature=t)
 
@@ -186,8 +185,8 @@ def simulated_annealing(
         neighbor_loss = neighbor_hist.history["loss"][-1]
 
         if (
-                neighbor_loss < curr_loss
-                or math.e ** ((curr_loss - neighbor_loss) / t) > random.random()
+            neighbor_loss < curr_loss
+            or math.e ** ((curr_loss - neighbor_loss) / t) > random.random()
         ):
             curr_best = neighbor
             gen = gen_neighbor
@@ -215,9 +214,9 @@ def simulated_annealing(
             if logging:
                 fn = f"{file_name}_{len(data[0])}_ann_{loss}_{opt}"
                 with open(
-                        f"./{fn}.csv",
-                        "a",
-                        newline="",
+                    f"./{fn}.csv",
+                    "a",
+                    newline="",
                 ) as outfile:
                     writer = csv.writer(outfile)
                     writer.writerows(zip(*history.values()))
@@ -245,9 +244,9 @@ def simulated_annealing(
     if logging:
         fn = f"{file_name}_{len(data[0])}_annealing_{loss}_{opt}"
         with open(
-                f"./{fn}.csv",
-                "a",
-                newline="",
+            f"./{fn}.csv",
+            "a",
+            newline="",
         ) as outfile:
             writer = csv.writer(outfile)
             writer.writerows(zip(*history.values()))
@@ -255,22 +254,23 @@ def simulated_annealing(
 
 
 def random_search(
-        in_size,
-        out_size,
-        data,
-        opt,
-        loss,
-        iterations,
-        val_data=None,
-        callbacks=None,
-        logging=False,
-        file_name: str = "",
+    in_size,
+    out_size,
+    data,
+    opt,
+    loss,
+    iterations,
+    val_data=None,
+    callbacks=None,
+    logging=False,
+    update_gen_cycle: int = 0,
+    file_name: str = "",
 ):
     best_net = None
     best_loss = 1e6
     best_epoch = None
     for i in range(iterations):
-        update_random_generator(i)
+        update_random_generator(i, cycle_size=update_gen_cycle)
         gen = random_generate()
         b, a = decode(gen[0].value(), offset=8)
         curr_best = imodel.IModel(in_size, b, out_size, a + ["linear"])
@@ -303,9 +303,9 @@ def random_search(
         if logging:
             fn = f"{file_name}_{len(data[0])}_random_{loss}_{opt}"
             with open(
-                    f"./{fn}.csv",
-                    "a",
-                    newline="",
+                f"./{fn}.csv",
+                "a",
+                newline="",
             ) as outfile:
                 writer = csv.writer(outfile)
                 writer.writerows(zip(*history.values()))
@@ -313,17 +313,17 @@ def random_search(
 
 
 def random_search_endless(
-        in_size,
-        out_size,
-        data,
-        opt,
-        loss,
-        threshold,
-        val_data=None,
-        callbacks=None,
-        logging=False,
-        file_name: str = "",
-        verbose=False,
+    in_size,
+    out_size,
+    data,
+    opt,
+    loss,
+    threshold,
+    val_data=None,
+    callbacks=None,
+    logging=False,
+    file_name: str = "",
+    verbose=False,
 ):
     nn_loss, nn_epoch, loss_f, opt_n, net = random_search(
         in_size,
@@ -343,7 +343,9 @@ def random_search_endless(
     best_epoch = nn_epoch
     while nn_loss > threshold or i >= 1e6:
         if verbose:
-            print(f"Random search until less than threshold. Last loss = {nn_loss}. Iterations = {i}")
+            print(
+                f"Random search until less than threshold. Last loss = {nn_loss}. Iterations = {i}"
+            )
         nn_loss, nn_epoch, loss_f, opt_n, net = random_search(
             in_size,
             out_size,
@@ -365,23 +367,24 @@ def random_search_endless(
 
 
 def full_search_step(
-        code,
-        num_epoch,
-        opt,
-        loss,
-        data,
-        repeat: int = 1,
-        offset: int = 8,
-        val_data=None,
-        logging=False,
-        file_name: str = "",
-        callbacks=None,
+    code,
+    num_epoch,
+    opt,
+    loss,
+    data,
+    repeat: int = 1,
+    offset: int = 8,
+    val_data=None,
+    update_gen_cycle: int = 0,
+    logging=False,
+    file_name: str = "",
+    callbacks=None,
 ):
     best_net = None
     best_loss = 1e6
     best_val_loss = 1e6
     for i in range(repeat):
-        update_random_generator(i)
+        update_random_generator(i, cycle_size=update_gen_cycle)
         history = dict()
         b, a = decode(code, block_size=1, offset=offset)
         nn = imodel.IModel(1, b, 1, a + ["linear"])
@@ -407,9 +410,9 @@ def full_search_step(
         if logging:
             file_name = f"{file_name}_{len(data[0])}_{num_epoch}_{loss}_{opt}"
             with open(
-                    f"./{file_name}.csv",
-                    "a",
-                    newline="",
+                f"./{file_name}.csv",
+                "a",
+                newline="",
             ) as outfile:
                 writer = csv.writer(outfile)
                 writer.writerows(zip(*history.values()))
@@ -421,16 +424,16 @@ def full_search_step(
 
 
 def full_search(
-        data: tuple,
-        net_size: Tuple[int, int],
-        alph,
-        epoch_bound: Tuple[int, int, int],
-        optimizers: List[str],
-        losses: List[str],
-        val_data=None,
-        logging=False,
-        file_name: str = "",
-        verbose=False,
+    data: tuple,
+    net_size: Tuple[int, int],
+    alph,
+    epoch_bound: Tuple[int, int, int],
+    optimizers: List[str],
+    losses: List[str],
+    val_data=None,
+    logging=False,
+    file_name: str = "",
+    verbose=False,
 ):
     best_net = None
     best_loss = 1e6

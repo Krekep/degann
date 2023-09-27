@@ -11,9 +11,17 @@ from degann import (
     LF_ODE_3_solution,
     LH_ODE_2_solution,
     NLF_ODE_1_solution,
-    NLF_ODE_2_solution, IModel, build_plot,
+    NLF_ODE_2_solution,
+    IModel,
+    build_plot,
 )
-from degann.networks.nn_code import alph_n_full, alph_a, alph_n_div3, alph_n_div2, encode
+from degann.networks.nn_code import (
+    alph_n_full,
+    alph_a,
+    alph_n_div3,
+    alph_n_div2,
+    encode,
+)
 from degann.networks.expert import full_search, full_search_step
 
 num_epoch = 500
@@ -35,13 +43,19 @@ nn_data_y = nn_data_y[train_idx, :]  # Y data
 
 all_variants = ["".join(elem) for elem in product(alph_n_full, alph_a)]
 div3_variants = ["".join(elem) for elem in product(alph_n_div3, alph_a)]
-alph_n_div2_1 = alph_n_div2[:len(alph_n_div2) // 2]
-alph_n_div2_2 = alph_n_div2[len(alph_n_div2) // 2:]
+alph_n_div2_1 = alph_n_div2[: len(alph_n_div2) // 2]
+alph_n_div2_2 = alph_n_div2[len(alph_n_div2) // 2 :]
 div2_variants_1 = ["".join(elem) for elem in product(alph_n_div2_1, alph_a)]
 div2_variants_2 = ["".join(elem) for elem in product(alph_n_div2_2, alph_a)]
 div2_variants = ["".join(elem) for elem in product(alph_n_div2, alph_a)]
 print(file_name)
-print(len(all_variants), len(div2_variants), len(div2_variants_1), len(div2_variants_2), len(div3_variants))
+print(
+    len(all_variants),
+    len(div2_variants),
+    len(div2_variants_1),
+    len(div2_variants_2),
+    len(div3_variants),
+)
 opt = "Adam"
 loss = "MeanAbsolutePercentageError"
 loss = "MaxAbsoluteDeviation"
@@ -99,15 +113,15 @@ func = "sin(10x)"
 l = 1e6
 while l > 90:
     l, _, net = full_search_step(
-            test_code,
-            num_epoch,
-            opt,
-            loss,
-            (nn_data_x, nn_data_y),
-            # logging=True,
-            # file_name=file_name,
-            # val_data=(val_data_x, val_data_y),
-        )
+        test_code,
+        num_epoch,
+        opt,
+        loss,
+        (nn_data_x, nn_data_y),
+        # logging=True,
+        # file_name=file_name,
+        # val_data=(val_data_x, val_data_y),
+    )
     print(f"Candidate full search. Last loss = {int(l)}")
 nn = IModel(1, [], 1)
 nn.from_dict(net)
@@ -140,7 +154,9 @@ for thr in t:
             # val_data=(val_data_x, val_data_y),
         )
         i += 1
-        print(f"Full search until less than threshold. Last loss = {l}. Iterations = {i}")
+        print(
+            f"Full search until less than threshold. Last loss = {l}. Iterations = {i}"
+        )
     nn = IModel(1, [], 1)
     nn.from_dict(net)
     code = encode(nn, offset=8)
@@ -150,7 +166,7 @@ for thr in t:
         0.01,
         true_data=(true_x, true_y),
         labels=[code, func],
-        title=f"{loss} loss function, {thr} loss threshold. {i} iterations"
+        title=f"{loss} loss function, {thr} loss threshold. {i} iterations",
     )
     print(f"Loss {l}")
 
