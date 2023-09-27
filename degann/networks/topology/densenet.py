@@ -1,9 +1,11 @@
-from typing import List, Optional, Dict
+import os
+from typing import List, Optional, Dict, Callable
 
 import tensorflow as tf
 from tensorflow import keras
 
-from degann.networks import layer_creator, losses, metrics
+from degann import LAYER_DICT_NAMES
+from degann.networks import layer_creator, losses, metrics, cpp_utils
 from degann.networks import optimizers
 from degann.networks.layers.dense import MyDense
 
@@ -277,6 +279,163 @@ class DenseNet(tf.keras.Model):
             self.blocks.append(layers[layer_num])
 
         self.out_layer = layer_creator.from_dict(config["out_layer"])
+
+    def export_to_cpp(
+            self, path: str, array_type: str = "[]", path_to_compiler: str = None, **kwargs
+    ) -> None:
+        """
+        Export neural network as feedforward function on c++
+
+        Parameters
+        ----------
+        path: str
+            path to file with name, without extension
+        array_type: str
+            c-style or cpp-style ("[]" or "vector")
+        path_to_compiler: str
+            path to c/c++ compiler
+        kwargs
+
+        Returns
+        -------
+
+        """
+        res = """
+                #include <cmath>
+                #include <vector>
+
+                """
+
+        config = self.to_dict(**kwargs)
+
+        input_size = self._input_size
+        output_size = self._output_size
+        blocks = self._shape
+        reverse = False
+        layers = config["layer"] + [config["out_layer"]]
+
+        comment = f"// This function takes {input_size} elements array and returns {output_size} elements array\n"
+        signature = f""
+        start_func = "{\n"
+        end_func = "}\n"
+        transform_input_vector = ""
+        transform_output_array = ""
+        return_stat = "return answer;\n"
+
+        creator_1d: Callable[
+            [str, int, Optional[list]], str
+        ] = cpp_utils.array1d_creator("float")
+        creator_heap_1d: Callable[[str, int], str] = cpp_utils.array1d_heap_creator(
+            "float"
+        )
+        creator_2d: Callable[
+            [str, int, int, Optional[list]], str
+        ] = cpp_utils.array2d_creator("float")
+        if array_type == "[]":
+            signature = f"float* feedforward(float x_array[])\n"
+
+        if array_type == "vector":
+            signature = f"std::vector<float> feedforward(std::vector<float> x)\n"
+
+            transform_input_vector = cpp_utils.transform_1dvector_to_array(
+                "float", input_size, "x", "x_array"
+            )
+            transform_output_array = cpp_utils.transform_1darray_to_vector(
+                "float", output_size, "answer_vector", "answer"
+            )
+            return_stat = "return answer_vector;\n"
+
+        create_layers = ""
+        create_layers += creator_1d(f"layer_0", input_size, initial_value=0)
+        for i, size in enumerate(blocks):
+            create_layers += creator_1d(f"layer_{i + 1}", size, initial_value=0)
+        create_layers += creator_1d(
+            f"layer_{len(blocks) + 1}", output_size, initial_value=0
+        )
+        create_layers += cpp_utils.copy_1darray_to_array(
+            input_size, "x_array", "layer_0"
+        )
+
+        create_weights = ""
+        for i, layer_dict in enumerate(layers):
+            create_weights += creator_2d(
+                f"weight_{i}_{i + 1}",
+                layer_dict[LAYER_DICT_NAMES["inp_size"]],
+                layer_dict[LAYER_DICT_NAMES["shape"]],
+                layer_dict[LAYER_DICT_NAMES["weights"]],
+                reverse=reverse,
+            )
+
+        fill_weights = ""
+
+        create_biases = ""
+        for i, layer_dict in enumerate(layers):
+            create_biases += creator_1d(
+                f"bias_{i + 1}",
+                layer_dict[LAYER_DICT_NAMES["shape"]],
+                layer_dict[LAYER_DICT_NAMES["bias"]],
+            )
+
+        fill_biases = ""
+        feed_forward_cycles = ""
+        for i, layer_dict in enumerate(layers):
+            left_size = layer_dict[
+                LAYER_DICT_NAMES["inp_size"]
+            ]  # if i != 0 else input_size
+            right_size = layer_dict[LAYER_DICT_NAMES["shape"]]
+            act_func = layer_dict[LAYER_DICT_NAMES["activation"]]
+            decorator_params = layer_dict.get(LAYER_DICT_NAMES["decorator_params"])
+            feed_forward_cycles += cpp_utils.feed_forward_step(
+                f"layer_{i}",
+                left_size,
+                f"layer_{i + 1}",
+                right_size,
+                f"weight_{i}_{i + 1}",
+                f"bias_{i + 1}",
+                act_func,
+                decorator_params,
+            )
+
+        move_result = creator_heap_1d("answer", output_size)
+        move_result += cpp_utils.copy_1darray_to_array(
+            output_size, f"layer_{len(blocks) + 1}", "answer"
+        )
+
+        res += comment
+        res += signature
+        res += start_func
+        res += transform_input_vector
+        res += create_layers
+        res += create_weights
+        res += fill_weights
+        res += create_biases
+        res += fill_biases
+        res += feed_forward_cycles
+        res += move_result
+        res += transform_output_array
+        res += return_stat
+        res += end_func
+
+        header_res = f"""
+        #ifndef {path[0].upper() + path[1:]}_hpp
+        #define {path[0].upper() + path[1:]}_hpp
+        #include "{path}.cpp"
+
+        {comment}
+        {signature};
+
+        #endif /* {path[0].upper() + path[1:]}_hpp */
+
+                """
+
+        with open(path + ".cpp", "w") as f:
+            f.write(res)
+
+        with open(path + ".hpp", "w") as f:
+            f.write(header_res)
+
+        if path_to_compiler is not None:
+            os.system(path_to_compiler + " -c -Ofast " + path + ".cpp")
 
     @property
     def get_activations(self) -> List:
