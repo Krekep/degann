@@ -35,9 +35,9 @@ name_to_funcs = {
 # for func_name in ["LF_ODE_3", "NLF_ODE_2"]:
 # for func_name in ["LH_ODE_2", "NLF_ODE_1"]:
 distances = [
-    (distance_const(150), "dc,150,"),
-    (distance_const(200), "dc,200,"),
-    (distance_lin(30, 200), "dl,30_200,"),
+    (distance_const(300), "dc,300,"),
+    (distance_const(400), "dc,400,"),
+    (distance_lin(50, 400), "dl,50_400,"),
 ]
 for func_name in ["LH_ODE_1"]:
     nn_data_x = np.array([[i / 1000] for i in range(100, 1_001)])  # X data
@@ -52,7 +52,7 @@ for func_name in ["LH_ODE_1"]:
     nn_data_y = nn_data_y[train_idx, :]  # Y data
 
     # for loss_name in ["Huber", "MeanAbsolutePercentageError"]:
-    for loss_name in ["MeanAbsolutePercentageError"]:
+    for loss_name in ["MaxAbsoluteDeviation"]:
         for max_iter in [50]:
             for dist_m, dist_name in distances:
                 for neigh_m in [generate_neighbor, random_generate]:
@@ -79,7 +79,7 @@ for func_name in ["LH_ODE_1"]:
                                 i, net["block_size"], nn_loss, nn_epoch, end_t - start_t
                             )
 
-    for loss_name in ["MeanAbsolutePercentageError"]:
+    for loss_name in ["MaxAbsoluteDeviation"]:
         for opt in ["Adam"]:
             for max_iter in [50, 100, 150]:
                 print(max_iter)

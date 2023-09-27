@@ -15,8 +15,8 @@ class DenseNet(tf.keras.Model):
         block_size: list = None,
         output_size: int = 10,
         activation_func: str = "linear",
-        weight=keras.initializers.get("ones"),
-        biases=keras.initializers.get("zeros"),
+        weight=keras.initializers.RandomUniform(minval=-1, maxval=1),
+        biases=keras.initializers.RandomUniform(minval=-1, maxval=1),
         is_debug: bool = False,
         **kwargs,
     ):

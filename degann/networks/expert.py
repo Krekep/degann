@@ -24,32 +24,104 @@ _algorithms_for_random_generator = {
 }
 
 
-def update_random_generator():
-    new_g = tf.random.Generator.from_non_deterministic_state(
-        alg=_algorithms_for_random_generator[random.randint(0, len(_algorithms_for_random_generator) - 1)]
+def update_random_generator(curr_iter: int, cycle_size: int = 10) -> None:
+    """
+    Set global tensorflow random generator to random state every *cycle_size* times
 
-    )
-    tf.random.set_global_generator(
-        new_g
-    )
+    Parameters
+    ----------
+    curr_iter: int
+        Counter showing whether it's time to update the random number generator
+    cycle_size: int
+        How often should we update random number generator
+
+    Returns
+    -------
+    """
+    # if curr_iter % cycle_size == 0:
+    #     new_g = tf.random.Generator.from_non_deterministic_state(
+    #         alg=_algorithms_for_random_generator[random.randint(0, len(_algorithms_for_random_generator) - 1)]
+    #
+    #     )
+    #     tf.random.set_global_generator(
+    #         new_g
+    #     )
+    # else:
+    pass
 
 
-def temperature_exp(t, alpha, **kwargs):
+def temperature_exp(t: float, alpha: float, **kwargs) -> float:
+    """
+    Calculate new temperature for simulated annealing as *t * alpha*
+
+    Parameters
+    ----------
+    t: float
+        Current temperature
+    alpha: float
+        Exponential exponent
+
+    Returns
+    -------
+    new_t: float
+        New temperature
+    """
     return t * alpha
 
 
-def temperature_lin(k, k_max, **kwargs):
+def temperature_lin(k: int, k_max: int, **kwargs) -> float:
+    """
+    Calculate new temperature for simulated annealing as *1 - (k + 1) / k_max*
+
+    Parameters
+    ----------
+    k: float
+        Current iteration
+    k_max: float
+        Amount of all iterations
+
+    Returns
+    -------
+    new_t: float
+        New temperature
+    """
     return 1 - (k + 1) / k_max
 
 
-def distance_const(d):
-    def d_c(**kwargs):
+def distance_const(d: float) -> Callable:
+    """
+    Calculate distance to neighbour for simulated annealing as constant
+
+    Parameters
+    ----------
+    d: float
+        Constant distance
+
+    Returns
+    -------
+    d_c: Callable
+        Function returning a constant distance
+    """
+    def d_c(**kwargs) -> float:
         return d
 
     return d_c
 
 
 def distance_lin(offset, multiplier):
+    """
+    Calculate distance to neighbour for simulated annealing as *offset + temperature * multiplier*
+
+    Parameters
+    ----------
+    offset: float
+    multiplier: float
+
+    Returns
+    -------
+    d_l: Callable
+        Function returning a new distance depending on current temperature
+    """
     def d_l(temperature, **kwargs):
         return offset + temperature * multiplier
 
@@ -197,8 +269,8 @@ def random_search(
     best_net = None
     best_loss = 1e6
     best_epoch = None
-    for _ in range(iterations):
-        update_random_generator()
+    for i in range(iterations):
+        update_random_generator(i)
         gen = random_generate()
         b, a = decode(gen[0].value(), offset=8)
         curr_best = imodel.IModel(in_size, b, out_size, a + ["linear"])
@@ -308,8 +380,8 @@ def full_search_step(
     best_net = None
     best_loss = 1e6
     best_val_loss = 1e6
-    for _ in range(repeat):
-        update_random_generator()
+    for i in range(repeat):
+        update_random_generator(i)
         history = dict()
         b, a = decode(code, block_size=1, offset=offset)
         nn = imodel.IModel(1, b, 1, a + ["linear"])

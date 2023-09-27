@@ -34,7 +34,7 @@ nn_data_x = nn_data_x[train_idx, :]  # X data
 nn_data_y = nn_data_y[train_idx, :]  # Y data
 
 opt = "Adam"
-loss = "MeanAbsolutePercentageError"
+loss = "MaxAbsoluteDeviation"
 best_l = 1e6
 best_vl = 1e6
 best_nn = dict()

@@ -9,7 +9,7 @@ def choose_neighbor(method, **kwargs):
 
 
 def random_generate(**kwargs):
-    block = random.randint(1, 6)
+    block = random.randint(1, 4)
     code = ""
     for i in range(block):
         code += (
@@ -111,10 +111,12 @@ def generate_neighbor(parameters, distance: int = 150):
                         + alph_a[random.randint(0, len(alph_a) - 1)]
                     )
                     curr_code.blocks[chosen_block] = new_block
+                case _:
+                    pass
             distance -= abs(new_code.distance(curr_code))
             if distance < 0:
                 distance += abs(new_code.distance(curr_code))
-                tttt = abs(new_code.distance(curr_code))
+                temp_dist = abs(new_code.distance(curr_code))
                 print(
                     "DEBUG",
                     new_code.blocks,
@@ -122,11 +124,11 @@ def generate_neighbor(parameters, distance: int = 150):
                     chosen_block,
                     command,
                     distance,
-                    tttt,
+                    temp_dist,
                 )
-                distance -= tttt
+                distance -= temp_dist
             new_code = curr_code
-        is_stop = random.randint(0, 1)
+        is_stop = random.randint(0, 2)
     return new_code, new_epoch
 
 
@@ -140,6 +142,7 @@ class MetaParameter:
 
 class CodeParameter(MetaParameter):
     block_size = 1
+    exp_size = 10
 
     def __init__(self, s):
         if isinstance(s, CodeParameter):
@@ -171,7 +174,7 @@ class CodeParameter(MetaParameter):
         for i in range(min(len(act_a), len(act_b))):
             if act_a[i] != act_b[i]:
                 diff += 1
-        diff += abs(len(act_a) - len(act_b))
+        diff += CodeParameter.exp_size ** abs(len(act_a) - len(act_b))
         return abs(val_a - val_b) + diff
 
     def value(self):
