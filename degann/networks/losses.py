@@ -57,24 +57,40 @@ class MaxAbsoluteDeviation(tf.keras.losses.Loss, ABC):
         return loss
 
 
+class MaxAbsolutePercentageError(tf.keras.losses.Loss, ABC):
+    def __init__(
+        self, reduction=tf.keras.losses.Reduction.NONE, name="maxAPE", **kwargs
+    ):
+        super(MaxAbsolutePercentageError, self).__init__(
+            reduction=reduction, name=name, **kwargs
+        )
+
+    def __call__(self, y_true, y_pred, sample_weight=None):
+        loss = tf.math.reduce_max(tf.math.abs((y_true - y_pred) / y_true))
+        return loss
+
+
+class RMSE(tf.keras.losses.Loss, ABC):
+    def __init__(
+        self, reduction=tf.keras.losses.Reduction.NONE, name="maxAPE", **kwargs
+    ):
+        super(RMSE, self).__init__(reduction=reduction, name=name, **kwargs)
+
+    def __call__(self, y_true, y_pred, sample_weight=None):
+        loss = tf.math.sqrt(tf.math.reduce_mean((y_pred - y_true) ** 2))
+        return loss
+
+
 # Reduction should be set to None?
 _losses: dict = {
-    # "BinaryCrossentropy": keras.losses.BinaryCrossentropy(),                        # Not usable in my task
-    # "BinaryFocalCrossentropy": keras.losses.BinaryFocalCrossentropy(),              # Not usable in my task
-    # "CategoricalCrossentropy": keras.losses.CategoricalCrossentropy(),              # Not usable in my task
-    # "CategoricalHinge": keras.losses.CategoricalHinge(),                            # Not usable in my task
-    # "CosineSimilarity": keras.losses.CosineSimilarity(),                            # Not usable in my task
-    # "Hinge": keras.losses.Hinge(),                                                  # Not usable in my task
-    # "SparseCategoricalCrossentropy": keras.losses.SparseCategoricalCrossentropy(),  # Not usable in my task
-    # "SquaredHinge": keras.losses.SquaredHinge(),                                    # Not usable in my task
     "Huber": keras.losses.Huber(),
-    # "KLDivergence": keras.losses.KLDivergence(),  # cant calculate log by negative value
     "LogCosh": keras.losses.LogCosh(),
     "MeanAbsoluteError": keras.losses.MeanAbsoluteError(),
     "MeanAbsolutePercentageError": keras.losses.MeanAbsolutePercentageError(),
+    "MaxAbsolutePercentageError": MaxAbsolutePercentageError(),
     "MeanSquaredError": keras.losses.MeanSquaredError(),
+    "RootMeanSquaredError": RMSE(),
     "MeanSquaredLogarithmicError": keras.losses.MeanSquaredLogarithmicError(),
-    # "Poisson": keras.losses.Poisson(),  # cant calculate log by negative value
     "RelativeError": RelativeError(),
     "RelativeAbsoluteError": RelativeAbsoluteError(),
     "MaxAbsoluteDeviation": MaxAbsoluteDeviation(),

@@ -60,7 +60,7 @@ def build_plot(
     title: str
         Title for plot
     labels: list[str]
-        Labels for each network and true data
+        Labels for each network and `true` data
     true_data: tuple[list, list]
         x and f(x)
     is_debug: bool

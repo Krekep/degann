@@ -3,7 +3,7 @@ import numpy as np
 from degann.equations import build_plot
 from degann.networks import callbacks
 from degann.networks.imodel import IModel
-from degann.testlaunches.functions import NLF_ODE_1_solution
+from experiments.functions import NLF_ODE_1_solution
 
 
 def mean(a):

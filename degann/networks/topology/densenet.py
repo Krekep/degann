@@ -308,9 +308,9 @@ class DenseNet(tf.keras.Model):
 
         config = self.to_dict(**kwargs)
 
-        input_size = self._input_size
-        output_size = self._output_size
-        blocks = self._shape
+        input_size = self.input_size
+        output_size = self.output_size
+        blocks = self.block_size
         reverse = False
         layers = config["layer"] + [config["out_layer"]]
 
