@@ -16,6 +16,9 @@
 - Export Neural Networks as a Parameter Set
 - Import Neural Networks from a Parameter Set
 - Building a dataset with complete training results for approximating the solution of a differential equation for each neural network that participated in training
+- Advanced search for optimal topology using a language that describes the topology of a neural network
+- Random search for optimal neural network topology
+- Method for simulating annealing of optimal neural network topology
 
 ## Install
 

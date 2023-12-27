@@ -5,7 +5,6 @@ import numpy as np
 
 from degann import (
     full_search_step,
-    LH_ODE_1_solution,
     alph_n_full,
     alph_a,
     IModel,
@@ -17,6 +16,7 @@ from degann import (
     random_generate,
     distance_lin,
 )
+from experiments.functions import LH_ODE_1_solution
 
 code = "e8e6e6"
 

@@ -3,17 +3,6 @@ from random import randint
 
 import numpy as np
 
-from degann import (
-    LF_ODE_1_solution,
-    MeasureTrainTime,
-    LH_ODE_1_solution,
-    LF_ODE_3_solution,
-    LH_ODE_2_solution,
-    NLF_ODE_1_solution,
-    NLF_ODE_2_solution,
-)
-from degann.networks import imodel
-from degann.networks.nn_code import decode
 from degann.networks.expert import (
     simulated_annealing,
     distance_const,
@@ -23,6 +12,14 @@ from degann.networks.expert import (
     random_search,
 )
 from degann.networks.generate import generate_neighbor, random_generate
+from experiments.functions import (
+    LF_ODE_1_solution,
+    LH_ODE_1_solution,
+    LF_ODE_3_solution,
+    LH_ODE_2_solution,
+    NLF_ODE_1_solution,
+    NLF_ODE_2_solution,
+)
 
 name_to_funcs = {
     "LF_ODE_1": LF_ODE_1_solution,
@@ -54,7 +51,7 @@ for func_name in ["LH_ODE_1"]:
 
     # for loss_name in ["Huber", "MeanAbsolutePercentageError", "MaxAbsoluteDeviation"]:
     for loss_name in ["MeanAbsolutePercentageError"]:
-        for max_iter in [50]:
+        for max_iter in [100]:
             for dist_m, dist_name in distances:
                 for neigh_m in [generate_neighbor, random_generate]:
                     for temp_m in [temperature_lin, temperature_exp]:
@@ -81,24 +78,24 @@ for func_name in ["LH_ODE_1"]:
                                 i, net["block_size"], nn_loss, nn_epoch, end_t - start_t
                             )
 
-    for loss_name in ["MeanAbsolutePercentageError"]:
-        for opt in ["Adam"]:
-            for max_iter in [50, 100, 150]:
-                print(max_iter)
-                launches = 10
-                for i in range(launches):
-                    start_t = time.perf_counter()
-                    nn_loss, nn_epoch, loss_f, opt_n, net = random_search(
-                        1,
-                        1,
-                        iterations=max_iter,
-                        opt=opt,
-                        data=(nn_data_x, nn_data_y),
-                        val_data=(val_data_x, val_data_y),
-                        loss=loss_name,
-                        update_gen_cycle=10,
-                        logging=True,
-                        file_name=f"{func_name}_{max_iter}",
-                    )
-                    end_t = time.perf_counter()
-                    print(i, net["block_size"], nn_loss, nn_epoch, end_t - start_t)
+    # for loss_name in ["MeanAbsolutePercentageError"]:
+    #     for opt in ["Adam"]:
+    #         for max_iter in [50, 100, 150]:
+    #             print(max_iter)
+    #             launches = 10
+    #             for i in range(launches):
+    #                 start_t = time.perf_counter()
+    #                 nn_loss, nn_epoch, loss_f, opt_n, net = random_search(
+    #                     1,
+    #                     1,
+    #                     iterations=max_iter,
+    #                     opt=opt,
+    #                     data=(nn_data_x, nn_data_y),
+    #                     val_data=(val_data_x, val_data_y),
+    #                     loss=loss_name,
+    #                     update_gen_cycle=10,
+    #                     logging=True,
+    #                     file_name=f"{func_name}_{max_iter}",
+    #                 )
+    #                 end_t = time.perf_counter()
+    #                 print(i, net["block_size"], nn_loss, nn_epoch, end_t - start_t)

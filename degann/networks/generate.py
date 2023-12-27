@@ -32,7 +32,7 @@ def generate_neighbor(parameters, distance: int = 150):
         curr_code = CodeParameter(new_code.value())
         if branch < 0.33:  # change epoch
             sign = random.random()
-            if sign < 0.5:  # new epoch more than previous
+            if sign < 0.66:  # new epoch more than previous
                 new_epoch = EpochParameter(
                     min(
                         random.randint(
@@ -128,7 +128,7 @@ def generate_neighbor(parameters, distance: int = 150):
                 )
                 distance -= temp_dist
             new_code = curr_code
-        is_stop = random.randint(0, 2)
+        is_stop = random.randint(0, 3)
     return new_code, new_epoch
 
 

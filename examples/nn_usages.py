@@ -4,6 +4,7 @@ import numpy as np
 
 from degann.networks import losses, callbacks
 from degann.networks import IModel
+from experiments.functions import LF_ODE_1_solution, ST_S_ODE_3_table
 from tests.utils import init_params
 
 #
@@ -182,8 +183,6 @@ plt.show()
 # Train two networks with different activations and optimizers for predict solution of y' + 3y = 0
 #
 
-from degann.testlaunches.functions import LF_ODE_1_solution, ST_S_ODE_3_table
-
 x_data = np.array([[i / 50] for i in range(0, 51)])  # X data, 200 points
 f_x_data = np.array([LF_ODE_1_solution(x) for x in x_data])  # Y data
 
@@ -236,7 +235,7 @@ for opt in optimizers:
         (0.0, 1.0),
         0.001,
         title=opt,
-        labels=[acts[0][0], acts[1][1], "f(x) = e^(3x)"],
+        labels=[acts[0][0], acts[1][0], acts[2][0], "f(x) = e^(3x)"],
         true_data=(x_data, f_x_data),
     )
 

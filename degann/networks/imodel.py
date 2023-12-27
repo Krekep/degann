@@ -1,14 +1,12 @@
 import json
-import os
 from collections import defaultdict
-from typing import List, Callable, Optional, Dict
+from typing import List, Optional, Dict
 
-import keras.initializers
 import numpy as np
 import tensorflow as tf
+from tensorflow import keras
 
-from degann.networks import cpp_utils
-from degann.networks.config_format import LAYER_DICT_NAMES, HEADER_OF_FILE
+from degann.networks.config_format import HEADER_OF_FILE
 from degann.networks.topology.densenet import DenseNet
 
 
@@ -56,8 +54,8 @@ class IModel(object):
         block_size: List[int],
         output_size: int,
         activation_func="sigmoid",
-        weight_init=tf.random_normal_initializer(),
-        bias_init=tf.random_normal_initializer(),
+        weight_init=tf.random_uniform_initializer(minval=-1, maxval=1),
+        bias_init=tf.random_uniform_initializer(minval=-1, maxval=1),
         name="net",
         net_type="DenseNet",
         is_debug=False,

@@ -6,7 +6,6 @@ from degann import decode
 from degann.equations import build_plot
 from degann.networks import callbacks
 from degann.networks.imodel import IModel
-from degann.testlaunches.functions import ST_S_ODE_3_table
 
 
 def mean(a):
