@@ -3,18 +3,16 @@ import math
 import random
 from datetime import datetime
 from itertools import product
-from typing import Callable, List, Tuple
+from typing import Callable, List
 
 import numpy.random
 import tensorflow as tf
 
 from degann.networks.callbacks import MeasureTrainTime
 from degann.networks import imodel
-from degann.networks.nn_code import decode
-from degann.networks.generate import (
+from degann.expert.nn_code import decode, alph_n_full, alphabet_activations
+from degann.expert.generate import (
     choose_neighbor,
-    EpochParameter,
-    CodeParameter,
     random_generate,
     generate_neighbor,
 )
@@ -48,23 +46,36 @@ def update_random_generator(curr_iter: int, cycle_size: int = 0) -> None:
         pass
 
 
-def temperature_exp(t: float, alpha: float, **kwargs) -> float:
+def temperature_exp(alpha: float) -> Callable[[float], float]:
     """
     Calculate new temperature for simulated annealing as *t * alpha*
 
     Parameters
     ----------
-    t: float
-        Current temperature
     alpha: float
         Exponential exponent
 
     Returns
     -------
-    new_t: float
-        New temperature
+    t_e: Callable[[float], float]
+        Temperature function
     """
-    return t * alpha
+
+    def t_e(t: float) -> float:
+        """
+        Parameters
+        ----------
+        t: float
+            Current temperature
+
+        Returns
+        -------
+        new_t: float
+            New temperature
+        """
+        return t * alpha
+
+    return t_e
 
 
 def temperature_lin(k: int, k_max: int, **kwargs) -> float:
@@ -143,22 +154,39 @@ def simulated_annealing(
     out_size,
     data,
     val_data=None,
-    k_max: int = 100,
+    max_iter: int = 100,
     threshold: float = -1,
     start_net: dict = None,
     method: Callable = generate_neighbor,
     temperature_method: Callable = temperature_lin,
     distance_method: Callable = distance_const(150),
+    min_epoch=100,
+    max_epoch=700,
     opt: str = "Adam",
     loss: str = "Huber",
+    nn_min_length: int = 1,
+    nn_max_length: int = 6,
+    nn_alphabet: list[str] = [
+        "".join(elem) for elem in product(alph_n_full, alphabet_activations)
+    ],
+    alphabet_block_size: int = 1,
+    alphabet_offset: int = 8,
     update_gen_cycle: int = 0,
     callbacks: list = None,
     file_name: str = "",
     logging: bool = False,
 ):
-    gen = random_generate()
+    gen = random_generate(
+        min_epoch=min_epoch,
+        max_epoch=max_epoch,
+        min_length=nn_min_length,
+        max_length=nn_max_length,
+        alphabet=nn_alphabet,
+    )
     if start_net is None:
-        b, a = decode(gen[0].value(), offset=8)
+        b, a = decode(
+            gen[0].value(), block_size=alphabet_block_size, offset=alphabet_offset
+        )
         curr_best = imodel.IModel(in_size, b, out_size, a + ["linear"])
         curr_best.compile(optimizer=opt, loss_func=loss)
     else:
@@ -196,20 +224,30 @@ def simulated_annealing(
         fn = f"{file_name}_{len(data[0])}_0_{loss}_{opt}"
         log_to_file(history, fn)
 
-    gen = (CodeParameter(gen[0].value()), EpochParameter(gen[1].value()))
     k = 0
     t = 1
-    while k < k_max - 1 and curr_loss > threshold:
+    while k < max_iter - 1 and curr_loss > threshold:
         history = dict()
 
         update_random_generator(k, cycle_size=update_gen_cycle)
-        t = temperature_method(k=k, k_max=k_max, t=1, alpha=0.95)
+        t = temperature_method(k=k, k_max=max_iter, t=t)
         distance = distance_method(temperature=t)
 
         gen_neighbor = choose_neighbor(
-            method, parameters=(gen[0].value(), gen[1].value()), distance=distance
+            method,
+            alphabet=nn_alphabet,
+            parameters=(gen[0].value(), gen[1].value()),
+            distance=distance,
+            min_epoch=min_epoch,
+            max_epoch=max_epoch,
+            min_length=nn_min_length,
+            max_length=nn_max_length,
         )
-        b, a = decode(gen_neighbor[0].value(), offset=8)
+        b, a = decode(
+            gen_neighbor[0].value(),
+            block_size=alphabet_block_size,
+            offset=alphabet_offset,
+        )
         neighbor = imodel.IModel(in_size, b, out_size, a + ["linear"])
         neighbor.compile(optimizer=opt, loss_func=loss)
         neighbor_hist = neighbor.train(
@@ -269,9 +307,18 @@ def random_search(
     opt,
     loss,
     iterations,
+    min_epoch=100,
+    max_epoch=700,
     val_data=None,
     callbacks=None,
     logging=False,
+    nn_min_length: int = 1,
+    nn_max_length: int = 6,
+    nn_alphabet: list[str] = [
+        "".join(elem) for elem in product(alph_n_full, alphabet_activations)
+    ],
+    alphabet_block_size: int = 1,
+    alphabet_offset: int = 8,
     update_gen_cycle: int = 0,
     file_name: str = "",
 ):
@@ -281,8 +328,17 @@ def random_search(
     for i in range(iterations):
         history = dict()
         update_random_generator(i, cycle_size=update_gen_cycle)
-        gen = random_generate()
-        b, a = decode(gen[0].value(), offset=8)
+        gen = random_generate(
+            min_epoch=min_epoch,
+            max_epoch=max_epoch,
+            min_length=nn_min_length,
+            max_length=nn_max_length,
+            alphabet=nn_alphabet,
+        )
+
+        b, a = decode(
+            gen[0].value(), block_size=alphabet_block_size, offset=alphabet_offset
+        )
         curr_best = imodel.IModel(in_size, b, out_size, a + ["linear"])
         curr_best.compile(optimizer=opt, loss_func=loss)
         curr_epoch = gen[1].value()
@@ -326,8 +382,17 @@ def random_search_endless(
     loss,
     threshold,
     max_iter=-1,
+    min_epoch=100,
+    max_epoch=700,
     val_data=None,
     callbacks=None,
+    nn_min_length: int = 1,
+    nn_max_length: int = 6,
+    nn_alphabet: list[str] = [
+        "".join(elem) for elem in product(alph_n_full, alphabet_activations)
+    ],
+    alphabet_block_size: int = 1,
+    alphabet_offset: int = 8,
     logging=False,
     file_name: str = "",
     verbose=False,
@@ -339,7 +404,14 @@ def random_search_endless(
         opt,
         loss,
         1,
+        min_epoch=min_epoch,
+        max_epoch=max_epoch,
         val_data=val_data,
+        nn_min_length=nn_min_length,
+        nn_max_length=nn_max_length,
+        nn_alphabet=nn_alphabet,
+        alphabet_block_size=alphabet_block_size,
+        alphabet_offset=alphabet_offset,
         callbacks=callbacks,
         logging=logging,
         file_name=file_name,
@@ -360,6 +432,8 @@ def random_search_endless(
             opt,
             loss,
             1,
+            min_epoch=min_epoch,
+            max_epoch=max_epoch,
             val_data=val_data,
             callbacks=callbacks,
             logging=logging,
@@ -374,13 +448,16 @@ def random_search_endless(
 
 
 def full_search_step(
-    code,
-    num_epoch,
-    opt,
-    loss,
+    in_size: int,
+    out_size: int,
+    code: str,
+    num_epoch: int,
+    opt: str,
+    loss: str,
     data,
     repeat: int = 1,
-    offset: int = 8,
+    alphabet_block_size: int = 1,
+    alphabet_offset: int = 8,
     val_data=None,
     update_gen_cycle: int = 0,
     logging=False,
@@ -393,8 +470,8 @@ def full_search_step(
     for i in range(repeat):
         update_random_generator(i, cycle_size=update_gen_cycle)
         history = dict()
-        b, a = decode(code, block_size=1, offset=offset)
-        nn = imodel.IModel(1, b, 1, a + ["linear"])
+        b, a = decode(code, block_size=alphabet_block_size, offset=alphabet_offset)
+        nn = imodel.IModel(in_size, b, out_size, a + ["linear"])
         nn.compile(optimizer=opt, loss_func=loss)
         temp_his = nn.train(
             data[0], data[1], epochs=num_epoch, verbose=0, callbacks=callbacks
@@ -425,12 +502,21 @@ def full_search_step(
 
 
 def full_search(
+    in_size: int,
+    out_size: int,
     data: tuple,
-    net_size: Tuple[int, int],
-    alph,
-    epoch_bound: Tuple[int, int, int],
-    optimizers: List[str],
-    losses: List[str],
+    opt: List[str],
+    loss: List[str],
+    min_epoch: int = 100,
+    max_epoch: int = 700,
+    epoch_step: int = 50,
+    nn_min_length: int = 1,
+    nn_max_length: int = 6,
+    nn_alphabet: list[str] = [
+        "".join(elem) for elem in product(alph_n_full, alphabet_activations)
+    ],
+    alphabet_block_size: int = 1,
+    alphabet_offset: int = 8,
     val_data=None,
     logging=False,
     file_name: str = "",
@@ -442,21 +528,25 @@ def full_search(
     best_loss_func = None
     best_opt = None
     time_viewer = MeasureTrainTime()
-    for i in range(net_size[0], net_size[1] + 1):
+    for i in range(nn_min_length, nn_max_length + 1):
         if verbose:
             print(i, datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
-        codes = product(alph, repeat=i)
+        codes = product(nn_alphabet, repeat=i)
         for elem in codes:
             code = "".join(elem)
-            for epoch in range(epoch_bound[0], epoch_bound[1] + 1, epoch_bound[2]):
-                for opt in optimizers:
-                    for loss in losses:
+            for epoch in range(min_epoch, max_epoch + 1, epoch_step):
+                for opt in opt:
+                    for loss_func in loss:
                         curr_loss, curr_val_loss, curr_nn = full_search_step(
+                            in_size=in_size,
+                            out_size=out_size,
                             code=code,
                             num_epoch=epoch,
                             opt=opt,
-                            loss=loss,
+                            loss=loss_func,
                             data=data,
+                            alphabet_block_size=alphabet_block_size,
+                            alphabet_offset=alphabet_offset,
                             val_data=val_data,
                             callbacks=[time_viewer],
                             logging=logging,
@@ -466,6 +556,6 @@ def full_search(
                             best_net = curr_nn
                             best_loss = curr_loss
                             best_epoch = epoch
-                            best_loss_func = (loss,)
+                            best_loss_func = (loss_func,)
                             best_opt = opt
     return best_loss, best_epoch, best_loss_func, best_opt, best_net

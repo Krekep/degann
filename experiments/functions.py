@@ -125,18 +125,6 @@ def ST_S_ODE_3_table(points_array: list, interval: Tuple[float, float] = (0, 40)
     y0 = 1, 0, 0
     # Solve, using a method resilient to stiff ODEs.
     soln = solve_ivp(roberts_deriv, (t0, tf), y0, t_eval=times, method="Radau")
-    # print(soln.nfev, "evaluations required.")
-
-    # Plot the concentrations as a function of time. Scale [Y] by 10**YFAC
-    # so its variation is visible on the same axis used for [X] and [Z].
-    # YFAC = 4
-    # plt.plot(soln.t, soln.y[0], label='[X]')
-    # plt.plot(soln.t, 10 ** YFAC * soln.y[1], label=r'$10^{}\times$[Y]'.format(YFAC))
-    # plt.plot(soln.t, soln.y[2], label='[Z]')
-    # plt.xlabel('time /s')
-    # plt.ylabel('concentration /arb. units')
-    # plt.legend()
-    # plt.show()
 
     t = soln.t
     y = soln.y

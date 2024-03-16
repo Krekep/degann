@@ -1,19 +1,11 @@
-from itertools import product
-
 import numpy as np
 
 from degann import MeasureTrainTime
-from degann.networks.nn_code import (
-    alph_n_full,
-    alph_a,
-    alph_n_div3,
-    alph_n_div2,
-)
-from degann.networks.expert import random_search_endless
+
+from degann.expert.search_algorithms import random_search_endless
 import gen_dataset
 
 opt = "Adam"
-num_epoch = 250
 
 losses = {
     "MeanAbsolutePercentageError": [50, 25, 10],
@@ -24,19 +16,30 @@ losses = {
 max_iter = 1000
 time_viewer = MeasureTrainTime()
 
+input_size = 1
+
 for func, func_name in gen_dataset.funcs:
     for size in gen_dataset.sizes_of_samples:
         train_data_x, train_data_y = np.genfromtxt(
-            f"data/{func_name}_{size}_train.csv", delimiter=",", unpack=True
+            f"data/{func_name}_{size}_train.csv",
+            delimiter=",",
+            usecols=list(range(input_size)),
+        ), np.genfromtxt(
+            f"data/{func_name}_{size}_train.csv",
+            delimiter=",",
+            unpack=True,
+            usecols=[input_size],
         )
         val_data_x, val_data_y = np.genfromtxt(
-            f"data/{func_name}_{size}_validate.csv", delimiter=",", unpack=True
+            f"data/{func_name}_{size}_validate.csv",
+            delimiter=",",
+            usecols=list(range(input_size)),
+        ), np.genfromtxt(
+            f"data/{func_name}_{size}_validate.csv",
+            delimiter=",",
+            unpack=True,
+            usecols=[input_size],
         )
-
-        train_data_x, train_data_y = train_data_x.reshape(-1, 1), train_data_y.reshape(
-            -1, 1
-        )
-        val_data_x, val_data_y = val_data_x.reshape(-1, 1), val_data_y.reshape(-1, 1)
 
         for loss in losses:
             for threshold in losses[loss]:
@@ -54,7 +57,7 @@ for func, func_name in gen_dataset.funcs:
                         net,
                         iter_count,
                     ) = random_search_endless(
-                        1,
+                        3,
                         1,
                         data=(train_data_x, train_data_y),
                         opt=opt,

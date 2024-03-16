@@ -10,47 +10,6 @@ import numpy as np
 from degann.networks import imodel
 
 
-def export_network(path: str, net: imodel.IModel) -> None:
-    """
-    !DEPRECATED!
-    This method saves the neural network to a file
-    using the pickle library functions.
-
-    Parameters
-    ----------
-    path: str
-        Path to file
-    net: network.INetwork
-        Neural network to be saved
-    Returns
-    -------
-    None
-    """
-    with open(path, "wb") as file:
-        pickle.dump(net, file)
-
-
-def import_network(path: str) -> imodel.IModel:
-    """
-    !DEPRECATED!
-    This method loads the neural network from a file
-    using the pickle library functions.
-
-    Parameters
-    ----------
-    path: str
-        Path to file
-
-    Returns
-    -------
-    net: network.INetwork
-        Neural network to be loaded
-    """
-    with open(path, "rb") as file:
-        net = pickle.load(file)
-    return net
-
-
 def import_csv_table(path: str) -> np.ndarray:
     """
     Import csv table as numpy array.

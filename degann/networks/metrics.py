@@ -62,32 +62,6 @@ class MeanDeviation(tf.keras.losses.Loss, ABC):
 
 
 _metrics: dict = {
-    # "AUC": keras.metrics.AUC(),                                                         # Not usable in my task
-    # "Accuracy": keras.metrics.Accuracy(),                                               # Not usable in my task
-    # "BinaryAccuracy": keras.metrics.BinaryAccuracy(),                                   # Not usable in my task
-    # "BinaryIoU": keras.metrics.BinaryIoU(),                                             # Not usable in my task
-    # "FalseNegatives": keras.metrics.FalseNegatives(),                                   # Not usable in my task
-    # "FalsePositives": keras.metrics.FalsePositives(),                                   # Not usable in my task
-    # "IoU": keras.metrics.IoU(),                                                         # Not usable in my task
-    # "MeanIoU": keras.metrics.MeanIoU(),                                                 # Not usable in my task
-    # "OneHotIoU": keras.metrics.OneHotIoU(),                                             # Not usable in my task
-    # "OneHotMeanIoU": keras.metrics.OneHotMeanIoU(),                                     # Not usable in my task
-    # "Precision": keras.metrics.Precision(),                                             # Not usable in my task
-    # "PrecisionAtRecall": keras.metrics.PrecisionAtRecall(),                             # Not usable in my task
-    # "Recall": keras.metrics.Recall(),                                                   # Not usable in my task
-    # "RecallAtPrecision": keras.metrics.RecallAtPrecision(),                             # Not usable in my task
-    # "SensitivityAtSpecificity": keras.metrics.SensitivityAtSpecificity(),               # Not usable in my task
-    # "SparseCategoricalAccuracy": keras.metrics.SparseCategoricalAccuracy(),             # Not usable in my task
-    # "SparseTopKCategoricalAccuracy": keras.metrics.SparseTopKCategoricalAccuracy(),     # Not usable in my task
-    # "SpecificityAtSensitivity": keras.metrics.SpecificityAtSensitivity(),               # Not usable in my task
-    # "Sum": keras.metrics.Sum(),                                                         # Not usable in my task
-    # "TopKCategoricalAccuracy": keras.metrics.TopKCategoricalAccuracy(),                 # Not usable in my task
-    # "TrueNegatives": keras.metrics.TrueNegatives(),                                     # Not usable in my task
-    # "TruePositives": keras.metrics.TruePositives(),                                     # Not usable in my task
-    #
-    # "Mean": keras.metrics.Mean(),  # Not usable in my task? Take only one collection of values (not y_true and y_pred)
-    # "MeanRelativeError": keras.metrics.MeanRelativeError( * need normalize |y_true - y_pred| / normalizer * ),                             # Not usable in my task?
-    # "MeanTensor": keras.metrics.MeanTensor(),  # Not usable in my task? Take only one collection of values (not y_true and y_pred)
     "RootMeanSquaredError": keras.metrics.RootMeanSquaredError(),
     "InlierRatio": InlierRatio(),
     "MaxDeviation": MaxDeviation(),

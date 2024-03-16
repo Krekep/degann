@@ -6,7 +6,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
-from degann.networks.config_format import HEADER_OF_FILE
+from degann.networks.config_format import HEADER_OF_APG_FILE
 from degann.networks.topology.densenet import DenseNet
 
 
@@ -326,7 +326,7 @@ class IModel(object):
         """
         config = self.to_dict(**kwargs)
         with open(path + ".apg", "w") as f:
-            f.write(HEADER_OF_FILE + json.dumps(config, indent=2))
+            f.write(HEADER_OF_APG_FILE + json.dumps(config, indent=2))
 
     def from_dict(self, config, **kwargs):
         """
@@ -359,7 +359,7 @@ class IModel(object):
 
         """
         with open(path + ".apg", "r") as f:
-            for header in range(HEADER_OF_FILE.count("\n")):
+            for header in range(HEADER_OF_APG_FILE.count("\n")):
                 # TODO: check version compability
                 _ = f.readline()
             config_str = ""

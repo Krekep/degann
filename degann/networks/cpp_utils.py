@@ -218,7 +218,6 @@ def feed_forward_step(
     weight_name: str,
     bias_name: str,
     activation_func: str,
-    decorator_params: list = None,
 ) -> str:
     res = f"""
     for (int i = 0; i < {right_size}; i++)
@@ -228,40 +227,43 @@ def feed_forward_step(
             {right_name}[i] += {weight_name}[j][i] * {left_name}[j];
         }}
         {right_name}[i] += {bias_name}[i];
-        {activation_to_cpp_template(right_name + "[i]", activation_func, decorator_params)}
+        {activation_to_cpp_template(right_name + "[i]", activation_func)}
     }}
     """
 
     return res
 
 
-def activation_to_cpp_template(
-    name: str, activation_name: str, decorator_params: list = None
-) -> str:
+def activation_to_cpp_template(name: str, activation_name: str) -> str:
+    """
+    Build code for activation function by function name and variable name
+
+    Parameters
+    ----------
+    name: str
+        Name of variable
+    activation_name: str
+        Name of activation func
+
+    Returns
+    -------
+    c_activation: str
+        Translated activation
+    """
     d = {
         "linear": lambda x: f"{x} = {x};\n",
         "elu": lambda x: f"if ({x} >= 0) {x} = {x}; else {x} = 1.0 * (exp({x}) - 1);\n",
-        "gelu": lambda x: f"0.5 * {x} * (1 + tanh(sqrt(2 / 3.14159265) * ({x} + 0.044715 * {x} * {x} * {x})))",
-        "relu": lambda x: f"{x} = max({x}, 0);\n",
+        "gelu": lambda x: f"{x} = 0.5 * {x} * (1 + tanh(sqrt(2 / 3.14159265) * ({x} + 0.044715 * {x} * {x} * {x})))",
+        "relu": lambda x: f"{x} = std::max({x}, 0.0f);\n",
         "selu": lambda x: f"if ({x} >= 0) {x} = 1.05070098 * {x}; else {x} = 1.05070098 * 1.67326324 * (exp({x}) - 1);\n",
         "exponential": lambda x: f"{x} = exp({x});\n",
         "hard_sigmoid": lambda x: f"if ({x} < -2.5) {x} = 0; else if ({x} > 2.5) {x} = 1; else {x} = 0.2 * {x} + 0.5;\n",
         "sigmoid": lambda x: f"{x} = 1 / (1 + exp(-{x}));\n",
         "softplus": lambda x: f"{x} = log(exp({x}) + 1);\n",
         "softsign": lambda x: f"{x} = {x} / (abs({x}) + 1.0);\n",
-        # "softmax": lambda x: ,
         "swish": lambda x: f"{x} = {x} / (1 + exp(-{x}));\n",
         "tanh": lambda x: f"{x} = ((exp({x}) - exp(-{x}))/(exp({x}) + exp(-{x})));\n",
     }
-
-    # if activation_name == "perceptron_threshold":
-    #     d.update(
-    #         {
-    #             "perceptron_threshold": lambda x: _fill_values(
-    #                 f"if ({x} >= threshold) {x} = 1; else {x} = 0;\n", decorator_params
-    #             )
-    #         }
-    #     )
 
     return d[activation_name](name)
 

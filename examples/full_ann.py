@@ -6,7 +6,6 @@ import numpy as np
 from degann import (
     full_search_step,
     alph_n_full,
-    alph_a,
     IModel,
     simulated_annealing,
     temperature_exp,

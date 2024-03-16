@@ -3,15 +3,14 @@ from random import randint
 
 import numpy as np
 
-from degann.networks.expert import (
+from degann.expert.search_algorithms import (
     simulated_annealing,
     distance_const,
     distance_lin,
     temperature_lin,
     temperature_exp,
-    random_search,
 )
-from degann.networks.generate import generate_neighbor, random_generate
+from degann.expert.generate import generate_neighbor, random_generate
 from experiments.functions import (
     LF_ODE_1_solution,
     LH_ODE_1_solution,

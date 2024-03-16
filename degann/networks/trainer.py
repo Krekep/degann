@@ -452,7 +452,6 @@ def experiments_train(
     return nets_param, history, val_history
 
 
-# @profile
 def full_search(
     x_data: np.ndarray, y_data: np.ndarray, x_val=None, y_val=None, **kwargs
 ) -> list[list[dict, float, float, imodel.IModel]]:
@@ -577,19 +576,11 @@ def _load_network_shapes() -> list[list[int]]:
     -------
     shapes: list[list[int]]
     """
-    return [
-        [10, 10, 10],
-        [10, 10, 10, 10, 10, 10],
-        [4, 8, 16, 32],
-        [32, 16, 8, 4],
-        [100, 100, 100],
-        [],
-    ]
-    # res = []
-    # with open("../resource/network_shapes.txt", "r") as f:
-    #     for line in f.readlines():
-    #         res.append(list(map(int, line.split())))
-    # return res
+    res = []
+    with open("../resource/network_shapes.txt", "r") as f:
+        for line in f.readlines():
+            res.append(list(map(int, line.split())))
+    return res
 
 
 temp = _load_network_shapes()

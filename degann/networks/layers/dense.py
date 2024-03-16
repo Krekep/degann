@@ -133,6 +133,7 @@ class MyDense(keras.layers.Layer):
     def from_dict(self, config):
         """
         Restore layer from dictionary of parameters
+
         Parameters
         ----------
         config

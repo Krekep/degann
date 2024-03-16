@@ -7,33 +7,6 @@ from tensorflow import Tensor
 from degann.networks.layers.dense import MyDense
 
 
-def _check_dimension(x) -> tuple:
-    """
-    Check that x have at least 2 dimension and complement otherwise
-
-    :param x:
-    :return:
-    """
-
-    if isinstance(x, list):
-        if len(x) != 0:
-            if isinstance(x[0], list):
-                return True, np.array(x)
-            else:
-                return True, np.array([x])
-        return False, None
-    if isinstance(x, np.ndarray):
-        if x.ndim == 1:
-            return True, x.reshape((1, x.shape[0]))
-        return x.ndim >= 2, x
-    if isinstance(x, Tensor):
-        x = x.numpy()
-        if x.ndim == 1:
-            return True, x.reshape((1, x.shape[0]))
-        return x.ndim >= 2, x
-    return False, None
-
-
 def create(
     inp_size,
     shape,
@@ -46,6 +19,7 @@ def create(
 ) -> object:
     """
     Create layer by parameters
+
     Parameters
     ----------
     inp_size: int
@@ -63,7 +37,8 @@ def create(
 
     Returns
     -------
-
+    layer
+        Created layer
     """
     layer = _create_functions[layer_type](
         inp_size, shape, activation, weight, bias, is_debug=is_debug, **kwargs
@@ -78,9 +53,10 @@ def create_dense(
     weight=keras.initializers.get("ones"),
     bias=keras.initializers.get("zeros"),
     **kwargs
-):
+) -> MyDense:
     """
     Create dense layer by parameters
+
     Parameters
     ----------
     inp_size: int
@@ -95,7 +71,8 @@ def create_dense(
 
     Returns
     -------
-
+    layer
+        Created dense layer
     """
     layer = create(
         inp_size, shape, activation, weight, bias, layer_type="Dense", **kwargs
@@ -106,13 +83,15 @@ def create_dense(
 def from_dict(config):
     """
     Restore layer from dictionary of parameters
+
     Parameters
     ----------
     config: dict
 
     Returns
     -------
-
+    layer
+        Restored layer
     """
     res = create(
         inp_size=config["inp_size"],

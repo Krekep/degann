@@ -29,7 +29,6 @@ def parabolic(x: tf.Tensor, beta: float = 0, p: float = 1 / 5):
 
 
 _activation_name = {
-    # "perceptron_threshold": perceptron_threshold,
     "elu": tf.keras.activations.elu,
     "relu": tf.keras.activations.relu,
     "gelu": tf.keras.activations.gelu,
@@ -41,7 +40,6 @@ _activation_name = {
     "swish": tf.keras.activations.swish,
     "tanh": tf.keras.activations.tanh,
     "softplus": tf.keras.activations.softplus,
-    # "softmax": tf.keras.activations.softmax,
     "softsign": tf.keras.activations.softsign,
     "parabolic": parabolic,
 }
