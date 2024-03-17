@@ -566,23 +566,3 @@ def full_search(
 
     best_nets.sort(key=lambda x: [x[1], x[2]])
     return best_nets
-
-
-def _load_network_shapes() -> list[list[int]]:
-    """
-    Get default shapes for neural networks (without input and output sizes)
-
-    Returns
-    -------
-    shapes: list[list[int]]
-    """
-    res = []
-    with open("../resource/network_shapes.txt", "r") as f:
-        for line in f.readlines():
-            res.append(list(map(int, line.split())))
-    return res
-
-
-temp = _load_network_shapes()
-if len(temp) > 0:
-    _default_shapes = temp
