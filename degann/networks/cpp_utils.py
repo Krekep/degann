@@ -254,7 +254,7 @@ def activation_to_cpp_template(name: str, activation_name: str) -> str:
         "linear": lambda x: f"{x} = {x};\n",
         "elu": lambda x: f"if ({x} >= 0) {x} = {x}; else {x} = 1.0 * (exp({x}) - 1);\n",
         "gelu": lambda x: f"{x} = 0.5 * {x} * (1 + tanh(sqrt(2 / 3.14159265) * ({x} + 0.044715 * {x} * {x} * {x})))",
-        "relu": lambda x: f"{x} = std::max({x}, 0.0f);\n",
+        "relu": lambda x: f"{x} = max({x}, 0.0f);\n",
         "selu": lambda x: f"if ({x} >= 0) {x} = 1.05070098 * {x}; else {x} = 1.05070098 * 1.67326324 * (exp({x}) - 1);\n",
         "exponential": lambda x: f"{x} = exp({x});\n",
         "hard_sigmoid": lambda x: f"if ({x} < -2.5) {x} = 0; else if ({x} > 2.5) {x} = 1; else {x} = 0.2 * {x} + 0.5;\n",

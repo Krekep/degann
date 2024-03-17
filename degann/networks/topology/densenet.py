@@ -304,6 +304,8 @@ class DenseNet(tf.keras.Model):
                 #include <cmath>
                 #include <vector>
 
+                #define max(x, y) ((x < y) ? y : x)
+
                 """
 
         config = self.to_dict(**kwargs)
