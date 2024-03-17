@@ -5,6 +5,10 @@ import tensorflow as tf
 from tensorflow import keras
 
 
+def sign(x):
+    return -1 if x < 0 else 1
+
+
 class RelativeError(tf.keras.losses.Loss, ABC):
     def __init__(
         self,
@@ -17,7 +21,7 @@ class RelativeError(tf.keras.losses.Loss, ABC):
         self.eps = eps
 
     def __call__(self, y_true, y_pred, sample_weight=None):
-        y_upd = tf.where(abs(y_true) <= self.eps, 1.0, y_true)
+        y_upd = tf.where(abs(y_true) <= self.eps, 1.0 * sign(y_true), y_true)
         y = tf.math.divide(y_pred, y_upd)
         loss = tf.math.reduce_mean(tf.abs(y - 1))
         return loss

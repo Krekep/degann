@@ -5,10 +5,13 @@ import os
 
 
 def _count_statistic(df_list, threshold):
+    global count_trained_networks, count_all_time
     mean_nn = 0
     mean_time = 0
     count_success = 0
     for df in df_list:
+        count_trained_networks += len(df.index)
+        count_all_time += df["train_time"].sum()
         last_loss_value = df["loss"].iloc[-1]
         if last_loss_value <= threshold:
             count_success += 1
@@ -20,6 +23,8 @@ def _count_statistic(df_list, threshold):
 
 
 if __name__ == "__main__":
+    count_trained_networks = 0
+    count_all_time = 0
     folder_path = "results"
 
     file_names = []
@@ -157,3 +162,8 @@ if __name__ == "__main__":
                         for _, cell in dsv.items():
                             cell_list.append(cell)
         table.worksheet(key.capitalize()).update_cells(cell_list)
+    print(
+        "Total number of trained neural networks during experiments =",
+        count_trained_networks,
+    )
+    print("Total time(s) during experiments =", count_all_time)

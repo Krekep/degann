@@ -1535,4 +1535,5 @@ sheets = {
     "gauss": get_cell_dict_for_sheet("Gauss"),
     "hyperbol": get_cell_dict_for_sheet("Hyperbol"),
     "const": get_cell_dict_for_sheet("Const"),
+    "multidim": get_cell_dict_for_sheet("Multidim"),
 }

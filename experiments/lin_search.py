@@ -6,22 +6,32 @@ import numpy as np
 from degann import (
     MeasureTrainTime,
 )
-from degann.networks.nn_code import (
+from degann.expert.nn_code import (
     alph_n_full,
-    alph_a,
+    alphabet_activations_cut,
     alph_n_div3,
     alph_n_div2,
 )
-from degann.networks.expert import full_search, full_search_step
+from degann.expert.search_algorithms import full_search, full_search_step
 import gen_dataset
 
-all_variants = ["".join(elem) for elem in product(alph_n_full, alph_a)]
-div3_variants = ["".join(elem) for elem in product(alph_n_div3, alph_a)]
+all_variants = [
+    "".join(elem) for elem in product(alph_n_full, alphabet_activations_cut)
+]
+div3_variants = [
+    "".join(elem) for elem in product(alph_n_div3, alphabet_activations_cut)
+]
 alph_n_div2_1 = alph_n_div2[: len(alph_n_div2) // 2]
 alph_n_div2_2 = alph_n_div2[len(alph_n_div2) // 2 :]
-div2_variants_1 = ["".join(elem) for elem in product(alph_n_div2_1, alph_a)]
-div2_variants_2 = ["".join(elem) for elem in product(alph_n_div2_2, alph_a)]
-div2_variants = ["".join(elem) for elem in product(alph_n_div2, alph_a)]
+div2_variants_1 = [
+    "".join(elem) for elem in product(alph_n_div2_1, alphabet_activations_cut)
+]
+div2_variants_2 = [
+    "".join(elem) for elem in product(alph_n_div2_2, alphabet_activations_cut)
+]
+div2_variants = [
+    "".join(elem) for elem in product(alph_n_div2, alphabet_activations_cut)
+]
 print(
     len(all_variants),
     len(div2_variants),
@@ -58,26 +68,34 @@ for func, func_name in gen_dataset.funcs:
             )
 
             full_search(
+                1,
+                1,
                 (train_data_x, train_data_y),
-                (1, 2),
-                div2_variants,
-                (num_epoch, num_epoch, 10),
                 [opt],
                 [loss],
-                (val_data_x, val_data_y),
+                min_epoch=num_epoch,
+                max_epoch=num_epoch,
+                nn_min_length=1,
+                nn_max_length=2,
+                nn_alphabet=div2_variants,
+                val_data=(val_data_x, val_data_y),
                 logging=True,
                 file_name=file_name,
                 verbose=1,
             )
             print("END 1, 2", datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
             full_search(
+                1,
+                1,
                 (train_data_x, train_data_y),
-                (3, 3),
-                div3_variants,
-                (num_epoch, num_epoch, 10),
                 [opt],
                 [loss],
-                (val_data_x, val_data_y),
+                min_epoch=num_epoch,
+                max_epoch=num_epoch,
+                nn_min_length=3,
+                nn_max_length=3,
+                nn_alphabet=div3_variants,
+                val_data=(val_data_x, val_data_y),
                 logging=True,
                 file_name=file_name,
                 verbose=1,
@@ -88,8 +106,10 @@ for func, func_name in gen_dataset.funcs:
             for i in range(4, 11):
                 print(i, datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
                 for size in alph_n_full:
-                    for act in alph_a:
+                    for act in alphabet_activations_cut:
                         full_search_step(
+                            1,
+                            1,
                             (size + act) * i,
                             num_epoch,
                             opt,

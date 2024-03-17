@@ -1,10 +1,9 @@
-from datetime import datetime
 from itertools import product
 from random import randint
 
 import numpy as np
 
-from degann.networks.nn_code import (
+from degann.expert.nn_code import (
     alph_n_full,
     alph_a,
     alph_n_div3,

@@ -12,9 +12,9 @@ LAYER_DICT_NAMES = {
     "decorator_params": "decorator_params",
 }
 
-VERSION = "0.3"
+VERSION = "0.5"
 
-HEADER_OF_FILE = f"""
+HEADER_OF_APG_FILE = f"""
 Package: DEGANN
 version: {VERSION}
 Author: Alimov Pavel Gennadievich

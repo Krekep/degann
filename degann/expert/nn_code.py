@@ -21,10 +21,12 @@ alph_n_full = "0123456789abcdef"
 alph_n_div3 = "0369cf"
 alph_n_div2 = "02468ace"
 alph_n_div4 = "048c"
-alph_a = "0689"
+
+alphabet_activations_cut = "0689"
+alphabet_activations = "0123456789abc"
 
 
-def encode(nn: imodel.IModel, offset: int = None):
+def encode(nn: imodel.IModel, offset: int = None) -> str:
     blocks = nn.get_shape
     activations = nn.get_activations
     res = ""
