@@ -76,25 +76,3 @@ for func_name in ["LH_ODE_1"]:
                             print(
                                 i, net["block_size"], nn_loss, nn_epoch, end_t - start_t
                             )
-
-    # for loss_name in ["MeanAbsolutePercentageError"]:
-    #     for opt in ["Adam"]:
-    #         for max_iter in [50, 100, 150]:
-    #             print(max_iter)
-    #             launches = 10
-    #             for i in range(launches):
-    #                 start_t = time.perf_counter()
-    #                 nn_loss, nn_epoch, loss_f, opt_n, net = random_search(
-    #                     1,
-    #                     1,
-    #                     iterations=max_iter,
-    #                     opt=opt,
-    #                     data=(nn_data_x, nn_data_y),
-    #                     val_data=(val_data_x, val_data_y),
-    #                     loss=loss_name,
-    #                     update_gen_cycle=10,
-    #                     logging=True,
-    #                     file_name=f"{func_name}_{max_iter}",
-    #                 )
-    #                 end_t = time.perf_counter()
-    #                 print(i, net["block_size"], nn_loss, nn_epoch, end_t - start_t)

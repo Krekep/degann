@@ -6,7 +6,7 @@ from tensorflow import keras
 
 
 def sign(x):
-    return -1 if x < 0 else 1
+    return tf.where(x < 0.0, -1.0, 1.0)
 
 
 class RelativeError(tf.keras.losses.Loss, ABC):

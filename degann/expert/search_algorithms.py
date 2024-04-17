@@ -3,7 +3,7 @@ import math
 import random
 from datetime import datetime
 from itertools import product
-from typing import Callable, List
+from typing import Callable, List, Tuple
 
 import numpy.random
 import tensorflow as tf
@@ -521,12 +521,69 @@ def full_search(
     logging=False,
     file_name: str = "",
     verbose=False,
-):
-    best_net = None
-    best_loss = 1e6
-    best_epoch = None
-    best_loss_func = None
-    best_opt = None
+) -> Tuple[float, int, str, str, dict]:
+    """
+    An algorithm for exhaustively enumerating a given set of parameters
+    with training a neural network for each configuration of parameters
+    and selecting the best one.
+
+    Parameters
+    ----------
+    in_size: int
+       Size of input data
+    out_size: int
+        Size of output data
+    data: tuple
+        dataset
+    opt: list
+        List of optimizers
+    loss: list
+        list of loss functions
+    min_epoch: int
+        Starting number of epochs
+    max_epoch: int
+        Final number of epochs
+    epoch_step: int
+        Step between `min_epoch` and `max_epoch`
+    nn_min_length: int
+        Starting number of hidden layers of neural networks
+    nn_max_length: int
+        Final number of hidden layers of neural networks
+    nn_alphabet: list
+        List of possible sizes of hidden layers with activations for them
+    alphabet_block_size: int
+        Number of literals in each `alphabet` symbol that indicate the size of hidden layer
+    alphabet_offset: int
+        Indicate the minimal number of neurons in hidden layer
+    val_data: tuple
+        Validation dataset
+    logging: bool
+        Logging search process to file
+    file_name: str
+        Path to file for logging
+    verbose: bool
+        Print additional information to console during the searching
+    Returns
+    -------
+    search_results: tuple[float, int, str, str, dict]
+        Results of the algorithm are described by these parameters
+
+        best_loss: float
+            The value of the loss function during training of the best neural network
+        best_epoch: int
+            Number of training epochs for the best neural network
+        best_loss_func: str
+            Name of the loss function of the best neural network
+        best_opt: str
+            Name of the optimizer of the best neural network
+        best_net: dict
+            Best neural network presented as a dictionary
+    """
+    best_net: dict = dict()
+    best_loss: float = 1e6
+    best_epoch: int = 0
+    best_loss_func: str = ""
+    best_opt: str = ""
     time_viewer = MeasureTrainTime()
     for i in range(nn_min_length, nn_max_length + 1):
         if verbose:
@@ -556,6 +613,6 @@ def full_search(
                             best_net = curr_nn
                             best_loss = curr_loss
                             best_epoch = epoch
-                            best_loss_func = (loss_func,)
+                            best_loss_func = loss_func
                             best_opt = opt
     return best_loss, best_epoch, best_loss_func, best_opt, best_net
