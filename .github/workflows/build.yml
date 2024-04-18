@@ -48,4 +48,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: degann
-          path: ./publish/Degann.exe
+          path: ./dist/Degann.exe
