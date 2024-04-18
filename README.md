@@ -2,7 +2,7 @@
 
 [![Check tests](https://github.com/Krekep/degann/actions/workflows/tests.yml/badge.svg)](https://github.com/Krekep/degann/actions/workflows/tests.yml)
 [![License](https://img.shields.io/badge/license-MIT-orange)](https://github.com/Krekep/degann/blob/main/LICENSE)
-[![Package](https://img.shields.io/badge/pypi%20package-0.3-%233776ab)](https://pypi.org/project/degann/)
+[![Package](https://img.shields.io/badge/pypi%20package-1.0-%233776ab)](https://pypi.org/project/degann/)
 
 **DEGANN** is a library generating neural networks for approximating solutions to differential equations. As a backend for working with neural networks, tensorflow is used, but with the ability to expand with your own tools.
 
@@ -12,13 +12,14 @@
 - Construction of tables with numerical solution of systems of ordinary differential equations of the first order
 - Choosing the Best Neural Network from Several for Fixed Training Parameters
 - Iterating over training parameters with choosing the best neural network for each set
-- Export neural networks as a function in C++
+- Export Neural Networks as a function in C++
 - Export Neural Networks as a Parameter Set
 - Import Neural Networks from a Parameter Set
 - Building a dataset with complete training results for approximating the solution of a differential equation for each neural network that participated in training
 - Advanced search for optimal topology using a language that describes the topology of a neural network
 - Random search for optimal neural network topology
 - Method for simulating annealing of optimal neural network topology
+- Expert system for automatic selection of optimal parameters for algorithms for searching neural network topologies
 
 ## Install
 

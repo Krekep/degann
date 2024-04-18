@@ -34,7 +34,7 @@ setup(
     python_requires=">=3.10",
     keywords=["python", "ode", "differential equation", "neural network"],
     classifiers=[
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Education",
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: MIT License",

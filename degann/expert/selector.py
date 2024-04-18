@@ -3,10 +3,6 @@ from typing import List
 
 from degann.expert.nn_code import alph_n_full, alphabet_activations
 from degann.expert.search_algorithms import (
-    distance_const,
-    temperature_lin,
-    temperature_exp,
-    distance_lin,
     random_search_endless,
     simulated_annealing,
     full_search,

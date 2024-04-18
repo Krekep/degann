@@ -685,6 +685,10 @@ class MainWindow(QMainWindow):
                 temp = float(temp)
                 if temp - int(temp) < 1e-6:
                     temp = int(temp)
+            elif code_name == "nn_alphabet":
+                alphabet_str = temp.replace("'", "")
+                alphabet = alphabet_str[1:-1].split(", ")
+                temp = alphabet
             parameters[code_name] = temp
         parameters["loss_function"] = self.centralwidget.findChild(
             QtWidgets.QComboBox, "loss_func_combobox"
@@ -711,7 +715,7 @@ class MainWindow(QMainWindow):
             input_size=self.x_dataset_size,
             output_size=self.y_dataset_size,
             data=(self.train_data_x, self.train_data_y),
-            parameters=self.parameters,
+            parameters=parameters,
         )
 
         self.centralwidget.findChild(
