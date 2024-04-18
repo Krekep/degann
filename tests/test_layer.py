@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from degann.networks import layer_creator
-from degann.networks.layers.dense import MyDense
+from degann.networks.layers.tf_dense import TensorflowDense
 from tests.utils import array_compare, init_params
 
 
@@ -79,7 +79,7 @@ def test_dense_call(inp, shape, w_init, b_init, expected):
     weight_initializer, bias_initializer = init_params(
         weight_name=w_init, bias_name=b_init
     )
-    layer = MyDense(
+    layer = TensorflowDense(
         shape[0],
         shape[1],
         weight_initializer=weight_initializer,

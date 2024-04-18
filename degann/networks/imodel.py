@@ -1,13 +1,13 @@
 import json
 from collections import defaultdict
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Union
 
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
 from degann.networks.config_format import HEADER_OF_APG_FILE
-from degann.networks.topology.densenet import DenseNet
+from degann.networks.topology.tf_densenet import TensorflowDenseNet
 
 
 def _get_act_and_init(
@@ -225,7 +225,7 @@ class IModel(object):
         callbacks: List = None,
         verbose="auto",
         **kwargs,
-    ) -> keras.callbacks.History:
+    ) -> Union[float, List[float]]:
         """
         Evaluate network on passed dataset and return evaluate history
 
@@ -244,8 +244,10 @@ class IModel(object):
 
         Returns
         -------
-        history: tf.keras.callbacks.History
-            History of evaluating
+        history: Union[float, List[float]]
+            Scalar test loss (if the model has a single output and no metrics)
+            or list of scalars (if the model has multiple outputs
+            and/or metrics).
         """
         if self._is_debug:
             if callbacks is not None:
@@ -328,7 +330,7 @@ class IModel(object):
         with open(path + ".apg", "w") as f:
             f.write(HEADER_OF_APG_FILE + json.dumps(config, indent=2))
 
-    def from_dict(self, config, **kwargs):
+    def from_dict(self, config: dict, **kwargs):
         """
         Import neural network from dictionary
 
@@ -344,7 +346,7 @@ class IModel(object):
         self._shape = config["block_size"]
         self.network.from_dict(config, **kwargs)
 
-    def from_file(self, path, **kwargs):
+    def from_file(self, path: str, **kwargs):
         """
         Import neural network as parameters from file
 
@@ -360,7 +362,6 @@ class IModel(object):
         """
         with open(path + ".apg", "r") as f:
             for header in range(HEADER_OF_APG_FILE.count("\n")):
-                # TODO: check version compability
                 _ = f.readline()
             config_str = ""
             for line in f:
@@ -514,5 +515,5 @@ class IModel(object):
     #     return res
 
 
-_create_functions = defaultdict(lambda: DenseNet)
-_create_functions["DenseNet"] = DenseNet
+_create_functions = defaultdict(lambda: TensorflowDenseNet)
+_create_functions["DenseNet"] = TensorflowDenseNet

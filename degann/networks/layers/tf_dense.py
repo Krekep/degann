@@ -29,7 +29,7 @@ def _dec_params_from_list(
     return res
 
 
-class MyDense(keras.layers.Layer):
+class TensorflowDense(keras.layers.Layer):
     def __init__(
         self,
         input_dim=32,
@@ -52,7 +52,7 @@ class MyDense(keras.layers.Layer):
         if input_dim == 0 or units == 0:
             raise "Layer cannot have zero inputs or zero size"
 
-        super(MyDense, self).__init__(**kwargs)
+        super(TensorflowDense, self).__init__(**kwargs)
         w_init = weight_initializer
         self.w = tf.Variable(
             initial_value=w_init(shape=(input_dim, units), dtype="float32"),

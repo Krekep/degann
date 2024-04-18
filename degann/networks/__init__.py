@@ -5,5 +5,4 @@ from .layer_creator import *
 from .losses import *
 from .metrics import *
 from .optimizers import *
-from .trainer import *
 from .utils import *

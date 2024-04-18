@@ -7,10 +7,10 @@ from tensorflow import keras
 from degann.networks.config_format import LAYER_DICT_NAMES
 from degann.networks import layer_creator, losses, metrics, cpp_utils
 from degann.networks import optimizers
-from degann.networks.layers.dense import MyDense
+from degann.networks.layers.tf_dense import TensorflowDense
 
 
-class DenseNet(tf.keras.Model):
+class TensorflowDenseNet(tf.keras.Model):
     def __init__(
         self,
         input_size: int = 2,
@@ -44,8 +44,8 @@ class DenseNet(tf.keras.Model):
         ):
             decorator_params = decorator_params * (len(block_size) + 1)
 
-        super(DenseNet, self).__init__(**kwargs)
-        self.blocks: List[MyDense] = []
+        super(TensorflowDenseNet, self).__init__(**kwargs)
+        self.blocks: List[TensorflowDense] = []
 
         if not isinstance(activation_func, list):
             activation_func = [activation_func] * (len(block_size) + 1)
@@ -75,11 +75,12 @@ class DenseNet(tf.keras.Model):
                         decorator_params=decorator_params[i],
                     )
                 )
+            last_block_size = block_size[-1]
         else:
-            block_size = [input_size]
+            last_block_size = input_size
 
         self.out_layer = layer_creator.create_dense(
-            block_size[-1],
+            last_block_size,
             output_size,
             activation=activation_func[-1],
             weight=weight,
@@ -225,7 +226,7 @@ class DenseNet(tf.keras.Model):
         input_size: int,
         block_size: List[int],
         output_size: int,
-        layers: List[MyDense],
+        layers: List[TensorflowDense],
         **kwargs,
     ):
         """
@@ -270,11 +271,15 @@ class DenseNet(tf.keras.Model):
         block_size = config["block_size"]
         output_size = config["output_size"]
 
-        layers: List[MyDense] = []
+        self.block_size = list(block_size)
+        self.input_size = input_size
+        self.output_size = output_size
+
+        layers: List[TensorflowDense] = []
         for layer_config in config["layer"]:
             layers.append(layer_creator.from_dict(layer_config))
 
-        self.blocks: List[MyDense] = []
+        self.blocks: List[TensorflowDense] = []
         for layer_num in range(len(layers)):
             self.blocks.append(layers[layer_num])
 
@@ -301,12 +306,12 @@ class DenseNet(tf.keras.Model):
 
         """
         res = """
-                #include <cmath>
-                #include <vector>
+#include <cmath>
+#include <vector>
 
-                #define max(x, y) ((x < y) ? y : x)
+#define max(x, y) ((x < y) ? y : x)
 
-                """
+        \n"""
 
         config = self.to_dict(**kwargs)
 
@@ -395,7 +400,6 @@ class DenseNet(tf.keras.Model):
                 f"weight_{i}_{i + 1}",
                 f"bias_{i + 1}",
                 act_func,
-                decorator_params,
             )
 
         move_result = creator_heap_1d("answer", output_size)

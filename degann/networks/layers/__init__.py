@@ -1,1 +1,1 @@
-from .dense import *
+from .tf_dense import *

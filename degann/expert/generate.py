@@ -1,5 +1,6 @@
 import math
 import random
+from typing import Union
 
 from degann.expert.nn_code import decode, alphabet_activations
 
@@ -16,7 +17,7 @@ class CodeParameter(MetaParameter):
     block_size = 1
     exp_size = 10
 
-    def __init__(self, s: str | "CodeParameter"):
+    def __init__(self, s: Union[str, "CodeParameter"]):
         if isinstance(s, CodeParameter):
             s = s.value()
         self.code = s
@@ -63,7 +64,7 @@ class EpochParameter(MetaParameter):
     def __init__(self, epoch: int):
         self.epoch = epoch
 
-    def distance(self, other: int | "EpochParameter") -> float:
+    def distance(self, other: Union[int, "EpochParameter"]) -> float:
         if isinstance(other, int):
             return math.log(
                 self.epoch**EpochParameter.pow_scale, EpochParameter.log_value

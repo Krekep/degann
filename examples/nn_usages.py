@@ -157,7 +157,7 @@ all_l = [key for key in losses.get_all_loss_functions()]  # All loss function na
 for los in all_l:
     nn = IModel(
         input_size=1,  # Input vector len
-        block_size=[10, 10],  # Size of hidden layers (two layer, each have 5 neurons)
+        block_size=[10, 10],  # Size of hidden layers (two layer, each have 10 neurons)
         output_size=1,  # Output vector size
         activation_func=["swish", "swish", "linear"],
         # activation functions for layers (2 hidden layer, 1 output layer)

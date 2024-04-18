@@ -4,7 +4,7 @@ import keras.initializers
 import numpy as np
 from tensorflow import Tensor
 
-from degann.networks.layers.dense import MyDense
+from degann.networks.layers.tf_dense import TensorflowDense
 
 
 def create(
@@ -53,7 +53,7 @@ def create_dense(
     weight=keras.initializers.get("ones"),
     bias=keras.initializers.get("zeros"),
     **kwargs
-) -> MyDense:
+) -> TensorflowDense:
     """
     Create dense layer by parameters
 
@@ -103,5 +103,5 @@ def from_dict(config):
     return res
 
 
-_create_functions = defaultdict(lambda: MyDense)
-_create_functions["Dense"] = MyDense
+_create_functions = defaultdict(lambda: TensorflowDense)
+_create_functions["Dense"] = TensorflowDense

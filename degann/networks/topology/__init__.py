@@ -1,1 +1,1 @@
-from .densenet import *
+from .tf_densenet import *
