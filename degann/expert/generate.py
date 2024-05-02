@@ -121,8 +121,9 @@ def generate_neighbor(
                 new_epoch = EpochParameter(
                     min(
                         random.randint(
-                            epoch, int(EpochParameter.log_value**distance * epoch)
-                        ),
+                            epoch,
+                            int(EpochParameter.log_value ** min(distance, 70) * epoch),
+                        ),  # need to rewrite this formula
                         max_epoch,
                     )
                 )
@@ -130,8 +131,11 @@ def generate_neighbor(
                 new_epoch = EpochParameter(
                     max(
                         random.randint(
-                            int(epoch / (EpochParameter.log_value**distance)), epoch
-                        ),
+                            int(
+                                epoch / (EpochParameter.log_value ** min(distance, 70))
+                            ),
+                            epoch,
+                        ),  # need to rewrite this formula
                         min_epoch,
                     )
                 )
@@ -150,7 +154,7 @@ def generate_neighbor(
                     max_block_size = 15**CodeParameter.block_size
                     max_block_increase = min(max_block_size, int(distance))
                     new_block = (
-                        hex(current_block_size + random.randint(1, max_block_increase))[
+                        hex(current_block_size + random.randint(0, max_block_increase))[
                             2:
                         ]
                         + curr_code.blocks[chosen_block][-1]
@@ -169,7 +173,7 @@ def generate_neighbor(
                         hex(
                             max(
                                 current_block_size
-                                - random.randint(1, max_block_decrease),
+                                - random.randint(0, max_block_decrease),
                                 min_block_size,
                             )
                         )[2:]
@@ -202,15 +206,15 @@ def generate_neighbor(
             if distance < 0:
                 distance += abs(new_code.distance(curr_code))
                 temp_dist = abs(new_code.distance(curr_code))
-                print(
-                    "DEBUG",
-                    new_code.blocks,
-                    curr_code.blocks,
-                    chosen_block,
-                    command,
-                    distance,
-                    temp_dist,
-                )
+                # print(
+                #     "DEBUG",
+                #     new_code.blocks,
+                #     curr_code.blocks,
+                #     chosen_block,
+                #     command,
+                #     distance,
+                #     temp_dist,
+                # )
                 distance -= temp_dist
             new_code = curr_code
         is_stop = random.randint(0, 3)

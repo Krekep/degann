@@ -32,7 +32,7 @@ time_viewer = MeasureTrainTime()
 
 min_epoch, max_epoch = 100, 700
 
-input_size = 1
+input_size = 3
 
 for func, func_name in gen_dataset.funcs:
     for size in gen_dataset.sizes_of_samples:
@@ -86,7 +86,7 @@ for func, func_name in gen_dataset.funcs:
                                 net,
                                 _,
                             ) = simulated_annealing(
-                                3,
+                                input_size,
                                 1,
                                 data=(train_data_x, train_data_y),
                                 val_data=(val_data_x, val_data_y),

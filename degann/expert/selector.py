@@ -8,8 +8,8 @@ from degann.expert.search_algorithms import (
     full_search,
 )
 
-tags = {
-    "type": {
+_tags = {
+    "type": [
         "sin",
         "lin",
         "exp",
@@ -19,10 +19,10 @@ tags = {
         "const",
         "sig",
         "unknown",
-    },
-    "precision": {"maximal", "median", "minimal"},
-    "work time": {"long", "medium", "short"},
-    "data size": {"big", "median", "small", "very small", "auto"},
+    ],
+    "precision": ["maximal", "median", "minimal"],
+    "work time": ["long", "medium", "short"],
+    "data size": ["very small", "small", "median", "big", "auto"],
 }
 
 
@@ -42,6 +42,7 @@ _base_optimizer = "Adam"
 
 
 def suggest_parameters(
+    data: tuple = None,
     tags: dict[str, str] = None,
 ) -> dict:
     if tags is None:
@@ -78,7 +79,7 @@ def suggest_parameters(
         "temperature_speed": 0,
     }
 
-    if tags["type"] in ["sin", "unknown"]:
+    if tags["type"] in ["sin", "multidim", "unknown"]:
         min_train_epoch *= 2
         nn_max_length += 1
         iteration_count += 10
@@ -93,13 +94,15 @@ def suggest_parameters(
 
         launch_count_random_search += 2
         launch_count_simulated_annealing = 10
+    elif tags["type"] in ["exp", "lin"]:
+        iteration_count += 30
 
     if tags["precision"] == "minimal":
         loss_threshold *= 2
     if tags["precision"] == "median":
         iteration_count = int(10 * iteration_count)
     if tags["precision"] == "maximal":
-        loss_threshold /= 2
+        loss_threshold /= 10
         iteration_count = int(40 * iteration_count)
 
     if tags["work time"] == "short":
@@ -107,6 +110,32 @@ def suggest_parameters(
         nn_min_length -= 1
     elif tags["work time"] == "long":
         nn_max_length += 1
+
+    if tags["data size"] == "auto":
+        if data is None:
+            tags["data size"] = "small"
+        else:
+            size = len(data[0])
+            size_id = (
+                0 + int(size // 100 > 0) + int(size // 300 > 0) + int(size // 900 > 0)
+            )
+            tags["data size"] = _tags["data size"][size_id]
+    if tags["data size"] == "very small":
+        min_train_epoch *= 2
+        iteration_count += 10
+        launch_count_random_search += 2
+        launch_count_simulated_annealing += 2
+    elif tags["data size"] == "small":
+        min_train_epoch = int(min_train_epoch * 1.5)
+        iteration_count += 10
+        launch_count_random_search += 1
+        launch_count_simulated_annealing += 1
+    elif tags["data size"] == "median":
+        min_train_epoch = int(min_train_epoch * 1.25)
+        iteration_count += 10
+        launch_count_random_search += 1
+    elif tags["data size"] == "big":
+        launch_count_random_search += 1
 
     return {
         "launch_count_random_search": launch_count_random_search,

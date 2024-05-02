@@ -61,7 +61,7 @@ def temperature_exp(alpha: float) -> Callable[[float], float]:
         Temperature function
     """
 
-    def t_e(t: float) -> float:
+    def t_e(t: float, **kwargs) -> float:
         """
         Parameters
         ----------

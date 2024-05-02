@@ -620,7 +620,9 @@ class MainWindow(QMainWindow):
                 QtWidgets.QComboBox, "data_size_combobox"
             ).currentText(),
         }
-        self.parameters = selector.suggest_parameters(tags)
+        self.parameters = selector.suggest_parameters(
+            (self.train_data_x, self.train_data_y), tags
+        )
 
         for gui_name, param_name in zip(
             _parameter_value_gui_names, _parameter_value_code_names
