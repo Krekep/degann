@@ -286,7 +286,8 @@ class TensorflowDenseNet(tf.keras.Model):
         self.out_layer = layer_creator.from_dict(config["out_layer"])
 
     def export_to_cpp(
-        self, path: str, array_type: str = "[]", path_to_compiler: str = None, **kwargs
+            self, path: str, array_type: str = "[]", path_to_compiler: str = None, vectorized_level: str = "auto",
+            **kwargs
     ) -> None:
         """
         Export neural network as feedforward function on c++
@@ -305,13 +306,8 @@ class TensorflowDenseNet(tf.keras.Model):
         -------
 
         """
-        res = """
-#include <cmath>
-#include <vector>
-
-#define max(x, y) ((x < y) ? y : x)
-
-        \n"""
+        res = """#include <cmath>
+#include <vector>\n"""
 
         config = self.to_dict(**kwargs)
 
@@ -320,7 +316,8 @@ class TensorflowDenseNet(tf.keras.Model):
         blocks = self.block_size
         reverse = False
         layers = config["layer"] + [config["out_layer"]]
-
+        if vectorized_level == "auto":
+            vectorized_level = cpp_utils.get_vectorized_level()
         comment = f"// This function takes {input_size} elements array and returns {output_size} elements array\n"
         signature = f""
         start_func = "{\n"
@@ -400,7 +397,14 @@ class TensorflowDenseNet(tf.keras.Model):
                 f"weight_{i}_{i + 1}",
                 f"bias_{i + 1}",
                 act_func,
+                decorator_params,
+                vectorized_level,
             )
+        vectorized_func = cpp_utils.generate_vectorized_function(vectorized_level, act_func)
+        vectorized_func_name = ""
+        if vectorized_func:
+            res = f"#include <immintrin.h>\n" + res
+            vectorized_func_name = f"void {vectorized_level}_vectorized(float* cur_layer, float* pre_layer, float* bias, float(&weight)[a][b]);"
 
         move_result = creator_heap_1d("answer", output_size)
         move_result += cpp_utils.copy_1darray_to_array(
@@ -408,6 +412,7 @@ class TensorflowDenseNet(tf.keras.Model):
         )
 
         res += comment
+        res += vectorized_func
         res += signature
         res += start_func
         res += transform_input_vector
@@ -428,6 +433,7 @@ class TensorflowDenseNet(tf.keras.Model):
         #include "{path}.cpp"
 
         {comment}
+        {vectorized_func_name}
         {signature};
 
         #endif /* {path[0].upper() + path[1:]}_hpp */

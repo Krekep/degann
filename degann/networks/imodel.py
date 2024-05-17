@@ -277,7 +277,8 @@ class IModel(object):
         del self._evaluate_history
 
     def export_to_cpp(
-        self, path: str, array_type: str = "[]", path_to_compiler: str = None, **kwargs
+            self, path: str, array_type: str = "[]", path_to_compiler: str = None, vectorized_level: str = "auto",
+            **kwargs
     ) -> None:
         """
         Export neural network as feedforward function on c++
@@ -296,7 +297,8 @@ class IModel(object):
         -------
 
         """
-        self.network.export_to_cpp(path, array_type, path_to_compiler)
+        self.network.export_to_cpp(path, array_type, path_to_compiler, vectorized_level=vectorized_level)
+
 
     def to_dict(self, **kwargs):
         """
