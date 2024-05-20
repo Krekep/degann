@@ -190,3 +190,4 @@ experiments/results
 *.o
 *.h5
 *.apg
+publish_pypi.bat

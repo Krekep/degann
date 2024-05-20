@@ -5,7 +5,7 @@ from random import randint
 import numpy as np
 
 from degann import full_search
-from degann.expert.nn_code import (
+from degann.search_algorithms.nn_code import (
     alphabet_activations_cut,
     alph_n_div3,
 )

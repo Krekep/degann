@@ -1,5 +1,5 @@
 import pathlib
-from setuptools import setup, find_packages
+from setuptools import setup
 from degann.networks.config_format import VERSION
 
 # The directory containing this file
@@ -23,7 +23,7 @@ setup(
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
     license="MIT",
-    packages=find_packages(),
+    package_dir={"": "degann"},
     install_requires=[
         "keras~=2.12.0",
         "matplotlib~=3.7.1",

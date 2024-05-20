@@ -3,13 +3,13 @@ import numpy as np
 from degann import (
     MeasureTrainTime,
 )
-from degann.expert.generate import generate_neighbor
-from degann.expert.search_algorithms import (
+from degann.search_algorithms.generate import generate_neighbor
+from degann.search_algorithms.simulated_annealing import (
     simulated_annealing,
-    distance_lin,
     temperature_exp,
-    distance_const,
     temperature_lin,
+    distance_const,
+    distance_lin,
 )
 import gen_dataset
 

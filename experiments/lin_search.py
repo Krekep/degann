@@ -6,13 +6,13 @@ import numpy as np
 from degann import (
     MeasureTrainTime,
 )
-from degann.expert.nn_code import (
+from degann.search_algorithms.nn_code import (
     alph_n_full,
     alphabet_activations_cut,
     alph_n_div3,
     alph_n_div2,
 )
-from degann.expert.search_algorithms import full_search, full_search_step
+from degann.search_algorithms.full_search import full_search_step, full_search
 import gen_dataset
 
 all_variants = [

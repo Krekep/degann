@@ -2,6 +2,7 @@ import time
 
 import numpy as np
 
+import degann.search_algorithms.grid_search
 from degann.networks import losses, callbacks
 from degann.networks import IModel
 from experiments.functions import LF_ODE_1_solution, ST_S_ODE_3_table
@@ -221,7 +222,7 @@ for opt in optimizers:
         nn.compile(optimizer=opt, loss_func=los)
 
         # train
-        his = nn.train(
+        his = degann.search_algorithms.grid_search.train(
             x_data,
             f_x_data,
             epochs=epochs,

@@ -2,7 +2,7 @@ import numpy as np
 
 from degann import MeasureTrainTime
 
-from degann.expert.search_algorithms import random_search_endless
+from degann.search_algorithms.random_search import random_search_endless
 import gen_dataset
 
 opt = "Adam"

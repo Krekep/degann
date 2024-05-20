@@ -2,7 +2,7 @@ import math
 import random
 from typing import Union
 
-from degann.expert.nn_code import decode, alphabet_activations
+from degann.search_algorithms.nn_code import decode, alphabet_activations
 
 
 class MetaParameter:

@@ -1,17 +1,11 @@
-"""
-Module for training neural networks
-"""
 import random
-from typing import Union, Tuple, List, Dict, Any
+from typing import Union, Any, Tuple, List
 
 import numpy as np
 import tensorflow as tf
 
-from degann.networks import activations, losses
-from degann.networks import imodel
-from degann.networks.callbacks import MemoryCleaner
-from degann.networks.metrics import get_all_metric_functions
-from degann.networks.optimizers import get_all_optimizers
+from degann import MemoryCleaner, get_all_optimizers, get_all_metric_functions
+from degann.networks import activations, imodel, losses
 
 _default_shapes = [
     [10, 10, 10, 10, 10, 10],
@@ -256,7 +250,7 @@ def train(
     return result_net, result_history
 
 
-def pattern_search(
+def grid_search(
     x_data: np.ndarray,
     y_data: np.ndarray,
     x_val: np.ndarray = None,
