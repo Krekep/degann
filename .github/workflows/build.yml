@@ -40,6 +40,10 @@ jobs:
         run: |
           python -m pip install pyinstaller
 
+      - name: Install pyqt6
+        run: |
+          python -m pip install pyqt6
+
       - name: Build your application
         run: |
           pyinstaller -n Degann --onefile --windowed .\gui\__main__.py
