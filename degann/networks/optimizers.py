@@ -3,15 +3,7 @@ from typing import Callable
 from tensorflow import keras
 
 _optimizers: dict = {
-    "Adam": keras.optimizers.Adam,
-    "AdamW": keras.optimizers.experimental.AdamW,
-    "Adamax": keras.optimizers.experimental.Adamax,
-    "Adadelta": keras.optimizers.experimental.Adadelta,
-    "Adagrad": keras.optimizers.experimental.Adagrad,
-    "Ftrl": keras.optimizers.experimental.Ftrl,
-    "Nadam": keras.optimizers.experimental.Nadam,
-    "RMSprop": keras.optimizers.experimental.RMSprop,
-    "SGD": keras.optimizers.experimental.SGD,
+    "Adam": keras.optimizers.Adam
 }
 
 
