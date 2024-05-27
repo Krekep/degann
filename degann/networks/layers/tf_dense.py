@@ -59,7 +59,7 @@ class TensorflowDense(keras.layers.Layer):
             shape=(input_dim, units),
             initializer=w_init,
             dtype="float32",
-            #initial_value=w_init(shape=(input_dim, units), dtype="float32"),
+            # initial_value=w_init(shape=(input_dim, units), dtype="float32"),
             name=f"Var_w_{self.name}",
             trainable=True,
         )
@@ -68,7 +68,7 @@ class TensorflowDense(keras.layers.Layer):
             shape=(units,),
             initializer=b_init,
             dtype="float32",
-            #initial_value=b_init(shape=(units,), dtype="float32"),
+            # initial_value=b_init(shape=(units,), dtype="float32"),
             name=f"Var_b_{self.name}",
             trainable=True,
         )

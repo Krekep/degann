@@ -85,9 +85,7 @@ class MainWindow(QMainWindow):
         self.export_widget = QtWidgets.QWidget(parent=self)
         self.export_widget.setObjectName("export_widget")
         export_layout = ExportNNLayout(self.export_widget)
-        back_button = self.export_widget.findChild(
-            QtWidgets.QPushButton, "back_button"
-        )
+        back_button = self.export_widget.findChild(QtWidgets.QPushButton, "back_button")
         back_button.clicked.connect(self.set_select_area)
         export_button = self.export_widget.findChild(
             QtWidgets.QPushButton, "export_button"
@@ -107,7 +105,9 @@ class MainWindow(QMainWindow):
         self.resize(600, 400)
 
     def load_dataset(self):
-        path_to_data, _ = QFileDialog.getOpenFileName(self, "Select file", "", "Table (*.csv)")
+        path_to_data, _ = QFileDialog.getOpenFileName(
+            self, "Select file", "", "Table (*.csv)"
+        )
         if path_to_data:
             self.x_dataset_size = int(
                 self.load_dataset_widget.findChild(
@@ -128,7 +128,9 @@ class MainWindow(QMainWindow):
                 path_to_data,
                 delimiter=",",
                 usecols=list(
-                    range(self.x_dataset_size, self.x_dataset_size + self.y_dataset_size)
+                    range(
+                        self.x_dataset_size, self.x_dataset_size + self.y_dataset_size
+                    )
                 ),
             )
             self.train_data_x = self.train_data_x.reshape((self.x_dataset_size, -1)).T
@@ -176,9 +178,11 @@ class MainWindow(QMainWindow):
         parameters["loss_function"] = self.select_and_train_widget.findChild(
             QtWidgets.QComboBox, "loss_func_combobox"
         ).currentText()
-        parameters["loss_threshold"] = float(self.select_and_train_widget.findChild(
-            QtWidgets.QLineEdit, "loss_threshold_text"
-        ).text())
+        parameters["loss_threshold"] = float(
+            self.select_and_train_widget.findChild(
+                QtWidgets.QLineEdit, "loss_threshold_text"
+            ).text()
+        )
         parameters["optimizer"] = self.select_and_train_widget.findChild(
             QtWidgets.QComboBox, "optimizer_combobox"
         ).currentText()

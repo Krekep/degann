@@ -5,7 +5,11 @@ from typing import Callable
 
 from .nn_code import alph_n_full, alphabet_activations, decode
 from degann.networks import imodel
-from degann.search_algorithms.generate import generate_neighbor, random_generate, choose_neighbor
+from degann.search_algorithms.generate import (
+    generate_neighbor,
+    random_generate,
+    choose_neighbor,
+)
 from .utils import log_to_file, update_random_generator
 
 

@@ -7,11 +7,18 @@ from degann import networks
 from degann.networks import get_all_loss_functions
 from degann.networks import get_all_optimizers
 from expert import selector
-from gui.constants import minimum_police_size, expand_minimum_police_size, font_12pt, font_6pt, fixed_police_size, \
-    expand_fixed_police_size, param_desc_phrases
+from gui.constants import (
+    minimum_police_size,
+    expand_minimum_police_size,
+    font_12pt,
+    font_6pt,
+    fixed_police_size,
+    expand_fixed_police_size,
+    param_desc_phrases,
+)
 
 
-class SelectAndTrainLayout():
+class SelectAndTrainLayout:
     def __init__(self, centralwidget):
         self.centralwidget = centralwidget
         self.setup_ui()

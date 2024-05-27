@@ -2,9 +2,7 @@ from typing import Callable
 
 from tensorflow import keras
 
-_optimizers: dict = {
-    "Adam": keras.optimizers.Adam
-}
+_optimizers: dict = {"Adam": keras.optimizers.Adam}
 
 
 def get_optimizer(name: str):

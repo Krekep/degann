@@ -3,16 +3,24 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtCore import Qt, QObject
 from PyQt6.QtWidgets import QMainWindow, QLayout
 
-from gui.constants import minimum_police_size, expand_minimum_police_size, font_12pt, font_6pt, fixed_police_size, \
-    expand_fixed_police_size
+from gui.constants import (
+    minimum_police_size,
+    expand_minimum_police_size,
+    font_12pt,
+    font_6pt,
+    fixed_police_size,
+    expand_fixed_police_size,
+)
 
-_load_dataset_text = ("Loading the dataset.\n" +
-                      "The dataset should be a .csv file of `x size`+`y size` columns, " +
-                      "where the first `x size` columns are feature vectors (written in a line), " +
-                      "and the last `y size` columns are their corresponding value vectors.")
+_load_dataset_text = (
+    "Loading the dataset.\n"
+    + "The dataset should be a .csv file of `x size`+`y size` columns, "
+    + "where the first `x size` columns are feature vectors (written in a line), "
+    + "and the last `y size` columns are their corresponding value vectors."
+)
 
 
-class LoadDatasetLayout():
+class LoadDatasetLayout:
     def __init__(self, centralwidget):
         self.centralwidget = centralwidget
         self.setup_ui()

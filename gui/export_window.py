@@ -4,14 +4,22 @@ from PyQt6.QtCore import Qt, QObject
 from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import QMainWindow, QLayout
 
-from gui.constants import minimum_police_size, expand_minimum_police_size, font_12pt, font_6pt, fixed_police_size, \
-    expand_fixed_police_size
+from gui.constants import (
+    minimum_police_size,
+    expand_minimum_police_size,
+    font_12pt,
+    font_6pt,
+    fixed_police_size,
+    expand_fixed_police_size,
+)
 
-_export_nn_text = ("Export trained neural network.\n" +
-                   "You must specify a name for the output file in the text field")
+_export_nn_text = (
+    "Export trained neural network.\n"
+    + "You must specify a name for the output file in the text field"
+)
 
 
-class ExportNNLayout():
+class ExportNNLayout:
     def __init__(self, centralwidget):
         self.centralwidget = centralwidget
         self.setup_ui()
@@ -44,7 +52,9 @@ class ExportNNLayout():
         export_nn_text.setObjectName("export_nn_text")
         export_area.addWidget(export_nn_text)
 
-        export_nn_plaintext = QtWidgets.QPlainTextEdit("Replace this text with file name", parent=self.centralwidget)
+        export_nn_plaintext = QtWidgets.QPlainTextEdit(
+            "Replace this text with file name", parent=self.centralwidget
+        )
         font = QFont()
         font.setItalic(True)
         font.setPointSize(12)
