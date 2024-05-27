@@ -2,7 +2,7 @@ from itertools import product
 
 from degann.search_algorithms.nn_code import alph_n_full, alphabet_activations
 
-_tags = {
+expert_system_tags = {
     "type": [
         "sin",
         "lin",
@@ -113,7 +113,7 @@ def suggest_parameters(
             size_id = (
                 0 + int(size // 100 > 0) + int(size // 300 > 0) + int(size // 900 > 0)
             )
-            tags["data size"] = _tags["data size"][size_id]
+            tags["data size"] = expert_system_tags["data size"][size_id]
     if tags["data size"] == "very small":
         min_train_epoch *= 2
         iteration_count += 10
