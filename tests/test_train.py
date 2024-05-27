@@ -33,7 +33,7 @@ def test_densenet_predict(path_to_train_data, path_to_validate_data, shape, out_
     )
     nn.compile(optimizer="Adam", loss_func="MaxAbsoluteDeviation")
 
-    loss_before_train = nn.evaluate(validation_data_x, validation_data_y)
+    loss_before_train = nn.evaluate(validation_data_x, validation_data_y, verbose=0)
     nn.train(train_data_x, train_data_y, verbose=0)
-    loss_after_train = nn.evaluate(validation_data_x, validation_data_y)
+    loss_after_train = nn.evaluate(validation_data_x, validation_data_y, verbose=0)
     assert loss_after_train < loss_before_train
