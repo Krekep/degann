@@ -289,7 +289,7 @@ class IModel(object):
         array_type: str
             c-style or cpp-style ("[]" or "vector")
         path_to_compiler: str
-            path to c/c++ compiler
+            path to c/c++ compiler, if `None` then the resulting code will not be compiled
         kwargs
 
         Returns

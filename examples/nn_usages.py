@@ -2,7 +2,7 @@ import time
 
 import numpy as np
 
-import degann.search_algorithms.grid_search
+import degann.search_algorithms.pattern_search
 from degann.networks import losses, callbacks
 from degann.networks import IModel
 from experiments.functions import LF_ODE_1_solution, ST_S_ODE_3_table
@@ -103,24 +103,6 @@ f_x_data = np.array([f_x2(x) for x in x_data])
 # nn.compile()
 # # Train on prepared X and Y data
 # nn.train(x_data, f_x_data)
-#
-# # Find best networks for predicting passed data over full search on grid of parameters
-# networks = trainer.full_search(
-#     x_data,                                 # X data
-#     f_x_data,                               # Y data; y(x) = f(x)
-#     epochs=[5, 10],                         # count of epochs for training
-#     loss_functions=["MeanSquaredError"],    # loss functions for configuring models
-#     optimizers=["Adam"],                    # training algorithm
-#     rates=[1e-3],                           # learning step for training algorithm
-#     net_shapes=[[5, 5], [], [10]],          # shapes for neural networks
-#     activations=["relu"],                   # activation functions for networks
-#     use_rand_net=False                      # will random network add to full search
-# )
-# for nn in networks:
-#     print(f"Best net for {nn[0]['epochs']} epochs and '{nn[0]['optimizer']}' optimizer", end='\n')
-#     print(f"Loss = {nn[1]}, loss on validation piece = {nn[2]}\nNetwork description:\n{str(nn[3])}")
-#     print("***********")
-
 
 #
 # Export neural network to cpp

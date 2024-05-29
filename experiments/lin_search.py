@@ -12,7 +12,7 @@ from degann.search_algorithms.nn_code import (
     alph_n_div3,
     alph_n_div2,
 )
-from degann.search_algorithms.full_search import full_search_step, full_search
+from degann.search_algorithms.grid_search import grid_search_step, grid_search
 import gen_dataset
 
 all_variants = [
@@ -67,7 +67,7 @@ for func, func_name in gen_dataset.funcs:
                 -1, 1
             )
 
-            full_search(
+            grid_search(
                 1,
                 1,
                 (train_data_x, train_data_y),
@@ -84,7 +84,7 @@ for func, func_name in gen_dataset.funcs:
                 verbose=1,
             )
             print("END 1, 2", datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
-            full_search(
+            grid_search(
                 1,
                 1,
                 (train_data_x, train_data_y),
@@ -107,7 +107,7 @@ for func, func_name in gen_dataset.funcs:
                 print(i, datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
                 for size in alph_n_full:
                     for act in alphabet_activations_cut:
-                        full_search_step(
+                        grid_search_step(
                             1,
                             1,
                             (size + act) * i,

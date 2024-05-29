@@ -1,8 +1,8 @@
 black~=23.3.0
-keras
+keras~=3.3.3
 matplotlib~=3.7.1
-numpy
+numpy~=1.26.4
 pre-commit~=3.3.1
 pytest~=7.3.1
-scipy
-tensorflow
+scipy~=1.13.1
+tensorflow~=2.16.1

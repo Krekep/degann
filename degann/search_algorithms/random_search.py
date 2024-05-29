@@ -1,4 +1,5 @@
 from itertools import product
+from typing import Tuple
 
 from .nn_code import alph_n_full, alphabet_activations, decode
 from degann.networks import imodel
@@ -7,17 +8,17 @@ from .utils import update_random_generator, log_to_file
 
 
 def random_search(
-    in_size,
-    out_size,
-    data,
-    opt,
-    loss,
-    iterations,
-    min_epoch=100,
-    max_epoch=700,
-    val_data=None,
-    callbacks=None,
-    logging=False,
+    input_size: int,
+    output_size: int,
+    data: tuple,
+    opt: str,
+    loss: str,
+    iterations: int,
+    min_epoch: int = 100,
+    max_epoch: int = 700,
+    val_data: tuple = None,
+    callbacks: list = None,
+    logging: bool = False,
     nn_min_length: int = 1,
     nn_max_length: int = 6,
     nn_alphabet: list[str] = [
@@ -27,7 +28,7 @@ def random_search(
     alphabet_offset: int = 8,
     update_gen_cycle: int = 0,
     file_name: str = "",
-):
+) -> Tuple[float, int, str, str, dict]:
     best_net = None
     best_loss = 1e6
     best_epoch = None
@@ -45,7 +46,7 @@ def random_search(
         b, a = decode(
             gen[0].value(), block_size=alphabet_block_size, offset=alphabet_offset
         )
-        curr_best = imodel.IModel(in_size, b, out_size, a + ["linear"])
+        curr_best = imodel.IModel(input_size, b, output_size, a + ["linear"])
         curr_best.compile(optimizer=opt, loss_func=loss)
         curr_epoch = gen[1].value()
         hist = curr_best.train(
@@ -81,17 +82,17 @@ def random_search(
 
 
 def random_search_endless(
-    in_size,
-    out_size,
-    data,
-    opt,
-    loss,
-    threshold,
-    max_iter=-1,
-    min_epoch=100,
-    max_epoch=700,
-    val_data=None,
-    callbacks=None,
+    input_size: int,
+    output_size: int,
+    data: tuple,
+    opt: str,
+    loss: str,
+    threshold: float,
+    max_iter: int = -1,
+    min_epoch: int = 100,
+    max_epoch: int = 700,
+    val_data: tuple = None,
+    callbacks: list = None,
     nn_min_length: int = 1,
     nn_max_length: int = 6,
     nn_alphabet: list[str] = [
@@ -99,13 +100,13 @@ def random_search_endless(
     ],
     alphabet_block_size: int = 1,
     alphabet_offset: int = 8,
-    logging=False,
+    logging: bool = False,
     file_name: str = "",
-    verbose=False,
-):
+    verbose: bool = False,
+) -> Tuple[float, int, str, str, dict, int]:
     nn_loss, nn_epoch, loss_f, opt_n, net = random_search(
-        in_size,
-        out_size,
+        input_size,
+        output_size,
         data,
         opt,
         loss,
@@ -132,8 +133,8 @@ def random_search_endless(
                 f"Random search until less than threshold. Last loss = {nn_loss}. Iterations = {i}"
             )
         nn_loss, nn_epoch, loss_f, opt_n, net = random_search(
-            in_size,
-            out_size,
+            input_size,
+            output_size,
             data,
             opt,
             loss,

@@ -1,7 +1,7 @@
 import math
 import random
 from itertools import product
-from typing import Callable
+from typing import Callable, Tuple
 
 from .nn_code import alph_n_full, alphabet_activations, decode
 from degann.networks import imodel
@@ -107,18 +107,18 @@ def distance_lin(offset, multiplier):
 
 
 def simulated_annealing(
-    in_size,
-    out_size,
-    data,
-    val_data=None,
+    input_size: int,
+    output_size: int,
+    data: tuple,
+    val_data: tuple = None,
     max_iter: int = 100,
     threshold: float = -1,
     start_net: dict = None,
     method: Callable = generate_neighbor,
     temperature_method: Callable = temperature_lin,
     distance_method: Callable = distance_const(150),
-    min_epoch=100,
-    max_epoch=700,
+    min_epoch: int = 100,
+    max_epoch: int = 700,
     opt: str = "Adam",
     loss: str = "Huber",
     nn_min_length: int = 1,
@@ -132,7 +132,7 @@ def simulated_annealing(
     callbacks: list = None,
     file_name: str = "",
     logging: bool = False,
-):
+) -> Tuple[float, int, str, str, dict, int]:
     gen = random_generate(
         min_epoch=min_epoch,
         max_epoch=max_epoch,
@@ -144,10 +144,10 @@ def simulated_annealing(
         b, a = decode(
             gen[0].value(), block_size=alphabet_block_size, offset=alphabet_offset
         )
-        curr_best = imodel.IModel(in_size, b, out_size, a + ["linear"])
+        curr_best = imodel.IModel(input_size, b, output_size, a + ["linear"])
         curr_best.compile(optimizer=opt, loss_func=loss)
     else:
-        curr_best = imodel.IModel(in_size, [], out_size, ["linear"])
+        curr_best = imodel.IModel(input_size, [], output_size, ["linear"])
         curr_best = curr_best.from_dict(start_net)
     curr_epoch = gen[1].value()
     hist = curr_best.train(
@@ -205,7 +205,7 @@ def simulated_annealing(
             block_size=alphabet_block_size,
             offset=alphabet_offset,
         )
-        neighbor = imodel.IModel(in_size, b, out_size, a + ["linear"])
+        neighbor = imodel.IModel(input_size, b, output_size, a + ["linear"])
         neighbor.compile(optimizer=opt, loss_func=loss)
         neighbor_hist = neighbor.train(
             data[0],
