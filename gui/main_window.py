@@ -1,8 +1,6 @@
-import time
-
 import numpy as np
 from PyQt6 import QtCore, QtWidgets
-from PyQt6.QtWidgets import QMainWindow, QFileDialog, QWidget
+from PyQt6.QtWidgets import QMainWindow, QFileDialog
 
 import degann.expert.pipeline
 import degann.networks
@@ -11,16 +9,6 @@ from gui.load_dataset_window import LoadDatasetLayout
 from gui.train_window import SelectAndTrainLayout
 from degann import IModel
 from degann.expert import selector
-from gui.constants import (
-    minimum_police_size,
-    fixed_police_size,
-    font_12pt,
-    ann_param_desc_phrases,
-    parameter_value_gui_names,
-    parameter_value_code_names,
-    ann_param_gui_names,
-    ann_param_code_names,
-)
 
 
 class MainWindow(QMainWindow):
