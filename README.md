@@ -2,7 +2,7 @@
 
 [![Check tests](https://github.com/Krekep/degann/actions/workflows/tests.yml/badge.svg)](https://github.com/Krekep/degann/actions/workflows/tests.yml)
 [![License](https://img.shields.io/badge/license-MIT-orange)](https://github.com/Krekep/degann/blob/main/LICENSE)
-[![Package](https://img.shields.io/badge/pypi%20package-1.0-%233776ab)](https://pypi.org/project/degann/)
+[![Package](https://img.shields.io/badge/pypi%20package-1.1-%233776ab)](https://pypi.org/project/degann/)
 
 **DEGANN** is a library generating neural networks for approximating solutions to differential equations. As a backend for working with neural networks, tensorflow is used, but with the ability to expand with your own tools.
 
