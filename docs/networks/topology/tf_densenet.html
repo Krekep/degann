@@ -1,0 +1,1614 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>degann.networks.topology.tf_densenet API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>degann.networks.topology.tf_densenet</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import os
+from typing import List, Optional, Dict, Callable
+
+import tensorflow as tf
+from tensorflow import keras
+
+from degann.networks.config_format import LAYER_DICT_NAMES
+from degann.networks import layer_creator, losses, metrics, cpp_utils
+from degann.networks import optimizers
+from degann.networks.layers.tf_dense import TensorflowDense
+
+
+class TensorflowDenseNet(tf.keras.Model):
+    def __init__(
+        self,
+        input_size: int = 2,
+        block_size: list = None,
+        output_size: int = 10,
+        activation_func: str = &#34;linear&#34;,
+        weight=keras.initializers.RandomUniform(minval=-1, maxval=1),
+        biases=keras.initializers.RandomUniform(minval=-1, maxval=1),
+        is_debug: bool = False,
+        **kwargs,
+    ):
+        decorator_params: List[Optional[Dict]] = [None]
+        if &#34;decorator_params&#34; in kwargs.keys():
+            decorator_params = kwargs.get(&#34;decorator_params&#34;)
+            kwargs.pop(&#34;decorator_params&#34;)
+        else:
+            decorator_params = [None]
+
+        if (
+            isinstance(decorator_params, list)
+            and len(decorator_params) == 1
+            and decorator_params[0] is None
+            or decorator_params is None
+        ):
+            decorator_params = [None] * (len(block_size) + 1)
+
+        if (
+            isinstance(decorator_params, list)
+            and len(decorator_params) == 1
+            and decorator_params[0] is not None
+        ):
+            decorator_params = decorator_params * (len(block_size) + 1)
+
+        super(TensorflowDenseNet, self).__init__(**kwargs)
+        self.blocks: List[TensorflowDense] = []
+
+        if not isinstance(activation_func, list):
+            activation_func = [activation_func] * (len(block_size) + 1)
+        if len(block_size) != 0:
+            self.blocks.append(
+                layer_creator.create_dense(
+                    input_size,
+                    block_size[0],
+                    activation=activation_func[0],
+                    weight=weight,
+                    bias=biases,
+                    is_debug=is_debug,
+                    name=f&#34;MyDense0&#34;,
+                    decorator_params=decorator_params[0],
+                )
+            )
+            for i in range(1, len(block_size)):
+                self.blocks.append(
+                    layer_creator.create_dense(
+                        block_size[i - 1],
+                        block_size[i],
+                        activation=activation_func[i],
+                        weight=weight,
+                        bias=biases,
+                        is_debug=is_debug,
+                        name=f&#34;MyDense{i}&#34;,
+                        decorator_params=decorator_params[i],
+                    )
+                )
+            last_block_size = block_size[-1]
+        else:
+            last_block_size = input_size
+
+        self.out_layer = layer_creator.create_dense(
+            last_block_size,
+            output_size,
+            activation=activation_func[-1],
+            weight=weight,
+            bias=biases,
+            is_debug=is_debug,
+            name=f&#34;OutLayerMyDense&#34;,
+            decorator_params=decorator_params[-1],
+        )
+
+        self.activation_funcs = activation_func
+        self.weight_initializer = weight
+        self.bias_initializer = biases
+        self.input_size = input_size
+        self.block_size = block_size
+        self.output_size = output_size
+        self.trained_time = {&#34;train_time&#34;: 0.0, &#34;epoch_time&#34;: [], &#34;predict_time&#34;: 0}
+
+    def custom_compile(
+        self,
+        rate=1e-2,
+        optimizer=&#34;SGD&#34;,
+        loss_func=&#34;MeanSquaredError&#34;,
+        metric_funcs=None,
+        run_eagerly=False,
+    ):
+        &#34;&#34;&#34;
+        Configures the model for training
+
+        Parameters
+        ----------
+        rate: float
+            learning rate for optimizer
+        optimizer: str
+            name of optimizer
+        loss_func: str
+            name of loss function
+        metric_funcs: list[str]
+            list with metric function names
+        run_eagerly: bool
+
+        Returns
+        -------
+
+        &#34;&#34;&#34;
+        opt = optimizers.get_optimizer(optimizer)(learning_rate=rate)
+        loss = losses.get_loss(loss_func)
+        m = [metrics.get_metric(metric) for metric in metric_funcs]
+        self.compile(
+            optimizer=opt,
+            loss=loss,
+            metrics=m,
+            run_eagerly=run_eagerly,
+        )
+
+    def call(self, inputs, **kwargs):
+        &#34;&#34;&#34;
+        Obtaining a neural network response on the input data vector
+        Parameters
+        ----------
+        inputs
+        kwargs
+
+        Returns
+        -------
+
+        &#34;&#34;&#34;
+        x = inputs
+        for layer in self.blocks:
+            x = layer(x, **kwargs)
+        return self.out_layer(x, **kwargs)
+
+    def train_step(self, data):
+        &#34;&#34;&#34;
+        Custom train step from tensorflow tutorial
+
+        Parameters
+        ----------
+        data: tuple
+            Pair of x and y (or dataset)
+        Returns
+        -------
+
+        &#34;&#34;&#34;
+        # Unpack the data. Its structure depends on your model and
+        # on what you pass to `fit()`.
+        x, y = data
+        with tf.GradientTape() as tape:
+            y_pred = self(x, training=True)  # Forward pass
+            # Compute the loss value
+            # (the loss function is configured in `compile()`)
+            loss = self.compute_loss(y=y, y_pred=y_pred)
+
+        # Compute gradients
+        trainable_vars = self.trainable_variables
+        gradients = tape.gradient(loss, trainable_vars)
+        # Update weights
+        self.optimizer.apply_gradients(zip(gradients, trainable_vars))
+        # Update metrics (includes the metric that tracks the loss)
+        for metric in self.metrics:
+            if metric.name == &#34;loss&#34;:
+                metric.update_state(loss)
+            else:
+                metric.update_state(y, y_pred)
+        # Return a dict mapping metric names to current value
+        return {m.name: m.result() for m in self.metrics}
+
+    def set_name(self, new_name):
+        self._name = new_name
+
+    def __str__(self):
+        res = f&#34;IModel {self.name}\n&#34;
+        for layer in self.blocks:
+            res += str(layer)
+        res += str(self.out_layer)
+        return res
+
+    def to_dict(self, **kwargs):
+        &#34;&#34;&#34;
+        Export neural network to dictionary
+
+        Parameters
+        ----------
+        kwargs
+
+        Returns
+        -------
+
+        &#34;&#34;&#34;
+        res = {
+            &#34;net_type&#34;: &#34;MyDense&#34;,
+            &#34;name&#34;: self._name,
+            &#34;input_size&#34;: self.input_size,
+            &#34;block_size&#34;: self.block_size,
+            &#34;output_size&#34;: self.output_size,
+            &#34;layer&#34;: [],
+            &#34;out_layer&#34;: self.out_layer.to_dict(),
+        }
+
+        for i, layer in enumerate(self.blocks):
+            res[&#34;layer&#34;].append(layer.to_dict())
+
+        return res
+
+    @classmethod
+    def from_layers(
+        cls,
+        input_size: int,
+        block_size: List[int],
+        output_size: int,
+        layers: List[TensorflowDense],
+        **kwargs,
+    ):
+        &#34;&#34;&#34;
+        Restore neural network from list of layers
+        Parameters
+        ----------
+        input_size
+        block_size
+        output_size
+        layers
+        kwargs
+
+        Returns
+        -------
+
+        &#34;&#34;&#34;
+        res = cls(
+            input_size=input_size,
+            block_size=block_size,
+            output_size=output_size,
+            **kwargs,
+        )
+
+        for layer_num in range(len(res.blocks)):
+            res.blocks[layer_num] = layers[layer_num]
+
+        return res
+
+    def from_dict(self, config, **kwargs):
+        &#34;&#34;&#34;
+        Restore neural network from dictionary of params
+        Parameters
+        ----------
+        config
+        kwargs
+
+        Returns
+        -------
+
+        &#34;&#34;&#34;
+        input_size = config[&#34;input_size&#34;]
+        block_size = config[&#34;block_size&#34;]
+        output_size = config[&#34;output_size&#34;]
+
+        self.block_size = list(block_size)
+        self.input_size = input_size
+        self.output_size = output_size
+
+        layers: List[TensorflowDense] = []
+        for layer_config in config[&#34;layer&#34;]:
+            layers.append(layer_creator.from_dict(layer_config))
+
+        self.blocks: List[TensorflowDense] = []
+        for layer_num in range(len(layers)):
+            self.blocks.append(layers[layer_num])
+
+        self.out_layer = layer_creator.from_dict(config[&#34;out_layer&#34;])
+
+    def export_to_cpp(
+        self, path: str, array_type: str = &#34;[]&#34;, path_to_compiler: str = None, **kwargs
+    ) -&gt; None:
+        &#34;&#34;&#34;
+        Export neural network as feedforward function on c++
+
+        Parameters
+        ----------
+        path: str
+            path to file with name, without extension
+        array_type: str
+            c-style or cpp-style (&#34;[]&#34; or &#34;vector&#34;)
+        path_to_compiler: str
+            path to c/c++ compiler
+        kwargs
+
+        Returns
+        -------
+
+        &#34;&#34;&#34;
+        res = &#34;&#34;&#34;
+#include &lt;cmath&gt;
+#include &lt;vector&gt;
+
+#define max(x, y) ((x &lt; y) ? y : x)
+
+        \n&#34;&#34;&#34;
+
+        config = self.to_dict(**kwargs)
+
+        input_size = self.input_size
+        output_size = self.output_size
+        blocks = self.block_size
+        reverse = False
+        layers = config[&#34;layer&#34;] + [config[&#34;out_layer&#34;]]
+
+        comment = f&#34;// This function takes {input_size} elements array and returns {output_size} elements array\n&#34;
+        signature = f&#34;&#34;
+        start_func = &#34;{\n&#34;
+        end_func = &#34;}\n&#34;
+        transform_input_vector = &#34;&#34;
+        transform_output_array = &#34;&#34;
+        return_stat = &#34;return answer;\n&#34;
+
+        creator_1d: Callable[
+            [str, int, Optional[list]], str
+        ] = cpp_utils.array1d_creator(&#34;float&#34;)
+        creator_heap_1d: Callable[[str, int], str] = cpp_utils.array1d_heap_creator(
+            &#34;float&#34;
+        )
+        creator_2d: Callable[
+            [str, int, int, Optional[list]], str
+        ] = cpp_utils.array2d_creator(&#34;float&#34;)
+        if array_type == &#34;[]&#34;:
+            signature = f&#34;float* feedforward(float x_array[])\n&#34;
+
+        if array_type == &#34;vector&#34;:
+            signature = f&#34;std::vector&lt;float&gt; feedforward(std::vector&lt;float&gt; x)\n&#34;
+
+            transform_input_vector = cpp_utils.transform_1dvector_to_array(
+                &#34;float&#34;, input_size, &#34;x&#34;, &#34;x_array&#34;
+            )
+            transform_output_array = cpp_utils.transform_1darray_to_vector(
+                &#34;float&#34;, output_size, &#34;answer_vector&#34;, &#34;answer&#34;
+            )
+            return_stat = &#34;return answer_vector;\n&#34;
+
+        create_layers = &#34;&#34;
+        create_layers += creator_1d(f&#34;layer_0&#34;, input_size, initial_value=0)
+        for i, size in enumerate(blocks):
+            create_layers += creator_1d(f&#34;layer_{i + 1}&#34;, size, initial_value=0)
+        create_layers += creator_1d(
+            f&#34;layer_{len(blocks) + 1}&#34;, output_size, initial_value=0
+        )
+        create_layers += cpp_utils.copy_1darray_to_array(
+            input_size, &#34;x_array&#34;, &#34;layer_0&#34;
+        )
+
+        create_weights = &#34;&#34;
+        for i, layer_dict in enumerate(layers):
+            create_weights += creator_2d(
+                f&#34;weight_{i}_{i + 1}&#34;,
+                layer_dict[LAYER_DICT_NAMES[&#34;inp_size&#34;]],
+                layer_dict[LAYER_DICT_NAMES[&#34;shape&#34;]],
+                layer_dict[LAYER_DICT_NAMES[&#34;weights&#34;]],
+                reverse=reverse,
+            )
+
+        fill_weights = &#34;&#34;
+
+        create_biases = &#34;&#34;
+        for i, layer_dict in enumerate(layers):
+            create_biases += creator_1d(
+                f&#34;bias_{i + 1}&#34;,
+                layer_dict[LAYER_DICT_NAMES[&#34;shape&#34;]],
+                layer_dict[LAYER_DICT_NAMES[&#34;bias&#34;]],
+            )
+
+        fill_biases = &#34;&#34;
+        feed_forward_cycles = &#34;&#34;
+        for i, layer_dict in enumerate(layers):
+            left_size = layer_dict[
+                LAYER_DICT_NAMES[&#34;inp_size&#34;]
+            ]  # if i != 0 else input_size
+            right_size = layer_dict[LAYER_DICT_NAMES[&#34;shape&#34;]]
+            act_func = layer_dict[LAYER_DICT_NAMES[&#34;activation&#34;]]
+            decorator_params = layer_dict.get(LAYER_DICT_NAMES[&#34;decorator_params&#34;])
+            feed_forward_cycles += cpp_utils.feed_forward_step(
+                f&#34;layer_{i}&#34;,
+                left_size,
+                f&#34;layer_{i + 1}&#34;,
+                right_size,
+                f&#34;weight_{i}_{i + 1}&#34;,
+                f&#34;bias_{i + 1}&#34;,
+                act_func,
+            )
+
+        move_result = creator_heap_1d(&#34;answer&#34;, output_size)
+        move_result += cpp_utils.copy_1darray_to_array(
+            output_size, f&#34;layer_{len(blocks) + 1}&#34;, &#34;answer&#34;
+        )
+
+        res += comment
+        res += signature
+        res += start_func
+        res += transform_input_vector
+        res += create_layers
+        res += create_weights
+        res += fill_weights
+        res += create_biases
+        res += fill_biases
+        res += feed_forward_cycles
+        res += move_result
+        res += transform_output_array
+        res += return_stat
+        res += end_func
+
+        header_res = f&#34;&#34;&#34;
+        #ifndef {path[0].upper() + path[1:]}_hpp
+        #define {path[0].upper() + path[1:]}_hpp
+        #include &#34;{path}.cpp&#34;
+
+        {comment}
+        {signature};
+
+        #endif /* {path[0].upper() + path[1:]}_hpp */
+
+                &#34;&#34;&#34;
+
+        with open(path + &#34;.cpp&#34;, &#34;w&#34;) as f:
+            f.write(res)
+
+        with open(path + &#34;.hpp&#34;, &#34;w&#34;) as f:
+            f.write(header_res)
+
+        if path_to_compiler is not None:
+            os.system(path_to_compiler + &#34; -c -Ofast &#34; + path + &#34;.cpp&#34;)
+
+    @property
+    def get_activations(self) -&gt; List:
+        &#34;&#34;&#34;
+        Get list of activations functions for each layer
+
+        Returns
+        -------
+        activation: list
+        &#34;&#34;&#34;
+        return [layer.get_activation for layer in self.blocks]</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="degann.networks.topology.tf_densenet.TensorflowDenseNet"><code class="flex name class">
+<span>class <span class="ident">TensorflowDenseNet</span></span>
+<span>(</span><span>input_size: int = 2, block_size: list = None, output_size: int = 10, activation_func: str = 'linear', weight=&lt;keras.src.initializers.random_initializers.RandomUniform object&gt;, biases=&lt;keras.src.initializers.random_initializers.RandomUniform object&gt;, is_debug: bool = False, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A model grouping layers into an object with training/inference features.</p>
+<p>There are three ways to instantiate a <code>Model</code>:</p>
+<h2 id="with-the-functional-api">With the "Functional API"</h2>
+<p>You start from <code>Input</code>,
+you chain layer calls to specify the model's forward pass,
+and finally you create your model from inputs and outputs:</p>
+<pre><code class="language-python">inputs = keras.Input(shape=(37,))
+x = keras.layers.Dense(32, activation=&quot;relu&quot;)(inputs)
+outputs = keras.layers.Dense(5, activation=&quot;softmax&quot;)(x)
+model = keras.Model(inputs=inputs, outputs=outputs)
+</code></pre>
+<p>Note: Only dicts, lists, and tuples of input tensors are supported. Nested
+inputs are not supported (e.g. lists of list or dicts of dict).</p>
+<p>A new Functional API model can also be created by using the
+intermediate tensors. This enables you to quickly extract sub-components
+of the model.</p>
+<p>Example:</p>
+<pre><code class="language-python">inputs = keras.Input(shape=(None, None, 3))
+processed = keras.layers.RandomCrop(width=128, height=128)(inputs)
+conv = keras.layers.Conv2D(filters=32, kernel_size=3)(processed)
+pooling = keras.layers.GlobalAveragePooling2D()(conv)
+feature = keras.layers.Dense(10)(pooling)
+
+full_model = keras.Model(inputs, feature)
+backbone = keras.Model(processed, conv)
+activations = keras.Model(conv, feature)
+</code></pre>
+<p>Note that the <code>backbone</code> and <code>activations</code> models are not
+created with <code>keras.Input</code> objects, but with the tensors that originate
+from <code>keras.Input</code> objects. Under the hood, the layers and weights will
+be shared across these models, so that user can train the <code>full_model</code>, and
+use <code>backbone</code> or <code>activations</code> to do feature extraction.
+The inputs and outputs of the model can be nested structures of tensors as
+well, and the created models are standard Functional API models that support
+all the existing APIs.</p>
+<h2 id="by-subclassing-the-model-class">By subclassing the <code>Model</code> class</h2>
+<p>In that case, you should define your
+layers in <code>__init__()</code> and you should implement the model's forward pass
+in <code>call()</code>.</p>
+<pre><code class="language-python">class MyModel(keras.Model):
+    def __init__(self):
+        super().__init__()
+        self.dense1 = keras.layers.Dense(32, activation=&quot;relu&quot;)
+        self.dense2 = keras.layers.Dense(5, activation=&quot;softmax&quot;)
+
+    def call(self, inputs):
+        x = self.dense1(inputs)
+        return self.dense2(x)
+
+model = MyModel()
+</code></pre>
+<p>If you subclass <code>Model</code>, you can optionally have
+a <code>training</code> argument (boolean) in <code>call()</code>, which you can use to specify
+a different behavior in training and inference:</p>
+<pre><code class="language-python">class MyModel(keras.Model):
+    def __init__(self):
+        super().__init__()
+        self.dense1 = keras.layers.Dense(32, activation=&quot;relu&quot;)
+        self.dense2 = keras.layers.Dense(5, activation=&quot;softmax&quot;)
+        self.dropout = keras.layers.Dropout(0.5)
+
+    def call(self, inputs, training=False):
+        x = self.dense1(inputs)
+        x = self.dropout(x, training=training)
+        return self.dense2(x)
+
+model = MyModel()
+</code></pre>
+<p>Once the model is created, you can config the model with losses and metrics
+with <code>model.compile()</code>, train the model with <code>model.fit()</code>, or use the model
+to do prediction with <code>model.predict()</code>.</p>
+<h2 id="with-the-sequential-class">With the <code>Sequential</code> class</h2>
+<p>In addition, <code>keras.Sequential</code> is a special case of model where
+the model is purely a stack of single-input, single-output layers.</p>
+<pre><code class="language-python">model = keras.Sequential([
+    keras.Input(shape=(None, None, 3)),
+    keras.layers.Conv2D(filters=32, kernel_size=3),
+])
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TensorflowDenseNet(tf.keras.Model):
+    def __init__(
+        self,
+        input_size: int = 2,
+        block_size: list = None,
+        output_size: int = 10,
+        activation_func: str = &#34;linear&#34;,
+        weight=keras.initializers.RandomUniform(minval=-1, maxval=1),
+        biases=keras.initializers.RandomUniform(minval=-1, maxval=1),
+        is_debug: bool = False,
+        **kwargs,
+    ):
+        decorator_params: List[Optional[Dict]] = [None]
+        if &#34;decorator_params&#34; in kwargs.keys():
+            decorator_params = kwargs.get(&#34;decorator_params&#34;)
+            kwargs.pop(&#34;decorator_params&#34;)
+        else:
+            decorator_params = [None]
+
+        if (
+            isinstance(decorator_params, list)
+            and len(decorator_params) == 1
+            and decorator_params[0] is None
+            or decorator_params is None
+        ):
+            decorator_params = [None] * (len(block_size) + 1)
+
+        if (
+            isinstance(decorator_params, list)
+            and len(decorator_params) == 1
+            and decorator_params[0] is not None
+        ):
+            decorator_params = decorator_params * (len(block_size) + 1)
+
+        super(TensorflowDenseNet, self).__init__(**kwargs)
+        self.blocks: List[TensorflowDense] = []
+
+        if not isinstance(activation_func, list):
+            activation_func = [activation_func] * (len(block_size) + 1)
+        if len(block_size) != 0:
+            self.blocks.append(
+                layer_creator.create_dense(
+                    input_size,
+                    block_size[0],
+                    activation=activation_func[0],
+                    weight=weight,
+                    bias=biases,
+                    is_debug=is_debug,
+                    name=f&#34;MyDense0&#34;,
+                    decorator_params=decorator_params[0],
+                )
+            )
+            for i in range(1, len(block_size)):
+                self.blocks.append(
+                    layer_creator.create_dense(
+                        block_size[i - 1],
+                        block_size[i],
+                        activation=activation_func[i],
+                        weight=weight,
+                        bias=biases,
+                        is_debug=is_debug,
+                        name=f&#34;MyDense{i}&#34;,
+                        decorator_params=decorator_params[i],
+                    )
+                )
+            last_block_size = block_size[-1]
+        else:
+            last_block_size = input_size
+
+        self.out_layer = layer_creator.create_dense(
+            last_block_size,
+            output_size,
+            activation=activation_func[-1],
+            weight=weight,
+            bias=biases,
+            is_debug=is_debug,
+            name=f&#34;OutLayerMyDense&#34;,
+            decorator_params=decorator_params[-1],
+        )
+
+        self.activation_funcs = activation_func
+        self.weight_initializer = weight
+        self.bias_initializer = biases
+        self.input_size = input_size
+        self.block_size = block_size
+        self.output_size = output_size
+        self.trained_time = {&#34;train_time&#34;: 0.0, &#34;epoch_time&#34;: [], &#34;predict_time&#34;: 0}
+
+    def custom_compile(
+        self,
+        rate=1e-2,
+        optimizer=&#34;SGD&#34;,
+        loss_func=&#34;MeanSquaredError&#34;,
+        metric_funcs=None,
+        run_eagerly=False,
+    ):
+        &#34;&#34;&#34;
+        Configures the model for training
+
+        Parameters
+        ----------
+        rate: float
+            learning rate for optimizer
+        optimizer: str
+            name of optimizer
+        loss_func: str
+            name of loss function
+        metric_funcs: list[str]
+            list with metric function names
+        run_eagerly: bool
+
+        Returns
+        -------
+
+        &#34;&#34;&#34;
+        opt = optimizers.get_optimizer(optimizer)(learning_rate=rate)
+        loss = losses.get_loss(loss_func)
+        m = [metrics.get_metric(metric) for metric in metric_funcs]
+        self.compile(
+            optimizer=opt,
+            loss=loss,
+            metrics=m,
+            run_eagerly=run_eagerly,
+        )
+
+    def call(self, inputs, **kwargs):
+        &#34;&#34;&#34;
+        Obtaining a neural network response on the input data vector
+        Parameters
+        ----------
+        inputs
+        kwargs
+
+        Returns
+        -------
+
+        &#34;&#34;&#34;
+        x = inputs
+        for layer in self.blocks:
+            x = layer(x, **kwargs)
+        return self.out_layer(x, **kwargs)
+
+    def train_step(self, data):
+        &#34;&#34;&#34;
+        Custom train step from tensorflow tutorial
+
+        Parameters
+        ----------
+        data: tuple
+            Pair of x and y (or dataset)
+        Returns
+        -------
+
+        &#34;&#34;&#34;
+        # Unpack the data. Its structure depends on your model and
+        # on what you pass to `fit()`.
+        x, y = data
+        with tf.GradientTape() as tape:
+            y_pred = self(x, training=True)  # Forward pass
+            # Compute the loss value
+            # (the loss function is configured in `compile()`)
+            loss = self.compute_loss(y=y, y_pred=y_pred)
+
+        # Compute gradients
+        trainable_vars = self.trainable_variables
+        gradients = tape.gradient(loss, trainable_vars)
+        # Update weights
+        self.optimizer.apply_gradients(zip(gradients, trainable_vars))
+        # Update metrics (includes the metric that tracks the loss)
+        for metric in self.metrics:
+            if metric.name == &#34;loss&#34;:
+                metric.update_state(loss)
+            else:
+                metric.update_state(y, y_pred)
+        # Return a dict mapping metric names to current value
+        return {m.name: m.result() for m in self.metrics}
+
+    def set_name(self, new_name):
+        self._name = new_name
+
+    def __str__(self):
+        res = f&#34;IModel {self.name}\n&#34;
+        for layer in self.blocks:
+            res += str(layer)
+        res += str(self.out_layer)
+        return res
+
+    def to_dict(self, **kwargs):
+        &#34;&#34;&#34;
+        Export neural network to dictionary
+
+        Parameters
+        ----------
+        kwargs
+
+        Returns
+        -------
+
+        &#34;&#34;&#34;
+        res = {
+            &#34;net_type&#34;: &#34;MyDense&#34;,
+            &#34;name&#34;: self._name,
+            &#34;input_size&#34;: self.input_size,
+            &#34;block_size&#34;: self.block_size,
+            &#34;output_size&#34;: self.output_size,
+            &#34;layer&#34;: [],
+            &#34;out_layer&#34;: self.out_layer.to_dict(),
+        }
+
+        for i, layer in enumerate(self.blocks):
+            res[&#34;layer&#34;].append(layer.to_dict())
+
+        return res
+
+    @classmethod
+    def from_layers(
+        cls,
+        input_size: int,
+        block_size: List[int],
+        output_size: int,
+        layers: List[TensorflowDense],
+        **kwargs,
+    ):
+        &#34;&#34;&#34;
+        Restore neural network from list of layers
+        Parameters
+        ----------
+        input_size
+        block_size
+        output_size
+        layers
+        kwargs
+
+        Returns
+        -------
+
+        &#34;&#34;&#34;
+        res = cls(
+            input_size=input_size,
+            block_size=block_size,
+            output_size=output_size,
+            **kwargs,
+        )
+
+        for layer_num in range(len(res.blocks)):
+            res.blocks[layer_num] = layers[layer_num]
+
+        return res
+
+    def from_dict(self, config, **kwargs):
+        &#34;&#34;&#34;
+        Restore neural network from dictionary of params
+        Parameters
+        ----------
+        config
+        kwargs
+
+        Returns
+        -------
+
+        &#34;&#34;&#34;
+        input_size = config[&#34;input_size&#34;]
+        block_size = config[&#34;block_size&#34;]
+        output_size = config[&#34;output_size&#34;]
+
+        self.block_size = list(block_size)
+        self.input_size = input_size
+        self.output_size = output_size
+
+        layers: List[TensorflowDense] = []
+        for layer_config in config[&#34;layer&#34;]:
+            layers.append(layer_creator.from_dict(layer_config))
+
+        self.blocks: List[TensorflowDense] = []
+        for layer_num in range(len(layers)):
+            self.blocks.append(layers[layer_num])
+
+        self.out_layer = layer_creator.from_dict(config[&#34;out_layer&#34;])
+
+    def export_to_cpp(
+        self, path: str, array_type: str = &#34;[]&#34;, path_to_compiler: str = None, **kwargs
+    ) -&gt; None:
+        &#34;&#34;&#34;
+        Export neural network as feedforward function on c++
+
+        Parameters
+        ----------
+        path: str
+            path to file with name, without extension
+        array_type: str
+            c-style or cpp-style (&#34;[]&#34; or &#34;vector&#34;)
+        path_to_compiler: str
+            path to c/c++ compiler
+        kwargs
+
+        Returns
+        -------
+
+        &#34;&#34;&#34;
+        res = &#34;&#34;&#34;
+#include &lt;cmath&gt;
+#include &lt;vector&gt;
+
+#define max(x, y) ((x &lt; y) ? y : x)
+
+        \n&#34;&#34;&#34;
+
+        config = self.to_dict(**kwargs)
+
+        input_size = self.input_size
+        output_size = self.output_size
+        blocks = self.block_size
+        reverse = False
+        layers = config[&#34;layer&#34;] + [config[&#34;out_layer&#34;]]
+
+        comment = f&#34;// This function takes {input_size} elements array and returns {output_size} elements array\n&#34;
+        signature = f&#34;&#34;
+        start_func = &#34;{\n&#34;
+        end_func = &#34;}\n&#34;
+        transform_input_vector = &#34;&#34;
+        transform_output_array = &#34;&#34;
+        return_stat = &#34;return answer;\n&#34;
+
+        creator_1d: Callable[
+            [str, int, Optional[list]], str
+        ] = cpp_utils.array1d_creator(&#34;float&#34;)
+        creator_heap_1d: Callable[[str, int], str] = cpp_utils.array1d_heap_creator(
+            &#34;float&#34;
+        )
+        creator_2d: Callable[
+            [str, int, int, Optional[list]], str
+        ] = cpp_utils.array2d_creator(&#34;float&#34;)
+        if array_type == &#34;[]&#34;:
+            signature = f&#34;float* feedforward(float x_array[])\n&#34;
+
+        if array_type == &#34;vector&#34;:
+            signature = f&#34;std::vector&lt;float&gt; feedforward(std::vector&lt;float&gt; x)\n&#34;
+
+            transform_input_vector = cpp_utils.transform_1dvector_to_array(
+                &#34;float&#34;, input_size, &#34;x&#34;, &#34;x_array&#34;
+            )
+            transform_output_array = cpp_utils.transform_1darray_to_vector(
+                &#34;float&#34;, output_size, &#34;answer_vector&#34;, &#34;answer&#34;
+            )
+            return_stat = &#34;return answer_vector;\n&#34;
+
+        create_layers = &#34;&#34;
+        create_layers += creator_1d(f&#34;layer_0&#34;, input_size, initial_value=0)
+        for i, size in enumerate(blocks):
+            create_layers += creator_1d(f&#34;layer_{i + 1}&#34;, size, initial_value=0)
+        create_layers += creator_1d(
+            f&#34;layer_{len(blocks) + 1}&#34;, output_size, initial_value=0
+        )
+        create_layers += cpp_utils.copy_1darray_to_array(
+            input_size, &#34;x_array&#34;, &#34;layer_0&#34;
+        )
+
+        create_weights = &#34;&#34;
+        for i, layer_dict in enumerate(layers):
+            create_weights += creator_2d(
+                f&#34;weight_{i}_{i + 1}&#34;,
+                layer_dict[LAYER_DICT_NAMES[&#34;inp_size&#34;]],
+                layer_dict[LAYER_DICT_NAMES[&#34;shape&#34;]],
+                layer_dict[LAYER_DICT_NAMES[&#34;weights&#34;]],
+                reverse=reverse,
+            )
+
+        fill_weights = &#34;&#34;
+
+        create_biases = &#34;&#34;
+        for i, layer_dict in enumerate(layers):
+            create_biases += creator_1d(
+                f&#34;bias_{i + 1}&#34;,
+                layer_dict[LAYER_DICT_NAMES[&#34;shape&#34;]],
+                layer_dict[LAYER_DICT_NAMES[&#34;bias&#34;]],
+            )
+
+        fill_biases = &#34;&#34;
+        feed_forward_cycles = &#34;&#34;
+        for i, layer_dict in enumerate(layers):
+            left_size = layer_dict[
+                LAYER_DICT_NAMES[&#34;inp_size&#34;]
+            ]  # if i != 0 else input_size
+            right_size = layer_dict[LAYER_DICT_NAMES[&#34;shape&#34;]]
+            act_func = layer_dict[LAYER_DICT_NAMES[&#34;activation&#34;]]
+            decorator_params = layer_dict.get(LAYER_DICT_NAMES[&#34;decorator_params&#34;])
+            feed_forward_cycles += cpp_utils.feed_forward_step(
+                f&#34;layer_{i}&#34;,
+                left_size,
+                f&#34;layer_{i + 1}&#34;,
+                right_size,
+                f&#34;weight_{i}_{i + 1}&#34;,
+                f&#34;bias_{i + 1}&#34;,
+                act_func,
+            )
+
+        move_result = creator_heap_1d(&#34;answer&#34;, output_size)
+        move_result += cpp_utils.copy_1darray_to_array(
+            output_size, f&#34;layer_{len(blocks) + 1}&#34;, &#34;answer&#34;
+        )
+
+        res += comment
+        res += signature
+        res += start_func
+        res += transform_input_vector
+        res += create_layers
+        res += create_weights
+        res += fill_weights
+        res += create_biases
+        res += fill_biases
+        res += feed_forward_cycles
+        res += move_result
+        res += transform_output_array
+        res += return_stat
+        res += end_func
+
+        header_res = f&#34;&#34;&#34;
+        #ifndef {path[0].upper() + path[1:]}_hpp
+        #define {path[0].upper() + path[1:]}_hpp
+        #include &#34;{path}.cpp&#34;
+
+        {comment}
+        {signature};
+
+        #endif /* {path[0].upper() + path[1:]}_hpp */
+
+                &#34;&#34;&#34;
+
+        with open(path + &#34;.cpp&#34;, &#34;w&#34;) as f:
+            f.write(res)
+
+        with open(path + &#34;.hpp&#34;, &#34;w&#34;) as f:
+            f.write(header_res)
+
+        if path_to_compiler is not None:
+            os.system(path_to_compiler + &#34; -c -Ofast &#34; + path + &#34;.cpp&#34;)
+
+    @property
+    def get_activations(self) -&gt; List:
+        &#34;&#34;&#34;
+        Get list of activations functions for each layer
+
+        Returns
+        -------
+        activation: list
+        &#34;&#34;&#34;
+        return [layer.get_activation for layer in self.blocks]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>keras.src.models.model.Model</li>
+<li>keras.src.backend.tensorflow.trainer.TensorFlowTrainer</li>
+<li>keras.src.trainers.trainer.Trainer</li>
+<li>keras.src.layers.layer.Layer</li>
+<li>keras.src.backend.tensorflow.layer.TFLayer</li>
+<li>keras.src.backend.tensorflow.trackable.KerasAutoTrackable</li>
+<li>tensorflow.python.trackable.autotrackable.AutoTrackable</li>
+<li>tensorflow.python.trackable.base.Trackable</li>
+<li>keras.src.ops.operation.Operation</li>
+<li>keras.src.saving.keras_saveable.KerasSaveable</li>
+</ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="degann.networks.topology.tf_densenet.TensorflowDenseNet.from_layers"><code class="name flex">
+<span>def <span class="ident">from_layers</span></span>(<span>input_size: int, block_size: List[int], output_size: int, layers: List[<a title="degann.networks.layers.tf_dense.TensorflowDense" href="../layers/tf_dense.html#degann.networks.layers.tf_dense.TensorflowDense">TensorflowDense</a>], **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Restore neural network from list of layers
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>input_size</code></strong></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>block_size</code></strong></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>output_size</code></strong></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>layers</code></strong></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>kwargs</code></strong></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="returns">Returns</h2></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_layers(
+    cls,
+    input_size: int,
+    block_size: List[int],
+    output_size: int,
+    layers: List[TensorflowDense],
+    **kwargs,
+):
+    &#34;&#34;&#34;
+    Restore neural network from list of layers
+    Parameters
+    ----------
+    input_size
+    block_size
+    output_size
+    layers
+    kwargs
+
+    Returns
+    -------
+
+    &#34;&#34;&#34;
+    res = cls(
+        input_size=input_size,
+        block_size=block_size,
+        output_size=output_size,
+        **kwargs,
+    )
+
+    for layer_num in range(len(res.blocks)):
+        res.blocks[layer_num] = layers[layer_num]
+
+    return res</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="degann.networks.topology.tf_densenet.TensorflowDenseNet.get_activations"><code class="name">var <span class="ident">get_activations</span> : List</code></dt>
+<dd>
+<div class="desc"><p>Get list of activations functions for each layer</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>activation</code></strong> :&ensp;<code>list</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def get_activations(self) -&gt; List:
+    &#34;&#34;&#34;
+    Get list of activations functions for each layer
+
+    Returns
+    -------
+    activation: list
+    &#34;&#34;&#34;
+    return [layer.get_activation for layer in self.blocks]</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="degann.networks.topology.tf_densenet.TensorflowDenseNet.call"><code class="name flex">
+<span>def <span class="ident">call</span></span>(<span>self, inputs, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Obtaining a neural network response on the input data vector
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>inputs</code></strong></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>kwargs</code></strong></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="returns">Returns</h2></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def call(self, inputs, **kwargs):
+    &#34;&#34;&#34;
+    Obtaining a neural network response on the input data vector
+    Parameters
+    ----------
+    inputs
+    kwargs
+
+    Returns
+    -------
+
+    &#34;&#34;&#34;
+    x = inputs
+    for layer in self.blocks:
+        x = layer(x, **kwargs)
+    return self.out_layer(x, **kwargs)</code></pre>
+</details>
+</dd>
+<dt id="degann.networks.topology.tf_densenet.TensorflowDenseNet.custom_compile"><code class="name flex">
+<span>def <span class="ident">custom_compile</span></span>(<span>self, rate=0.01, optimizer='SGD', loss_func='MeanSquaredError', metric_funcs=None, run_eagerly=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Configures the model for training</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>rate</code></strong> :&ensp;<code>float</code></dt>
+<dd>learning rate for optimizer</dd>
+<dt><strong><code>optimizer</code></strong> :&ensp;<code>str</code></dt>
+<dd>name of optimizer</dd>
+<dt><strong><code>loss_func</code></strong> :&ensp;<code>str</code></dt>
+<dd>name of loss function</dd>
+<dt><strong><code>metric_funcs</code></strong> :&ensp;<code>list[str]</code></dt>
+<dd>list with metric function names</dd>
+<dt><strong><code>run_eagerly</code></strong> :&ensp;<code>bool</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="returns">Returns</h2></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def custom_compile(
+    self,
+    rate=1e-2,
+    optimizer=&#34;SGD&#34;,
+    loss_func=&#34;MeanSquaredError&#34;,
+    metric_funcs=None,
+    run_eagerly=False,
+):
+    &#34;&#34;&#34;
+    Configures the model for training
+
+    Parameters
+    ----------
+    rate: float
+        learning rate for optimizer
+    optimizer: str
+        name of optimizer
+    loss_func: str
+        name of loss function
+    metric_funcs: list[str]
+        list with metric function names
+    run_eagerly: bool
+
+    Returns
+    -------
+
+    &#34;&#34;&#34;
+    opt = optimizers.get_optimizer(optimizer)(learning_rate=rate)
+    loss = losses.get_loss(loss_func)
+    m = [metrics.get_metric(metric) for metric in metric_funcs]
+    self.compile(
+        optimizer=opt,
+        loss=loss,
+        metrics=m,
+        run_eagerly=run_eagerly,
+    )</code></pre>
+</details>
+</dd>
+<dt id="degann.networks.topology.tf_densenet.TensorflowDenseNet.export_to_cpp"><code class="name flex">
+<span>def <span class="ident">export_to_cpp</span></span>(<span>self, path: str, array_type: str = '[]', path_to_compiler: str = None, **kwargs) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Export neural network as feedforward function on c++</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to file with name, without extension</dd>
+<dt><strong><code>array_type</code></strong> :&ensp;<code>str</code></dt>
+<dd>c-style or cpp-style ("[]" or "vector")</dd>
+<dt><strong><code>path_to_compiler</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to c/c++ compiler</dd>
+<dt><strong><code>kwargs</code></strong></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="returns">Returns</h2></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">    def export_to_cpp(
+        self, path: str, array_type: str = &#34;[]&#34;, path_to_compiler: str = None, **kwargs
+    ) -&gt; None:
+        &#34;&#34;&#34;
+        Export neural network as feedforward function on c++
+
+        Parameters
+        ----------
+        path: str
+            path to file with name, without extension
+        array_type: str
+            c-style or cpp-style (&#34;[]&#34; or &#34;vector&#34;)
+        path_to_compiler: str
+            path to c/c++ compiler
+        kwargs
+
+        Returns
+        -------
+
+        &#34;&#34;&#34;
+        res = &#34;&#34;&#34;
+#include &lt;cmath&gt;
+#include &lt;vector&gt;
+
+#define max(x, y) ((x &lt; y) ? y : x)
+
+        \n&#34;&#34;&#34;
+
+        config = self.to_dict(**kwargs)
+
+        input_size = self.input_size
+        output_size = self.output_size
+        blocks = self.block_size
+        reverse = False
+        layers = config[&#34;layer&#34;] + [config[&#34;out_layer&#34;]]
+
+        comment = f&#34;// This function takes {input_size} elements array and returns {output_size} elements array\n&#34;
+        signature = f&#34;&#34;
+        start_func = &#34;{\n&#34;
+        end_func = &#34;}\n&#34;
+        transform_input_vector = &#34;&#34;
+        transform_output_array = &#34;&#34;
+        return_stat = &#34;return answer;\n&#34;
+
+        creator_1d: Callable[
+            [str, int, Optional[list]], str
+        ] = cpp_utils.array1d_creator(&#34;float&#34;)
+        creator_heap_1d: Callable[[str, int], str] = cpp_utils.array1d_heap_creator(
+            &#34;float&#34;
+        )
+        creator_2d: Callable[
+            [str, int, int, Optional[list]], str
+        ] = cpp_utils.array2d_creator(&#34;float&#34;)
+        if array_type == &#34;[]&#34;:
+            signature = f&#34;float* feedforward(float x_array[])\n&#34;
+
+        if array_type == &#34;vector&#34;:
+            signature = f&#34;std::vector&lt;float&gt; feedforward(std::vector&lt;float&gt; x)\n&#34;
+
+            transform_input_vector = cpp_utils.transform_1dvector_to_array(
+                &#34;float&#34;, input_size, &#34;x&#34;, &#34;x_array&#34;
+            )
+            transform_output_array = cpp_utils.transform_1darray_to_vector(
+                &#34;float&#34;, output_size, &#34;answer_vector&#34;, &#34;answer&#34;
+            )
+            return_stat = &#34;return answer_vector;\n&#34;
+
+        create_layers = &#34;&#34;
+        create_layers += creator_1d(f&#34;layer_0&#34;, input_size, initial_value=0)
+        for i, size in enumerate(blocks):
+            create_layers += creator_1d(f&#34;layer_{i + 1}&#34;, size, initial_value=0)
+        create_layers += creator_1d(
+            f&#34;layer_{len(blocks) + 1}&#34;, output_size, initial_value=0
+        )
+        create_layers += cpp_utils.copy_1darray_to_array(
+            input_size, &#34;x_array&#34;, &#34;layer_0&#34;
+        )
+
+        create_weights = &#34;&#34;
+        for i, layer_dict in enumerate(layers):
+            create_weights += creator_2d(
+                f&#34;weight_{i}_{i + 1}&#34;,
+                layer_dict[LAYER_DICT_NAMES[&#34;inp_size&#34;]],
+                layer_dict[LAYER_DICT_NAMES[&#34;shape&#34;]],
+                layer_dict[LAYER_DICT_NAMES[&#34;weights&#34;]],
+                reverse=reverse,
+            )
+
+        fill_weights = &#34;&#34;
+
+        create_biases = &#34;&#34;
+        for i, layer_dict in enumerate(layers):
+            create_biases += creator_1d(
+                f&#34;bias_{i + 1}&#34;,
+                layer_dict[LAYER_DICT_NAMES[&#34;shape&#34;]],
+                layer_dict[LAYER_DICT_NAMES[&#34;bias&#34;]],
+            )
+
+        fill_biases = &#34;&#34;
+        feed_forward_cycles = &#34;&#34;
+        for i, layer_dict in enumerate(layers):
+            left_size = layer_dict[
+                LAYER_DICT_NAMES[&#34;inp_size&#34;]
+            ]  # if i != 0 else input_size
+            right_size = layer_dict[LAYER_DICT_NAMES[&#34;shape&#34;]]
+            act_func = layer_dict[LAYER_DICT_NAMES[&#34;activation&#34;]]
+            decorator_params = layer_dict.get(LAYER_DICT_NAMES[&#34;decorator_params&#34;])
+            feed_forward_cycles += cpp_utils.feed_forward_step(
+                f&#34;layer_{i}&#34;,
+                left_size,
+                f&#34;layer_{i + 1}&#34;,
+                right_size,
+                f&#34;weight_{i}_{i + 1}&#34;,
+                f&#34;bias_{i + 1}&#34;,
+                act_func,
+            )
+
+        move_result = creator_heap_1d(&#34;answer&#34;, output_size)
+        move_result += cpp_utils.copy_1darray_to_array(
+            output_size, f&#34;layer_{len(blocks) + 1}&#34;, &#34;answer&#34;
+        )
+
+        res += comment
+        res += signature
+        res += start_func
+        res += transform_input_vector
+        res += create_layers
+        res += create_weights
+        res += fill_weights
+        res += create_biases
+        res += fill_biases
+        res += feed_forward_cycles
+        res += move_result
+        res += transform_output_array
+        res += return_stat
+        res += end_func
+
+        header_res = f&#34;&#34;&#34;
+        #ifndef {path[0].upper() + path[1:]}_hpp
+        #define {path[0].upper() + path[1:]}_hpp
+        #include &#34;{path}.cpp&#34;
+
+        {comment}
+        {signature};
+
+        #endif /* {path[0].upper() + path[1:]}_hpp */
+
+                &#34;&#34;&#34;
+
+        with open(path + &#34;.cpp&#34;, &#34;w&#34;) as f:
+            f.write(res)
+
+        with open(path + &#34;.hpp&#34;, &#34;w&#34;) as f:
+            f.write(header_res)
+
+        if path_to_compiler is not None:
+            os.system(path_to_compiler + &#34; -c -Ofast &#34; + path + &#34;.cpp&#34;)</code></pre>
+</details>
+</dd>
+<dt id="degann.networks.topology.tf_densenet.TensorflowDenseNet.from_dict"><code class="name flex">
+<span>def <span class="ident">from_dict</span></span>(<span>self, config, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Restore neural network from dictionary of params
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>config</code></strong></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>kwargs</code></strong></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="returns">Returns</h2></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def from_dict(self, config, **kwargs):
+    &#34;&#34;&#34;
+    Restore neural network from dictionary of params
+    Parameters
+    ----------
+    config
+    kwargs
+
+    Returns
+    -------
+
+    &#34;&#34;&#34;
+    input_size = config[&#34;input_size&#34;]
+    block_size = config[&#34;block_size&#34;]
+    output_size = config[&#34;output_size&#34;]
+
+    self.block_size = list(block_size)
+    self.input_size = input_size
+    self.output_size = output_size
+
+    layers: List[TensorflowDense] = []
+    for layer_config in config[&#34;layer&#34;]:
+        layers.append(layer_creator.from_dict(layer_config))
+
+    self.blocks: List[TensorflowDense] = []
+    for layer_num in range(len(layers)):
+        self.blocks.append(layers[layer_num])
+
+    self.out_layer = layer_creator.from_dict(config[&#34;out_layer&#34;])</code></pre>
+</details>
+</dd>
+<dt id="degann.networks.topology.tf_densenet.TensorflowDenseNet.set_name"><code class="name flex">
+<span>def <span class="ident">set_name</span></span>(<span>self, new_name)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_name(self, new_name):
+    self._name = new_name</code></pre>
+</details>
+</dd>
+<dt id="degann.networks.topology.tf_densenet.TensorflowDenseNet.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Export neural network to dictionary</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>kwargs</code></strong></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="returns">Returns</h2></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self, **kwargs):
+    &#34;&#34;&#34;
+    Export neural network to dictionary
+
+    Parameters
+    ----------
+    kwargs
+
+    Returns
+    -------
+
+    &#34;&#34;&#34;
+    res = {
+        &#34;net_type&#34;: &#34;MyDense&#34;,
+        &#34;name&#34;: self._name,
+        &#34;input_size&#34;: self.input_size,
+        &#34;block_size&#34;: self.block_size,
+        &#34;output_size&#34;: self.output_size,
+        &#34;layer&#34;: [],
+        &#34;out_layer&#34;: self.out_layer.to_dict(),
+    }
+
+    for i, layer in enumerate(self.blocks):
+        res[&#34;layer&#34;].append(layer.to_dict())
+
+    return res</code></pre>
+</details>
+</dd>
+<dt id="degann.networks.topology.tf_densenet.TensorflowDenseNet.train_step"><code class="name flex">
+<span>def <span class="ident">train_step</span></span>(<span>self, data)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Custom train step from tensorflow tutorial</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>tuple</code></dt>
+<dd>Pair of x and y (or dataset)</dd>
+</dl>
+<h2 id="returns">Returns</h2></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def train_step(self, data):
+    &#34;&#34;&#34;
+    Custom train step from tensorflow tutorial
+
+    Parameters
+    ----------
+    data: tuple
+        Pair of x and y (or dataset)
+    Returns
+    -------
+
+    &#34;&#34;&#34;
+    # Unpack the data. Its structure depends on your model and
+    # on what you pass to `fit()`.
+    x, y = data
+    with tf.GradientTape() as tape:
+        y_pred = self(x, training=True)  # Forward pass
+        # Compute the loss value
+        # (the loss function is configured in `compile()`)
+        loss = self.compute_loss(y=y, y_pred=y_pred)
+
+    # Compute gradients
+    trainable_vars = self.trainable_variables
+    gradients = tape.gradient(loss, trainable_vars)
+    # Update weights
+    self.optimizer.apply_gradients(zip(gradients, trainable_vars))
+    # Update metrics (includes the metric that tracks the loss)
+    for metric in self.metrics:
+        if metric.name == &#34;loss&#34;:
+            metric.update_state(loss)
+        else:
+            metric.update_state(y, y_pred)
+    # Return a dict mapping metric names to current value
+    return {m.name: m.result() for m in self.metrics}</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="degann.networks.topology" href="index.html">degann.networks.topology</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="degann.networks.topology.tf_densenet.TensorflowDenseNet" href="#degann.networks.topology.tf_densenet.TensorflowDenseNet">TensorflowDenseNet</a></code></h4>
+<ul class="two-column">
+<li><code><a title="degann.networks.topology.tf_densenet.TensorflowDenseNet.call" href="#degann.networks.topology.tf_densenet.TensorflowDenseNet.call">call</a></code></li>
+<li><code><a title="degann.networks.topology.tf_densenet.TensorflowDenseNet.custom_compile" href="#degann.networks.topology.tf_densenet.TensorflowDenseNet.custom_compile">custom_compile</a></code></li>
+<li><code><a title="degann.networks.topology.tf_densenet.TensorflowDenseNet.export_to_cpp" href="#degann.networks.topology.tf_densenet.TensorflowDenseNet.export_to_cpp">export_to_cpp</a></code></li>
+<li><code><a title="degann.networks.topology.tf_densenet.TensorflowDenseNet.from_dict" href="#degann.networks.topology.tf_densenet.TensorflowDenseNet.from_dict">from_dict</a></code></li>
+<li><code><a title="degann.networks.topology.tf_densenet.TensorflowDenseNet.from_layers" href="#degann.networks.topology.tf_densenet.TensorflowDenseNet.from_layers">from_layers</a></code></li>
+<li><code><a title="degann.networks.topology.tf_densenet.TensorflowDenseNet.get_activations" href="#degann.networks.topology.tf_densenet.TensorflowDenseNet.get_activations">get_activations</a></code></li>
+<li><code><a title="degann.networks.topology.tf_densenet.TensorflowDenseNet.set_name" href="#degann.networks.topology.tf_densenet.TensorflowDenseNet.set_name">set_name</a></code></li>
+<li><code><a title="degann.networks.topology.tf_densenet.TensorflowDenseNet.to_dict" href="#degann.networks.topology.tf_densenet.TensorflowDenseNet.to_dict">to_dict</a></code></li>
+<li><code><a title="degann.networks.topology.tf_densenet.TensorflowDenseNet.train_step" href="#degann.networks.topology.tf_densenet.TensorflowDenseNet.train_step">train_step</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

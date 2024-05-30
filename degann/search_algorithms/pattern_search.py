@@ -1,17 +1,11 @@
-"""
-Module for training neural networks
-"""
 import random
-from typing import Union, Tuple, List, Dict, Any
+from typing import Union, Any, Tuple, List
 
 import numpy as np
 import tensorflow as tf
 
-from degann.networks import activations, losses
-from degann.networks import imodel
-from degann.networks.callbacks import MemoryCleaner
-from degann.networks.metrics import get_all_metric_functions
-from degann.networks.optimizers import get_all_optimizers
+from degann import MemoryCleaner, get_all_optimizers, get_all_metric_functions
+from degann.networks import activations, imodel, losses
 
 _default_shapes = [
     [10, 10, 10, 10, 10, 10],
@@ -65,17 +59,6 @@ def _create_random_network(
     return nets_param
 
 
-def _normalize_two_array(
-    x: np.ndarray, y: np.ndarray
-) -> Tuple[np.ndarray, np.ndarray, float]:
-    m = max(abs(np.amax(x)), abs(np.amax(y)))
-    if m < 1:
-        m = 1
-    x = x / m
-    y = y / m
-    return x, y, m
-
-
 def _normalize_array(x: np.ndarray) -> Tuple[np.ndarray, float]:
     """
     Scale array from [a, b] to [0, 1]
@@ -121,7 +104,6 @@ def train(
         "debug": False,
         "eps": 1e-2,
         "epochs": 100,
-        "validation_split": 0.2,
         "normalize": False,
         "name_salt": "",
         "loss_function": "MeanSquaredError",
@@ -137,7 +119,6 @@ def train(
             "CosineSimilarity",
         ],
         "use_rand_net": True,
-        "experiments": False,
         "net_type": "DenseNet",
         "nets_param": [
             [
@@ -291,7 +272,6 @@ def pattern_search(
         "validation_metrics": [key for key in get_all_metric_functions()],
         "net_shapes": _default_shapes,
         "activations": [key for key in activations.get_all_activations()],
-        "validation_split": [0.2],
         "rates": [1e-2, 5e-3, 1e-3],
         "epochs": [50, 200],
         "normalize": [False],
@@ -331,22 +311,20 @@ def pattern_search(
     for loss_func in args["loss_functions"]:
         for normalize in args["normalize"]:
             for optimizer in args["optimizers"]:
-                for validation_split in args["validation_split"]:
-                    for epochs in args["epochs"]:
-                        for rate in args["rates"]:
-                            metaparams.append(dict())
-                            metaparams[-1]["loss_function"] = loss_func
-                            metaparams[-1]["normalize"] = normalize
-                            metaparams[-1]["optimizer"] = optimizer
-                            metaparams[-1]["validation_split"] = validation_split
-                            metaparams[-1]["epochs"] = epochs
-                            metaparams[-1]["eps"] = rate
-                            metaparams[-1]["metrics"] = args["metrics"]
-                            metaparams[-1]["validation_metrics"] = args[
-                                "validation_metrics"
-                            ]
-                            metaparams[-1]["nets_param"] = nets_param
-                            metaparams[-1].update(kwargs)
+                for epochs in args["epochs"]:
+                    for rate in args["rates"]:
+                        metaparams.append(dict())
+                        metaparams[-1]["loss_function"] = loss_func
+                        metaparams[-1]["normalize"] = normalize
+                        metaparams[-1]["optimizer"] = optimizer
+                        metaparams[-1]["epochs"] = epochs
+                        metaparams[-1]["eps"] = rate
+                        metaparams[-1]["metrics"] = args["metrics"]
+                        metaparams[-1]["validation_metrics"] = args[
+                            "validation_metrics"
+                        ]
+                        metaparams[-1]["nets_param"] = nets_param
+                        metaparams[-1].update(kwargs)
 
     best_nets: List[List[dict, float, float, imodel.IModel]] = []
     if kwargs.get("debug"):

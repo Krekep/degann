@@ -2,6 +2,7 @@ import time
 
 import numpy as np
 
+import degann.search_algorithms.pattern_search
 from degann.networks import losses, callbacks
 from degann.networks import IModel
 from experiments.functions import LF_ODE_1_solution, ST_S_ODE_3_table
@@ -102,24 +103,6 @@ f_x_data = np.array([f_x2(x) for x in x_data])
 # nn.compile()
 # # Train on prepared X and Y data
 # nn.train(x_data, f_x_data)
-#
-# # Find best networks for predicting passed data over full search on grid of parameters
-# networks = trainer.full_search(
-#     x_data,                                 # X data
-#     f_x_data,                               # Y data; y(x) = f(x)
-#     epochs=[5, 10],                         # count of epochs for training
-#     loss_functions=["MeanSquaredError"],    # loss functions for configuring models
-#     optimizers=["Adam"],                    # training algorithm
-#     rates=[1e-3],                           # learning step for training algorithm
-#     net_shapes=[[5, 5], [], [10]],          # shapes for neural networks
-#     activations=["relu"],                   # activation functions for networks
-#     use_rand_net=False                      # will random network add to full search
-# )
-# for nn in networks:
-#     print(f"Best net for {nn[0]['epochs']} epochs and '{nn[0]['optimizer']}' optimizer", end='\n')
-#     print(f"Loss = {nn[1]}, loss on validation piece = {nn[2]}\nNetwork description:\n{str(nn[3])}")
-#     print("***********")
-
 
 #
 # Export neural network to cpp
@@ -167,7 +150,7 @@ for los in all_l:
     his = nn.train(
         x_data,
         f_x_data,
-        epochs=100,
+        epochs=10,
         verbose=0,  # train progress output disable
     )
     print(los, his.history["loss"][-1])
@@ -200,7 +183,7 @@ optimizers = ["SGD", "Adam", "RMSprop"]  # training algorithms
 # loss function for neural network
 los = "Huber"
 # count of training epochs
-epochs = 200
+epochs = 50
 
 input_len = 1
 output_len = 1
@@ -238,85 +221,3 @@ for opt in optimizers:
         labels=[acts[0][0], acts[1][0], acts[2][0], "f(x) = e^(3x)"],
         true_data=(x_data, f_x_data),
     )
-
-#
-# Measure predict time row by row
-#
-
-from random import random
-
-input_size = 1
-shapes = [
-    [10, 10, 10, 10, 10, 10],
-    [100, 100, 100],
-    [300, 300, 300],
-]  # sizes of hidden layers
-output_size = 1
-
-# X data size
-single_data_size_call = [500, 5_000, 25_000]
-# X data
-single_x_data_call = [
-    np.array([[[random() * 10]] for _ in range(0, size)])
-    for size in single_data_size_call
-]
-
-for i, shape in enumerate(shapes):
-    nn = IModel(input_size, shape, output_size)
-
-    for size in single_x_data_call:
-        start_time = time.perf_counter()
-        for row in size:
-            a = nn.feedforward(row)
-        end_time = time.perf_counter()
-        call_time = end_time - start_time
-        print(
-            f"Neural network with {shape} have predict row by row time {call_time} on {len(size)} size"
-        )
-
-    nn.export_to_cpp(f"time_measure_{i}")
-
-#
-# Measure train time
-#
-
-nn_data_x = [i / 100 for i in range(0, 4_001)]  # X data
-table = ST_S_ODE_3_table(nn_data_x)
-temp = np.hsplit(table, np.array([1, 4]))
-nn_data_x = temp[0]  # X data
-nn_data_y = temp[1]  # Y data
-shapes = [10, 10, 10, 10, 10, 10]  # sizes of hidden layers
-
-acts = ["swish"] * 6 + ["linear"]  # activation functions for layers
-
-los = "Huber"  # loss function for training
-epochs = 50
-
-input_len = 1
-output_len = 3
-
-nn = IModel(
-    input_size=input_len,
-    block_size=shapes,
-    output_size=output_len,
-    activation_func=acts,
-)
-opt = "Adam"  # training algorithm
-
-nn.compile(optimizer=opt, loss_func=los)
-
-time_measurer = callbacks.MeasureTrainTime()  # Callback for measure time
-his = nn.train(
-    nn_data_x,
-    nn_data_y,
-    epochs=epochs,
-    verbose=0,
-    callbacks=[time_measurer],  # pass callback as parameter
-)
-print(
-    f"Neural network {shapes} have train time {nn.network.trained_time['train_time']} and error is {his.history['loss'][-1]}"
-)
-
-build_plot(nn, (0.0, 40.0), 0.02, true_data=[nn_data_x, nn_data_y])
-
-nn.export_to_cpp("train_time_measure")

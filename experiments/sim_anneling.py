@@ -3,13 +3,13 @@ import numpy as np
 from degann import (
     MeasureTrainTime,
 )
-from degann.expert.generate import generate_neighbor
-from degann.expert.search_algorithms import (
+from degann.search_algorithms.generate import generate_neighbor
+from degann.search_algorithms.simulated_annealing import (
     simulated_annealing,
-    distance_lin,
     temperature_exp,
-    distance_const,
     temperature_lin,
+    distance_const,
+    distance_lin,
 )
 import gen_dataset
 
@@ -32,7 +32,7 @@ time_viewer = MeasureTrainTime()
 
 min_epoch, max_epoch = 100, 700
 
-input_size = 1
+input_size = 3
 
 for func, func_name in gen_dataset.funcs:
     for size in gen_dataset.sizes_of_samples:
@@ -86,7 +86,7 @@ for func, func_name in gen_dataset.funcs:
                                 net,
                                 _,
                             ) = simulated_annealing(
-                                3,
+                                input_size,
                                 1,
                                 data=(train_data_x, train_data_y),
                                 val_data=(val_data_x, val_data_y),
@@ -94,7 +94,7 @@ for func, func_name in gen_dataset.funcs:
                                 loss=loss,
                                 threshold=threshold,
                                 distance_method=dist_m,
-                                method=generate_neighbor,
+                                method_for_generate_next_nn=generate_neighbor,
                                 temperature_method=temp_m,
                                 min_epoch=min_epoch,
                                 max_epoch=max_epoch,

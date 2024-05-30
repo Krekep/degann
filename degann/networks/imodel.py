@@ -289,7 +289,7 @@ class IModel(object):
         array_type: str
             c-style or cpp-style ("[]" or "vector")
         path_to_compiler: str
-            path to c/c++ compiler
+            path to c/c++ compiler, if `None` then the resulting code will not be compiled
         kwargs
 
         Returns
@@ -490,29 +490,6 @@ class IModel(object):
         )
 
         return res
-
-    # perceptron activation is discrete and has no derivatives (gradient)
-    # @classmethod
-    # def create_perceptron(cls, input_size, output_size, shape, threshold=1, **kwargs):
-    #     activation, decorator_params, weight, biases, kwargs = _get_act_and_init(
-    #         kwargs,
-    #         activations.perceptron_threshold,
-    #         [{"threshold": threshold}],
-    #         tf.random_normal_initializer(),
-    #     )
-    #
-    #     res = cls(
-    #         input_size=input_size,
-    #         block_size=shape,
-    #         output_size=output_size,
-    #         activation_func=activation,
-    #         bias_init=biases,
-    #         weight_init=weight,
-    #         decorator_params=decorator_params,
-    #         **kwargs,
-    #     )
-    #
-    #     return res
 
 
 _create_functions = defaultdict(lambda: TensorflowDenseNet)

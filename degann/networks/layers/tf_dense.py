@@ -1,5 +1,6 @@
 from typing import Optional, List, Tuple, Dict
 
+import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
@@ -54,15 +55,21 @@ class TensorflowDense(keras.layers.Layer):
 
         super(TensorflowDense, self).__init__(**kwargs)
         w_init = weight_initializer
-        self.w = tf.Variable(
-            initial_value=w_init(shape=(input_dim, units), dtype="float32"),
+        self.w = self.add_weight(
+            shape=(input_dim, units),
+            initializer=w_init,
+            dtype="float32",
+            # initial_value=w_init(shape=(input_dim, units), dtype="float32"),
             name=f"Var_w_{self.name}",
             trainable=True,
         )
         b_init = bias_initializer
-        self.b = tf.Variable(
-            initial_value=b_init(shape=(units,), dtype="float32"),
-            name=f"Var_w_{self.name}",
+        self.b = self.add_weight(
+            shape=(units,),
+            initializer=b_init,
+            dtype="float32",
+            # initial_value=b_init(shape=(units,), dtype="float32"),
+            name=f"Var_b_{self.name}",
             trainable=True,
         )
 
@@ -111,8 +118,8 @@ class TensorflowDense(keras.layers.Layer):
         config: dict
             dictionary of parameters
         """
-        w = self.w.value().numpy()
-        b = self.b.value().numpy()
+        w = self.w.value.numpy()
+        b = self.b.value.numpy()
         res = {
             LAYER_DICT_NAMES["shape"]: self.units,
             LAYER_DICT_NAMES["inp_size"]: self.input_dim,
@@ -142,18 +149,14 @@ class TensorflowDense(keras.layers.Layer):
         -------
 
         """
-        w = config[LAYER_DICT_NAMES["weights"]]
-        b = config[LAYER_DICT_NAMES["biases"]]
+        w = np.array(config[LAYER_DICT_NAMES["weights"]])
+        b = np.array(config[LAYER_DICT_NAMES["biases"]])
         act = config[LAYER_DICT_NAMES["activation"]]
         dec_params = _dec_params_from_list(config[LAYER_DICT_NAMES["decorator_params"]])
-        self.w = tf.Variable(
-            initial_value=w,
-            dtype=config[LAYER_DICT_NAMES["dtype"]],
-            trainable=True,
-        )
-        self.b = tf.Variable(
-            initial_value=b, dtype=config[LAYER_DICT_NAMES["dtype"]], trainable=True
-        )
+        self.set_weights([w, b])
+        # self.b = tf.Variable(
+        #     initial_value=b, dtype=config[LAYER_DICT_NAMES["dtype"]], trainable=True
+        # )
         self.activation_func = activations.get(act)
         self.activation_name = act
         self.decorator_params = dec_params

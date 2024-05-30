@@ -1,11 +1,15 @@
 import math
 import random
-from typing import Union
+from typing import Union, Callable
 
-from degann.expert.nn_code import decode, alphabet_activations
+from degann.search_algorithms.nn_code import decode, alphabet_activations
 
 
 class MetaParameter:
+    """
+    Abstract class for parameters in parameter space of neural networks
+    """
+
     def distance(self, other):
         pass
 
@@ -14,6 +18,10 @@ class MetaParameter:
 
 
 class CodeParameter(MetaParameter):
+    """
+    Topology parameter --- size of layers with activations
+    """
+
     block_size = 1
     exp_size = 10
 
@@ -27,6 +35,19 @@ class CodeParameter(MetaParameter):
         ]
 
     def distance(self, other) -> float:
+        """
+        Distance between `self` topology and `other` topology
+
+        Parameters
+        ----------
+        other: CodeParameter | str
+            other neural network topology
+
+        Returns
+        -------
+        distance: float
+            distance between topologies
+        """
         if isinstance(other, str):
             other = CodeParameter(other)
         val_a = 0
@@ -51,13 +72,22 @@ class CodeParameter(MetaParameter):
         return abs(val_a - val_b) + diff
 
     def value(self) -> str:
-        return "".join(self.blocks)
+        """
+        Present CodeParameter as string code
 
-    def block_cost(self, block, offset=8):
-        return sum(decode(block, block_size=self.block_size, offset=offset)[0])
+        Returns
+        -------
+        str_topology: str
+            topology as str
+        """
+        return "".join(self.blocks)
 
 
 class EpochParameter(MetaParameter):
+    """
+    Epoch parameter --- count of epoch in training
+    """
+
     log_value = 1.1
     pow_scale = 3
 
@@ -65,6 +95,19 @@ class EpochParameter(MetaParameter):
         self.epoch = epoch
 
     def distance(self, other: Union[int, "EpochParameter"]) -> float:
+        """
+        Distance between `self` epoch and `other` epoch
+
+        Parameters
+        ----------
+        other: EpochParameter | int
+            other neural network topology
+
+        Returns
+        -------
+        distance: float
+            distance between epochs
+        """
         if isinstance(other, int):
             return math.log(
                 self.epoch**EpochParameter.pow_scale, EpochParameter.log_value
@@ -74,10 +117,32 @@ class EpochParameter(MetaParameter):
         ) - math.log(other.epoch**EpochParameter.pow_scale, EpochParameter.log_value)
 
     def value(self) -> int:
+        """
+        Present EpochParameter as int value
+
+        Returns
+        -------
+        str_topology: int
+            epoch as int value
+        """
         return self.epoch
 
 
-def choose_neighbor(method, **kwargs):
+def choose_neighbor(method: Callable, **kwargs):
+    """
+    Wrapper that returns a method with kwargs applied to it
+
+    Parameters
+    ----------
+    method: Callable
+       Method for determining the distance to another neural network
+    kwargs
+
+    Returns
+    -------
+    method: Callable
+        Method with applied kwargs
+    """
     return method(**kwargs)
 
 
@@ -87,7 +152,28 @@ def random_generate(
     max_epoch: int = 700,
     min_length: int = 1,
     max_length: int = 6,
-):
+) -> tuple[CodeParameter, EpochParameter]:
+    """
+    Random point generator in the parameter space of neural networks
+
+    Parameters
+    ----------
+    alphabet: list[str]
+        Alphabet defining possible layers of a neural network
+    min_epoch: int
+        Minimum number of training epochs
+    max_epoch: int
+        Maximum number of training epochs
+    min_length: int
+        Minimum count of hidden layers in neural network
+    max_length: int
+        Maximum count of hidden layers in neural network
+
+    Returns
+    -------
+    point: tuple[CodeParameter, EpochParameter]
+        random generated point
+    """
     block = random.randint(min_length, max_length)
     code = ""
 
@@ -106,6 +192,31 @@ def generate_neighbor(
     min_length: int = 1,
     max_length: int = 6,
 ):
+    """
+    Generator of a point in the neighborhood of the current one in the parameter space of neural networks
+
+    Parameters
+    ----------
+    alphabet: list[str]
+        Alphabet defining possible layers of a neural network
+    parameters: tuple[str, int]
+        Start point
+    distance: int
+        Maximum distance from the starting point
+    min_epoch: int
+        Minimum number of training epochs
+    max_epoch: int
+        Maximum number of training epochs
+    min_length: int
+        Minimum count of hidden layers in neural network
+    max_length: int
+        Maximum count of hidden layers in neural network
+
+    Returns
+    -------
+    point: tuple[CodeParameter, EpochParameter]
+        neighbor of start point
+    """
     code = parameters[0]
     epoch = parameters[1]
     is_stop = 0
@@ -121,8 +232,9 @@ def generate_neighbor(
                 new_epoch = EpochParameter(
                     min(
                         random.randint(
-                            epoch, int(EpochParameter.log_value**distance * epoch)
-                        ),
+                            epoch,
+                            int(EpochParameter.log_value ** min(distance, 70) * epoch),
+                        ),  # need to rewrite this formula
                         max_epoch,
                     )
                 )
@@ -130,8 +242,11 @@ def generate_neighbor(
                 new_epoch = EpochParameter(
                     max(
                         random.randint(
-                            int(epoch / (EpochParameter.log_value**distance)), epoch
-                        ),
+                            int(
+                                epoch / (EpochParameter.log_value ** min(distance, 70))
+                            ),
+                            epoch,
+                        ),  # need to rewrite this formula
                         min_epoch,
                     )
                 )
@@ -150,7 +265,7 @@ def generate_neighbor(
                     max_block_size = 15**CodeParameter.block_size
                     max_block_increase = min(max_block_size, int(distance))
                     new_block = (
-                        hex(current_block_size + random.randint(1, max_block_increase))[
+                        hex(current_block_size + random.randint(0, max_block_increase))[
                             2:
                         ]
                         + curr_code.blocks[chosen_block][-1]
@@ -169,7 +284,7 @@ def generate_neighbor(
                         hex(
                             max(
                                 current_block_size
-                                - random.randint(1, max_block_decrease),
+                                - random.randint(0, max_block_decrease),
                                 min_block_size,
                             )
                         )[2:]
@@ -202,15 +317,15 @@ def generate_neighbor(
             if distance < 0:
                 distance += abs(new_code.distance(curr_code))
                 temp_dist = abs(new_code.distance(curr_code))
-                print(
-                    "DEBUG",
-                    new_code.blocks,
-                    curr_code.blocks,
-                    chosen_block,
-                    command,
-                    distance,
-                    temp_dist,
-                )
+                # print(
+                #     "DEBUG",
+                #     new_code.blocks,
+                #     curr_code.blocks,
+                #     chosen_block,
+                #     command,
+                #     distance,
+                #     temp_dist,
+                # )
                 distance -= temp_dist
             new_code = curr_code
         is_stop = random.randint(0, 3)
