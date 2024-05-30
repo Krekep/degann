@@ -1,6 +1,10 @@
 from typing import List
 
-from degann.search_algorithms import random_search_endless, simulated_annealing, grid_search
+from degann.search_algorithms import (
+    random_search_endless,
+    simulated_annealing,
+    grid_search,
+)
 
 
 def execute_pipeline(
