@@ -83,7 +83,9 @@ class SelectAndTrainLayout:
         loss_func_combobox.setObjectName("loss_func_combobox")
         for loss_func in get_all_loss_functions().keys():
             loss_func_combobox.addItem(loss_func)
-        loss_func_combobox.setCurrentText(str(selector.base_parameters["loss_function"]))
+        loss_func_combobox.setCurrentText(
+            str(selector.base_parameters["loss_function"])
+        )
         param_value_area.addWidget(loss_func_combobox)
 
         loss_threshold_text = QtWidgets.QLineEdit(parent=self.centralwidget)

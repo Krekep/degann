@@ -63,6 +63,7 @@ def array1d_heap_creator(elem_type: str):
     creator: Callable
         function for create arrays
     """
+
     def array1d_heap_spec_type_creator(name: str, size: int) -> str:
         """
         Create string representation of c one-dimensional array on heap
@@ -165,7 +166,10 @@ def vector1d_creator(elem_type: str):
     creator: Callable
         function for create arrays
     """
-    def vector1d_spec_type_creator(name: str, size: int, initial_value: float = 0) -> str:
+
+    def vector1d_spec_type_creator(
+        name: str, size: int, initial_value: float = 0
+    ) -> str:
         """
         Create string representation of cpp one dimensional vector
 
@@ -201,6 +205,7 @@ def vector2d_creator(elem_type: str):
     creator: Callable
         function for create arrays
     """
+
     def vector2d_spec_type_creator(
         name: str, size_x: int, size_y: int, initial_value=0
     ) -> str:

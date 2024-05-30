@@ -58,6 +58,7 @@ def _create_random_network(
     nets_param = [shape, act, decorator_param]
     return nets_param
 
+
 def _normalize_array(x: np.ndarray) -> Tuple[np.ndarray, float]:
     """
     Scale array from [a, b] to [0, 1]

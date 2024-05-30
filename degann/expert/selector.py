@@ -20,12 +20,12 @@ expert_system_tags = {
 }
 
 base_sam_parameters = {
-        "distance_to_neighbor": "distance_const",
-        "dist_offset": 300,
-        "dist_scale": 0,
-        "temperature_reduction_method": "temperature_lin",
-        "temperature_speed": 0,
-    }
+    "distance_to_neighbor": "distance_const",
+    "dist_offset": 300,
+    "dist_scale": 0,
+    "temperature_reduction_method": "temperature_lin",
+    "temperature_speed": 0,
+}
 base_parameters = {
     "launch_count_random_search": 2,
     "launch_count_simulated_annealing": 2,
@@ -33,7 +33,9 @@ base_parameters = {
     "nn_min_length": 1,
     "nn_alphabet_block_size": 1,
     "nn_alphabet_offset": 8,
-    "nn_alphabet": ["".join(elem) for elem in product(alph_n_full, alphabet_activations)],
+    "nn_alphabet": [
+        "".join(elem) for elem in product(alph_n_full, alphabet_activations)
+    ],
     "min_train_epoch": 200,
     "max_train_epoch": 500,
     "iteration_count": 5,

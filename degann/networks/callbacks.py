@@ -19,6 +19,7 @@ class MeasureTrainTime(Callback):
     measuring the time of each epoch during training,
     and measuring the running time of the predict method
     """
+
     def __init__(self):
         super(MeasureTrainTime, self).__init__()
         self.start_train_time = 0
@@ -80,6 +81,7 @@ class LightHistory(History):
     but which only stores information about the last training epoch,
     not the entire process
     """
+
     def __init__(self):
         super(History, self).__init__()
         self.history = {}

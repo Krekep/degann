@@ -14,6 +14,7 @@ class RelativeAbsoluteError(tf.keras.losses.Loss, ABC):
     This class provides RAE loss function:
     $$ RAE = \frac{\Sum^n_{i=1} |y_i - \hat(y)_i|}{\Sum^n_{i=1} |y_i - \bar(y)|}
     """
+
     def __init__(self, reduction=tf.keras.losses.Reduction.NONE, name="rae", **kwargs):
         super(RelativeAbsoluteError, self).__init__(
             reduction=reduction, name=name, **kwargs
@@ -39,6 +40,7 @@ class MaxAbsoluteDeviation(tf.keras.losses.Loss, ABC):
     This class provides Max Absolute Deviation loss function:
     $$ MAD = \max |y - \hat(y)|
     """
+
     def __init__(
         self, reduction=tf.keras.losses.Reduction.NONE, name="my_mae", **kwargs
     ):
@@ -56,6 +58,7 @@ class MaxAbsolutePercentageError(tf.keras.losses.Loss, ABC):
     This class provides Max Absolute Percentage Error loss function:
     $$ MAD = \max |\frac{y - \hat(y)}{y}|
     """
+
     def __init__(
         self, reduction=tf.keras.losses.Reduction.NONE, name="maxAPE", **kwargs
     ):
@@ -73,9 +76,8 @@ class RMSE(tf.keras.losses.Loss, ABC):
     This class provides Root Mean squared Error loss function:
     $$ MAD = \sqrt{MSE}
     """
-    def __init__(
-        self, reduction=tf.keras.losses.Reduction.NONE, name="RMSE", **kwargs
-    ):
+
+    def __init__(self, reduction=tf.keras.losses.Reduction.NONE, name="RMSE", **kwargs):
         super(RMSE, self).__init__(reduction=reduction, name=name, **kwargs)
 
     def __call__(self, y_true, y_pred, sample_weight=None):

@@ -135,7 +135,7 @@ def simulated_annealing(
 ) -> Tuple[float, int, str, str, dict, int]:
     """
     Method of simulated annealing in the parameter space of neural networks
-    
+
     Parameters
     ----------
     input_size: int

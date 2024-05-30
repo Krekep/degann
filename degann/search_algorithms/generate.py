@@ -9,6 +9,7 @@ class MetaParameter:
     """
     Abstract class for parameters in parameter space of neural networks
     """
+
     def distance(self, other):
         pass
 
@@ -20,6 +21,7 @@ class CodeParameter(MetaParameter):
     """
     Topology parameter --- size of layers with activations
     """
+
     block_size = 1
     exp_size = 10
 
@@ -85,6 +87,7 @@ class EpochParameter(MetaParameter):
     """
     Epoch parameter --- count of epoch in training
     """
+
     log_value = 1.1
     pow_scale = 3
 
