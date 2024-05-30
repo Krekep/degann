@@ -3,7 +3,7 @@ from typing import Union, Tuple, List
 
 def array1d_creator(elem_type: str):
     """
-    Return function for creating cpp one dimensional arrays (e.g. float[]) with specified type
+    Return function for creating c one-dimensional arrays (e.g. float[]) with specified type
 
     Parameters
     ----------
@@ -18,7 +18,7 @@ def array1d_creator(elem_type: str):
 
     def array1d_spec_type_creator(name: str, size: int, initial_value=None) -> str:
         """
-        Create string representation of cpp one dimensional array
+        Create string representation of c one-dimensional array
 
         Parameters
         ----------
@@ -49,7 +49,35 @@ def array1d_creator(elem_type: str):
 
 
 def array1d_heap_creator(elem_type: str):
+    """
+    Return function for creating c one-dimensional arrays on heap with specified type.
+    E.g. (float*)malloc(size * sizeof(float))
+
+    Parameters
+    ----------
+    elem_type:
+        type of arrays
+
+    Returns
+    -------
+    creator: Callable
+        function for create arrays
+    """
     def array1d_heap_spec_type_creator(name: str, size: int) -> str:
+        """
+        Create string representation of c one-dimensional array on heap
+
+        Parameters
+        ----------
+        name: str
+            array name
+        size: int
+            array size
+
+        Returns
+        -------
+        array: str
+        """
         res = (
             f"{elem_type}* {name} = ({elem_type}*)malloc({size} * sizeof({elem_type}))"
         )
@@ -61,7 +89,7 @@ def array1d_heap_creator(elem_type: str):
 
 def array2d_creator(elem_type: str):
     """
-    Return function for creating cpp one dimensional arrays (e.g. float[]) with specified type
+    Return function for creating c two-dimensional arrays (e.g. float[][]) with specified type
 
     Parameters
     ----------
@@ -78,7 +106,7 @@ def array2d_creator(elem_type: str):
         name: str, size_x: int, size_y: int, initial_value=None, reverse=False
     ) -> str:
         """
-        Create string representation of cpp one dimensional array
+        Create string representation of c two-dimensional array
 
         Parameters
         ----------
@@ -124,16 +152,76 @@ def array2d_creator(elem_type: str):
 
 
 def vector1d_creator(elem_type: str):
-    def vector1d_spec_type_creator(name: str, size: int, initial_value=0) -> str:
+    """
+    Return function for creating cpp one-dimensional vectors (e.g. vector<float>) with specified type
+
+    Parameters
+    ----------
+    elem_type:
+        type of arrays
+
+    Returns
+    -------
+    creator: Callable
+        function for create arrays
+    """
+    def vector1d_spec_type_creator(name: str, size: int, initial_value: float = 0) -> str:
+        """
+        Create string representation of cpp one dimensional vector
+
+        Parameters
+        ----------
+        name: str
+            vector name
+        size: int
+            vector size
+        initial_value: float
+            initial value for vector
+
+        Returns
+        -------
+        vector: str
+        """
         return f"std::vector<{elem_type}> {name}({size}, {initial_value});\n"
 
     return vector1d_spec_type_creator
 
 
 def vector2d_creator(elem_type: str):
+    """
+    Return function for creating c two-dimensional vector (e.g. vector<vector<float>>) with specified type
+
+    Parameters
+    ----------
+    elem_type:
+        type of arrays
+
+    Returns
+    -------
+    creator: Callable
+        function for create arrays
+    """
     def vector2d_spec_type_creator(
         name: str, size_x: int, size_y: int, initial_value=0
     ) -> str:
+        """
+        Create string representation of c two-dimensional vector
+
+        Parameters
+        ----------
+        name: str
+            vector name
+        size_x: int
+            first dimension size
+        size_y: int
+            second dimension  size
+        initial_value: list
+            initial value for vector
+
+        Returns
+        -------
+        vector: str
+        """
         return f"std::vector<std::vector<{elem_type}>> {name}({size_x}, std::vector<{type}>({size_y}, {initial_value}));\n"
 
     return vector2d_spec_type_creator
@@ -142,6 +230,25 @@ def vector2d_creator(elem_type: str):
 def transform_1dvector_to_array(
     elem_type: str, size: Union[int, str], vec_name: str, arr_name: str
 ) -> str:
+    """
+    Converts the one-dimensional vector given by name to the created array
+
+    Parameters
+    ----------
+    elem_type: str
+        Values type
+    size: int | str
+        Size of array and vector
+    vec_name: str
+        Vector name
+    arr_name: str
+        Array name
+
+    Returns
+    -------
+    code: str
+        Code to convert vector to array
+    """
     res = f"""
     {elem_type} {arr_name}[{size}];
 
@@ -156,6 +263,25 @@ def transform_1dvector_to_array(
 def transform_1darray_to_vector(
     elem_type: str, size: Union[int, str], vec_name: str, arr_name: str
 ) -> str:
+    """
+    Converts the one-dimensional array given by name to the created vector
+
+    Parameters
+    ----------
+    elem_type: str
+        Values type
+    size: int | str
+        Size of array and vector
+    vec_name: str
+        Vector name
+    arr_name: str
+        Array name
+
+    Returns
+    -------
+    code: str
+        Code to convert array to vector
+    """
     res = f"""
     std::vector<{elem_type}> {vec_name}({size});
 
@@ -168,6 +294,22 @@ def transform_1darray_to_vector(
 
 
 def copy_1darray_to_array(size: Union[int, str], in_name: str, out_name: str) -> str:
+    """
+    Copy one-dimensional array to other array
+
+    Parameters
+    ----------
+    size: int | str
+        Size of arrays
+    in_name: str
+        Name of the array from which values are copied
+    out_name
+        Name of the array into which the values are copied
+    Returns
+    -------
+    code: str
+        Code to copy array to array
+    """
     res = f"""
     for (int i = 0; i < {size}; i++)
     {{
@@ -180,6 +322,26 @@ def copy_1darray_to_array(size: Union[int, str], in_name: str, out_name: str) ->
 def fill_1d_array_by_list_short(
     elem_type: str, size: Union[int, str], arr_name: str, inter_name: str, source: list
 ) -> str:
+    """
+    Fills a one-dimensional array according to the passed list of values
+
+    Parameters
+    ----------
+    elem_type: str
+        Values type
+    size: int | str
+        Size of data
+    arr_name: str
+        Name of the array to fill
+    inter_name: str
+        Name of an array created for copying only
+    source: list
+        Values
+    Returns
+    -------
+    code: str
+        Code to fill array from list of values
+    """
     res = f"""{elem_type} {inter_name}[{size}] = """
     temp = "{" + ", ".join(map(str, source)) + "};\n"
     res += temp
@@ -194,6 +356,20 @@ def fill_1d_array_by_list_short(
 
 
 def fill_1d_array_by_list(arr_name: str, source: list) -> str:
+    """
+    Fills a one-dimensional array according to the passed list of values
+
+    Parameters
+    ----------
+    arr_name: str
+        Name of the array to fill
+    source: list
+        Values
+    Returns
+    -------
+    code: str
+        Code to fill array from list of values
+    """
     res = ""
     for i, elem in enumerate(source):
         res += f"{arr_name}[{i}] = {elem};\n"
@@ -202,6 +378,20 @@ def fill_1d_array_by_list(arr_name: str, source: list) -> str:
 
 
 def fill_2d_array_by_list(arr_name: str, source: list) -> str:
+    """
+    Fills a two-dimensional array according to the passed list of values
+
+    Parameters
+    ----------
+    arr_name: str
+        Name of the array to fill
+    source: list
+        Values
+    Returns
+    -------
+    code: str
+        Code to fill array from list of values
+    """
     res = ""
     for i, sub_arr in enumerate(source):
         for j, elem in enumerate(sub_arr):
@@ -219,6 +409,32 @@ def feed_forward_step(
     bias_name: str,
     activation_func: str,
 ) -> str:
+    """
+    This function builds the code for one step of the feed_forward (predict) method.
+    In particular, it multiplies an array simulating a layer of neurons with a matrix of weights,
+    adds an array of offsets and applies an activation function to the result
+
+    Parameters
+    ----------
+    left_name: str
+        Name of left layer
+    left_size: str
+        Size of left layer
+    right_name: str
+        Name of right layer
+    right_size: str
+        Size of right layer
+    weight_name: str
+        Name of weights matrix between left and right layers
+    bias_name: str
+        Name of biases array for right layer
+    activation_func: str
+        Name of activation for right layer
+    Returns
+    -------
+    code: str
+        Code to feed forward step
+    """
     res = f"""
     for (int i = 0; i < {right_size}; i++)
     {{
@@ -266,9 +482,3 @@ def activation_to_cpp_template(name: str, activation_name: str) -> str:
     }
 
     return d[activation_name](name)
-
-
-def _fill_values(act_func: str, values: List[Tuple[str, float]]):
-    for key, value in values:
-        act_func = act_func.replace(key, str(value))
-    return act_func

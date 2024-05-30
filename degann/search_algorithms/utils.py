@@ -22,7 +22,7 @@ def update_random_generator(curr_iter: int, cycle_size: int = 0) -> None:
     Returns
     -------
     """
-    if False and cycle_size > 0 and curr_iter % cycle_size == 0:
+    if cycle_size > 0 and curr_iter % cycle_size == 0:
         new_g = tf.random.Generator.from_non_deterministic_state(
             alg=_algorithms_for_random_generator[
                 random.randint(0, len(_algorithms_for_random_generator) - 1)
@@ -33,7 +33,17 @@ def update_random_generator(curr_iter: int, cycle_size: int = 0) -> None:
         pass
 
 
-def log_to_file(history: dict, fn: str):
+def log_to_file(history: dict, fn: str) -> None:
+    """
+    Export history of training to file
+
+    Parameters
+    ----------
+    history: dict
+        History of training
+    fn: str
+        File name
+    """
     with open(
         f"./{fn}.csv",
         "a",

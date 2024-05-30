@@ -114,7 +114,7 @@ def simulated_annealing(
     max_iter: int = 100,
     threshold: float = -1,
     start_net: dict = None,
-    method: Callable = generate_neighbor,
+    method_for_generate_next_nn: Callable = generate_neighbor,
     temperature_method: Callable = temperature_lin,
     distance_method: Callable = distance_const(150),
     min_epoch: int = 100,
@@ -133,6 +133,74 @@ def simulated_annealing(
     file_name: str = "",
     logging: bool = False,
 ) -> Tuple[float, int, str, str, dict, int]:
+    """
+    Method of simulated annealing in the parameter space of neural networks
+    
+    Parameters
+    ----------
+    input_size: int
+       Size of input data
+    output_size: int
+        Size of output data
+    data: tuple
+        dataset
+    val_data: tuple
+        Validation dataset
+    max_iter: int
+        Training will stop when the number of iterations of the algorithm exceeds this parameter
+    threshold: float
+        Training will stop when the value of the loss function is less than this threshold
+    start_net: dict
+        Start point in parameter space of neural networks, if None it will be random generated
+    method_for_generate_next_nn: Callable
+        Method for obtaining the next point in parameter space of neural networks
+    temperature_method: Callable
+        Temperature decreasing method in SAM
+    distance_method: Callable
+        Method that sets the boundaries of the neighborhood around the current point
+    min_epoch: int
+        Lower bound of epochs
+    max_epoch: int
+        Upper bound of epochs
+    opt: str
+        Name of optimizer
+    loss: str
+        Name of loss function
+    nn_min_length: int
+        Starting number of hidden layers of neural networks
+    nn_max_length: int
+        Final number of hidden layers of neural networks
+    nn_alphabet: list
+        List of possible sizes of hidden layers with activations for them
+    alphabet_block_size: int
+        Number of literals in each `alphabet` symbol that indicate the size of hidden layer
+    alphabet_offset: int
+        Indicate the minimal number of neurons in hidden layer
+    update_gen_cycle: int
+        Refresh tensorflow random generator per update_gen_cycle
+    callbacks: list
+        Callbacks for neural networks training
+    file_name: str
+        Path to file for logging
+    logging: bool
+        Logging search process to file
+
+    Returns
+    -------
+    search_results: tuple[float, int, str, str, dict]
+        Results of the algorithm are described by these parameters
+
+        best_loss: float
+            The value of the loss function during training of the best neural network
+        best_epoch: int
+            Number of training epochs for the best neural network
+        best_loss_func: str
+            Name of the loss function of the best neural network
+        best_opt: str
+            Name of the optimizer of the best neural network
+        best_net: dict
+            Best neural network presented as a dictionary
+    """
     gen = random_generate(
         min_epoch=min_epoch,
         max_epoch=max_epoch,
@@ -191,7 +259,7 @@ def simulated_annealing(
         distance = distance_method(temperature=t)
 
         gen_neighbor = choose_neighbor(
-            method,
+            method_for_generate_next_nn,
             alphabet=nn_alphabet,
             parameters=(gen[0].value(), gen[1].value()),
             distance=distance,

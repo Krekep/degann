@@ -9,25 +9,11 @@ def sign(x):
     return tf.where(x < 0.0, -1.0, 1.0)
 
 
-class RelativeError(tf.keras.losses.Loss, ABC):
-    def __init__(
-        self,
-        reduction=tf.keras.losses.Reduction.NONE,
-        name="relative",
-        eps=1e-6,
-        **kwargs
-    ):
-        super(RelativeError, self).__init__(reduction=reduction, name=name, **kwargs)
-        self.eps = eps
-
-    def __call__(self, y_true, y_pred, sample_weight=None):
-        y_upd = tf.where(abs(y_true) <= self.eps, 1.0 * sign(y_true), y_true)
-        y = tf.math.divide(y_pred, y_upd)
-        loss = tf.math.reduce_mean(tf.abs(y - 1))
-        return loss
-
-
 class RelativeAbsoluteError(tf.keras.losses.Loss, ABC):
+    """
+    This class provides RAE loss function:
+    $$ RAE = \frac{\Sum^n_{i=1} |y_i - \hat(y)_i|}{\Sum^n_{i=1} |y_i - \bar(y)|}
+    """
     def __init__(self, reduction=tf.keras.losses.Reduction.NONE, name="rae", **kwargs):
         super(RelativeAbsoluteError, self).__init__(
             reduction=reduction, name=name, **kwargs
@@ -49,6 +35,10 @@ class RelativeAbsoluteError(tf.keras.losses.Loss, ABC):
 
 
 class MaxAbsoluteDeviation(tf.keras.losses.Loss, ABC):
+    """
+    This class provides Max Absolute Deviation loss function:
+    $$ MAD = \max |y - \hat(y)|
+    """
     def __init__(
         self, reduction=tf.keras.losses.Reduction.NONE, name="my_mae", **kwargs
     ):
@@ -62,6 +52,10 @@ class MaxAbsoluteDeviation(tf.keras.losses.Loss, ABC):
 
 
 class MaxAbsolutePercentageError(tf.keras.losses.Loss, ABC):
+    """
+    This class provides Max Absolute Percentage Error loss function:
+    $$ MAD = \max |\frac{y - \hat(y)}{y}|
+    """
     def __init__(
         self, reduction=tf.keras.losses.Reduction.NONE, name="maxAPE", **kwargs
     ):
@@ -70,13 +64,17 @@ class MaxAbsolutePercentageError(tf.keras.losses.Loss, ABC):
         )
 
     def __call__(self, y_true, y_pred, sample_weight=None):
-        loss = tf.math.reduce_max(tf.math.abs((y_true - y_pred) / y_true))
+        loss = tf.math.reduce_max(tf.math.abs((y_true - y_pred) / y_true)) * 100.0
         return loss
 
 
 class RMSE(tf.keras.losses.Loss, ABC):
+    """
+    This class provides Root Mean squared Error loss function:
+    $$ MAD = \sqrt{MSE}
+    """
     def __init__(
-        self, reduction=tf.keras.losses.Reduction.NONE, name="maxAPE", **kwargs
+        self, reduction=tf.keras.losses.Reduction.NONE, name="RMSE", **kwargs
     ):
         super(RMSE, self).__init__(reduction=reduction, name=name, **kwargs)
 
@@ -95,15 +93,36 @@ _losses: dict = {
     "MeanSquaredError": keras.losses.MeanSquaredError(),
     "RootMeanSquaredError": RMSE(),
     "MeanSquaredLogarithmicError": keras.losses.MeanSquaredLogarithmicError(),
-    "RelativeError": RelativeError(),
     "RelativeAbsoluteError": RelativeAbsoluteError(),
     "MaxAbsoluteDeviation": MaxAbsoluteDeviation(),
 }
 
 
 def get_loss(name: str):
+    """
+    Get loss function by name
+    Parameters
+    ----------
+    name: str
+        Name of loss function
+
+    Returns
+    -------
+    loss_class: tf.keras.losses.Loss
+        Result loss function
+    """
     return _losses.get(name)
 
 
-def get_all_loss_functions() -> dict[str, Callable]:
+def get_all_loss_functions() -> dict[str, tf.keras.losses.Loss]:
+    """
+    Get all loss functions
+    Parameters
+    ----------
+
+    Returns
+    -------
+    loss_class: dict[str, tf.keras.losses.Loss]
+        All loss functions
+    """
     return _losses

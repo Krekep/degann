@@ -13,6 +13,12 @@ class MemoryCleaner(Callback):
 
 
 class MeasureTrainTime(Callback):
+    """
+    Callback for measuring time.
+    Supports measuring training time,
+    measuring the time of each epoch during training,
+    and measuring the running time of the predict method
+    """
     def __init__(self):
         super(MeasureTrainTime, self).__init__()
         self.start_train_time = 0
@@ -69,6 +75,11 @@ class MeasureTrainTime(Callback):
 
 
 class LightHistory(History):
+    """
+    Class based on Keras.History,
+    but which only stores information about the last training epoch,
+    not the entire process
+    """
     def __init__(self):
         super(History, self).__init__()
         self.history = {}

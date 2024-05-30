@@ -1,0 +1,721 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>degann.search_algorithms.pattern_search API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>degann.search_algorithms.pattern_search</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import random
+from typing import Union, Any, Tuple, List
+
+import numpy as np
+import tensorflow as tf
+
+from degann import MemoryCleaner, get_all_optimizers, get_all_metric_functions
+from degann.networks import activations, imodel, losses
+
+_default_shapes = [
+    [10, 10, 10, 10, 10, 10],
+    [80, 80, 80],
+    [32, 16, 8, 4],
+    [4, 8, 16, 32],
+    [10, 10],
+    [30],
+]
+
+
+def _create_random_network(
+    min_layers=1,
+    max_layers=5,
+    min_neurons=3,
+    max_neurons=60,
+) -&gt; list[Union[list[int], list, list[Union[str, Any]], list[None]]]:
+    &#34;&#34;&#34;
+    Create random neural network from the passed parameters.
+
+    Parameters
+    ----------
+    min_layers: int
+        Minimal count of layers in neural net
+    max_layers: int
+        Maximal count of layers in neural net
+    min_neurons: int
+        Minimal count of neurons per layer
+    max_neurons: int
+        Maximal count of neurons per layer
+    Returns
+    -------
+    net: network.INetwork
+        Random neural network
+    &#34;&#34;&#34;
+
+    layers = random.randint(min_layers, max_layers)
+    shape = [random.randint(min_neurons, max_neurons) for _ in range(layers)]
+    act = []
+    decorator_param = []
+    all_act_names = list(activations.get_all_activations().keys())
+    for _ in shape:
+        act.append(random.choice(all_act_names))
+        # TODO: activation func can take additional arguments
+        # but at this moment I dont create random arguments (instead of *None* in decorator_params)
+        decorator_param.append(None)
+    act.append(&#34;linear&#34;)
+    decorator_param.append(None)
+
+    nets_param = [shape, act, decorator_param]
+    return nets_param
+
+def _normalize_array(x: np.ndarray) -&gt; Tuple[np.ndarray, float]:
+    &#34;&#34;&#34;
+    Scale array from [a, b] to [0, 1]
+
+    Parameters
+    ----------
+    x: np.ndarray
+        Array for scaling
+
+    Returns
+    -------
+    x: Tuple[np.ndarray, float]
+        Scaled array and scale coefficient
+    &#34;&#34;&#34;
+    m = abs(np.amax(x))
+    if m != 0:
+        x = x / m
+    return x, m
+
+
+def train(
+    x_data: np.ndarray, y_data: np.ndarray, **kwargs
+) -&gt; tuple[imodel.IModel, dict[Union[str, Any], Any]]:
+    &#34;&#34;&#34;
+    Choose and return neural network which present the minimal average absolute deviation.
+    x_data and y_data is numpy 2d arrays (in case we don&#39;t have multiple-layer input/output).
+
+    Parameters
+    ----------
+    x_data: np.ndarray
+        Array of inputs --- [input1, input2, ...]
+    y_data: np.ndarray
+        List of outputs --- [output1, output2, ...]
+    Returns
+    -------
+    net: imodel.IModel
+        Best neural network for this dataset
+    history: Dict[str, list]
+        History of training for this network
+    &#34;&#34;&#34;
+    # default config
+    args = {
+        &#34;debug&#34;: False,
+        &#34;eps&#34;: 1e-2,
+        &#34;epochs&#34;: 100,
+        &#34;normalize&#34;: False,
+        &#34;name_salt&#34;: &#34;&#34;,
+        &#34;loss_function&#34;: &#34;MeanSquaredError&#34;,
+        &#34;optimizer&#34;: &#34;SGD&#34;,
+        &#34;metrics&#34;: [
+            &#34;MeanSquaredError&#34;,
+            &#34;MeanAbsoluteError&#34;,
+            &#34;CosineSimilarity&#34;,
+        ],
+        &#34;validation_metrics&#34;: [
+            &#34;MeanSquaredError&#34;,
+            &#34;MeanAbsoluteError&#34;,
+            &#34;CosineSimilarity&#34;,
+        ],
+        &#34;use_rand_net&#34;: True,
+        &#34;net_type&#34;: &#34;DenseNet&#34;,
+        &#34;nets_param&#34;: [
+            [
+                shape,  # shape
+                [&#34;sigmoid&#34;] * len(shape) + [&#34;linear&#34;],  # activation functions
+                [None] * (len(shape) + 1),  # decorator parameters for activation
+            ]
+            for shape in _default_shapes
+        ],
+    }
+    for kw in kwargs:
+        args[kw] = kwargs[kw]
+
+    if args[&#34;debug&#34;]:
+        print(&#34;Start train func&#34;)
+
+    # determining the number of inputs and outputs of the neural network
+    if type(x_data[0]) is np.ndarray:
+        input_len = len(x_data[0])
+    else:
+        input_len = 1
+
+    if type(y_data[0]) is np.ndarray:
+        output_len = len(y_data[0])
+    else:
+        output_len = 1
+
+    # prepare data (normalize)
+    norm_coff = 1
+    if args[&#34;normalize&#34;]:
+        x_data, norm_coff = _normalize_array(x_data)
+        # y_data, norm_coff = _normalize_array(y_data)
+        if args[&#34;debug&#34;]:
+            print(f&#34;Normalization coefficient is {norm_coff}&#34;)
+
+    x_data = tf.convert_to_tensor(x_data, dtype=tf.float32)
+    y_data = tf.convert_to_tensor(y_data, dtype=tf.float32)
+
+    # prepare neural networks
+    if args[&#34;debug&#34;]:
+        print(&#34;Prepare neural networks and data&#34;)
+    nets = []
+    for parameters in args[&#34;nets_param&#34;]:
+        shape: list[int] = parameters[0]
+        act = parameters[1]
+        decorator_param = parameters[2]
+        str_shape = &#34;_&#34;.join(map(str, shape))
+        curr_net = imodel.IModel(
+            input_size=input_len,
+            block_size=shape,
+            output_size=output_len,
+            activation_func=act,
+            decorator_params=decorator_param,
+            net_type=args[&#34;net_type&#34;],
+            name=f&#34;net{args[&#39;name_salt&#39;]}_{str_shape}&#34;,
+            is_debug=args[&#34;debug&#34;],
+        )
+        nets.append(curr_net)
+    if args[&#34;use_rand_net&#34;]:
+        rand_net_params = _create_random_network(input_len, output_len)
+        str_shape = &#34;_&#34;.join(map(str, rand_net_params[0]))
+        rand_net = imodel.IModel(
+            input_size=input_len,
+            block_size=rand_net_params[0],
+            output_size=output_len,
+            activation_func=rand_net_params[1],
+            decorator_params=rand_net_params[2],
+            net_type=args[&#34;net_type&#34;],
+            name=f&#34;net{args[&#39;name_salt&#39;]}_{str_shape}&#34;,
+        )
+        nets.append(rand_net)
+
+    # compile
+    for nn in nets:
+        nn.compile(
+            rate=args[&#34;eps&#34;],
+            optimizer=args[&#34;optimizer&#34;],
+            loss_func=args[&#34;loss_function&#34;],
+            metrics=args[&#34;metrics&#34;],
+            # run_eagerly=True,
+        )
+
+    if args[&#34;debug&#34;]:
+        print(&#34;Success prepared&#34;)
+
+    # train
+    history = []
+    for i, nn in enumerate(nets):
+        verb = 0
+        if args[&#34;debug&#34;]:
+            print(nn)
+            verb = 1
+        temp_his = nn.train(
+            x_data,
+            y_data,
+            epochs=args[&#34;epochs&#34;],
+            validation_split=args[&#34;validation_split&#34;],
+            callbacks=[MemoryCleaner()],
+            verbose=verb,
+        )
+        temp_last_res = dict()
+        for key in temp_his.history:
+            temp_last_res[key] = temp_his.history[key].copy()
+
+        history.append(temp_last_res)
+    result_net = nets[0]
+    result_history = history[0]
+    min_err = history[0][&#34;loss&#34;]
+    for i in range(1, len(nets)):
+        if history[i][&#34;loss&#34;] &lt; min_err:
+            min_err = history[i][&#34;loss&#34;]
+            result_net = nets[i]
+            result_history = history[i]
+    if args[&#34;debug&#34;]:
+        print(f&#34;Minimal loss error is {min_err} {args[&#39;name_salt&#39;]}&#34;)
+    return result_net, result_history
+
+
+def pattern_search(
+    x_data: np.ndarray,
+    y_data: np.ndarray,
+    x_val: np.ndarray = None,
+    y_val: np.ndarray = None,
+    **kwargs,
+) -&gt; list[list[dict, float, float, imodel.IModel]]:
+    &#34;&#34;&#34;
+    Choose and return neural network which present the minimal average absolute deviation.
+    x_data and y_data is numpy 2d arrays (in case we don&#39;t have multiple-layer input/output).
+
+    Parameters
+    ----------
+    x_data: np.ndarray
+        Array of inputs --- [input1, input2, ...]
+    y_data: np.ndarray
+        List of outputs --- [output1, output2, ...]
+    x_val: np.ndarray
+        Array of inputs for validate train
+    y_val: np.ndarray
+        Array of outputs for validate train
+    Returns
+    -------
+    net: network.INetwork
+        Best neural network for this dataset
+    &#34;&#34;&#34;
+
+    # default config
+    args = {
+        &#34;loss_functions&#34;: [key for key in losses.get_all_loss_functions()],
+        &#34;optimizers&#34;: [key for key in get_all_optimizers()],
+        &#34;metrics&#34;: [key for key in get_all_metric_functions()],
+        &#34;validation_metrics&#34;: [key for key in get_all_metric_functions()],
+        &#34;net_shapes&#34;: _default_shapes,
+        &#34;activations&#34;: [key for key in activations.get_all_activations()],
+        &#34;rates&#34;: [1e-2, 5e-3, 1e-3],
+        &#34;epochs&#34;: [50, 200],
+        &#34;normalize&#34;: [False],
+    }
+
+    for arg in args:
+        if kwargs.get(arg) is not None:
+            args[arg] = kwargs[arg]
+            kwargs.pop(arg)
+
+    val_data = None
+    if x_val is not None and y_val is not None:
+        val_data = (x_val, y_val)
+
+    # Networks parameters --- shape and activation functions
+    nets_param = []
+    for shape in args[&#34;net_shapes&#34;]:
+        if len(shape) != 0:
+            for activation in args[&#34;activations&#34;]:
+                nets_param.append(
+                    [
+                        shape,
+                        [activation] * len(shape) + [&#34;linear&#34;],
+                        [None] * (len(shape) + 1),
+                    ]
+                )
+        else:
+            nets_param.append(
+                [
+                    shape,
+                    [&#34;linear&#34;],
+                    [None],
+                ]
+            )
+
+    metaparams = []
+    for loss_func in args[&#34;loss_functions&#34;]:
+        for normalize in args[&#34;normalize&#34;]:
+            for optimizer in args[&#34;optimizers&#34;]:
+                for epochs in args[&#34;epochs&#34;]:
+                    for rate in args[&#34;rates&#34;]:
+                        metaparams.append(dict())
+                        metaparams[-1][&#34;loss_function&#34;] = loss_func
+                        metaparams[-1][&#34;normalize&#34;] = normalize
+                        metaparams[-1][&#34;optimizer&#34;] = optimizer
+                        metaparams[-1][&#34;epochs&#34;] = epochs
+                        metaparams[-1][&#34;eps&#34;] = rate
+                        metaparams[-1][&#34;metrics&#34;] = args[&#34;metrics&#34;]
+                        metaparams[-1][&#34;validation_metrics&#34;] = args[
+                            &#34;validation_metrics&#34;
+                        ]
+                        metaparams[-1][&#34;nets_param&#34;] = nets_param
+                        metaparams[-1].update(kwargs)
+
+    best_nets: List[List[dict, float, float, imodel.IModel]] = []
+    if kwargs.get(&#34;debug&#34;):
+        print(f&#34;Grid search size {len(metaparams)}&#34;)
+        print(&#34;Amount of networks for each set of parameters&#34;, len(nets_param))
+    for i, params in enumerate(metaparams):
+        if kwargs.get(&#34;debug&#34;):
+            print(f&#34;Number of set {i}&#34;)
+        trained, history = train(x_data, y_data, val_data=val_data, **params)
+        loss = history[&#34;loss&#34;][-1]
+        val_loss = history[&#34;val_loss&#34;][-1]
+        best_nets.append([params, loss, val_loss, trained])
+
+    best_nets.sort(key=lambda x: [x[1], x[2]])
+    return best_nets</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="degann.search_algorithms.pattern_search.pattern_search"><code class="name flex">
+<span>def <span class="ident">pattern_search</span></span>(<span>x_data: numpy.ndarray, y_data: numpy.ndarray, x_val: numpy.ndarray = None, y_val: numpy.ndarray = None, **kwargs) ‑> list[list[dict, float, float, <a title="degann.networks.imodel.IModel" href="../networks/imodel.html#degann.networks.imodel.IModel">IModel</a>]]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Choose and return neural network which present the minimal average absolute deviation.
+x_data and y_data is numpy 2d arrays (in case we don't have multiple-layer input/output).</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>x_data</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>Array of inputs &mdash; [input1, input2, &hellip;]</dd>
+<dt><strong><code>y_data</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>List of outputs &mdash; [output1, output2, &hellip;]</dd>
+<dt><strong><code>x_val</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>Array of inputs for validate train</dd>
+<dt><strong><code>y_val</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>Array of outputs for validate train</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>net</code></strong> :&ensp;<code>network.INetwork</code></dt>
+<dd>Best neural network for this dataset</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def pattern_search(
+    x_data: np.ndarray,
+    y_data: np.ndarray,
+    x_val: np.ndarray = None,
+    y_val: np.ndarray = None,
+    **kwargs,
+) -&gt; list[list[dict, float, float, imodel.IModel]]:
+    &#34;&#34;&#34;
+    Choose and return neural network which present the minimal average absolute deviation.
+    x_data and y_data is numpy 2d arrays (in case we don&#39;t have multiple-layer input/output).
+
+    Parameters
+    ----------
+    x_data: np.ndarray
+        Array of inputs --- [input1, input2, ...]
+    y_data: np.ndarray
+        List of outputs --- [output1, output2, ...]
+    x_val: np.ndarray
+        Array of inputs for validate train
+    y_val: np.ndarray
+        Array of outputs for validate train
+    Returns
+    -------
+    net: network.INetwork
+        Best neural network for this dataset
+    &#34;&#34;&#34;
+
+    # default config
+    args = {
+        &#34;loss_functions&#34;: [key for key in losses.get_all_loss_functions()],
+        &#34;optimizers&#34;: [key for key in get_all_optimizers()],
+        &#34;metrics&#34;: [key for key in get_all_metric_functions()],
+        &#34;validation_metrics&#34;: [key for key in get_all_metric_functions()],
+        &#34;net_shapes&#34;: _default_shapes,
+        &#34;activations&#34;: [key for key in activations.get_all_activations()],
+        &#34;rates&#34;: [1e-2, 5e-3, 1e-3],
+        &#34;epochs&#34;: [50, 200],
+        &#34;normalize&#34;: [False],
+    }
+
+    for arg in args:
+        if kwargs.get(arg) is not None:
+            args[arg] = kwargs[arg]
+            kwargs.pop(arg)
+
+    val_data = None
+    if x_val is not None and y_val is not None:
+        val_data = (x_val, y_val)
+
+    # Networks parameters --- shape and activation functions
+    nets_param = []
+    for shape in args[&#34;net_shapes&#34;]:
+        if len(shape) != 0:
+            for activation in args[&#34;activations&#34;]:
+                nets_param.append(
+                    [
+                        shape,
+                        [activation] * len(shape) + [&#34;linear&#34;],
+                        [None] * (len(shape) + 1),
+                    ]
+                )
+        else:
+            nets_param.append(
+                [
+                    shape,
+                    [&#34;linear&#34;],
+                    [None],
+                ]
+            )
+
+    metaparams = []
+    for loss_func in args[&#34;loss_functions&#34;]:
+        for normalize in args[&#34;normalize&#34;]:
+            for optimizer in args[&#34;optimizers&#34;]:
+                for epochs in args[&#34;epochs&#34;]:
+                    for rate in args[&#34;rates&#34;]:
+                        metaparams.append(dict())
+                        metaparams[-1][&#34;loss_function&#34;] = loss_func
+                        metaparams[-1][&#34;normalize&#34;] = normalize
+                        metaparams[-1][&#34;optimizer&#34;] = optimizer
+                        metaparams[-1][&#34;epochs&#34;] = epochs
+                        metaparams[-1][&#34;eps&#34;] = rate
+                        metaparams[-1][&#34;metrics&#34;] = args[&#34;metrics&#34;]
+                        metaparams[-1][&#34;validation_metrics&#34;] = args[
+                            &#34;validation_metrics&#34;
+                        ]
+                        metaparams[-1][&#34;nets_param&#34;] = nets_param
+                        metaparams[-1].update(kwargs)
+
+    best_nets: List[List[dict, float, float, imodel.IModel]] = []
+    if kwargs.get(&#34;debug&#34;):
+        print(f&#34;Grid search size {len(metaparams)}&#34;)
+        print(&#34;Amount of networks for each set of parameters&#34;, len(nets_param))
+    for i, params in enumerate(metaparams):
+        if kwargs.get(&#34;debug&#34;):
+            print(f&#34;Number of set {i}&#34;)
+        trained, history = train(x_data, y_data, val_data=val_data, **params)
+        loss = history[&#34;loss&#34;][-1]
+        val_loss = history[&#34;val_loss&#34;][-1]
+        best_nets.append([params, loss, val_loss, trained])
+
+    best_nets.sort(key=lambda x: [x[1], x[2]])
+    return best_nets</code></pre>
+</details>
+</dd>
+<dt id="degann.search_algorithms.pattern_search.train"><code class="name flex">
+<span>def <span class="ident">train</span></span>(<span>x_data: numpy.ndarray, y_data: numpy.ndarray, **kwargs) ‑> tuple[<a title="degann.networks.imodel.IModel" href="../networks/imodel.html#degann.networks.imodel.IModel">IModel</a>, dict[typing.Union[str, typing.Any], typing.Any]]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Choose and return neural network which present the minimal average absolute deviation.
+x_data and y_data is numpy 2d arrays (in case we don't have multiple-layer input/output).</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>x_data</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>Array of inputs &mdash; [input1, input2, &hellip;]</dd>
+<dt><strong><code>y_data</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>List of outputs &mdash; [output1, output2, &hellip;]</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>net</code></strong> :&ensp;<code>imodel.IModel</code></dt>
+<dd>Best neural network for this dataset</dd>
+<dt><strong><code>history</code></strong> :&ensp;<code>Dict[str, list]</code></dt>
+<dd>History of training for this network</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def train(
+    x_data: np.ndarray, y_data: np.ndarray, **kwargs
+) -&gt; tuple[imodel.IModel, dict[Union[str, Any], Any]]:
+    &#34;&#34;&#34;
+    Choose and return neural network which present the minimal average absolute deviation.
+    x_data and y_data is numpy 2d arrays (in case we don&#39;t have multiple-layer input/output).
+
+    Parameters
+    ----------
+    x_data: np.ndarray
+        Array of inputs --- [input1, input2, ...]
+    y_data: np.ndarray
+        List of outputs --- [output1, output2, ...]
+    Returns
+    -------
+    net: imodel.IModel
+        Best neural network for this dataset
+    history: Dict[str, list]
+        History of training for this network
+    &#34;&#34;&#34;
+    # default config
+    args = {
+        &#34;debug&#34;: False,
+        &#34;eps&#34;: 1e-2,
+        &#34;epochs&#34;: 100,
+        &#34;normalize&#34;: False,
+        &#34;name_salt&#34;: &#34;&#34;,
+        &#34;loss_function&#34;: &#34;MeanSquaredError&#34;,
+        &#34;optimizer&#34;: &#34;SGD&#34;,
+        &#34;metrics&#34;: [
+            &#34;MeanSquaredError&#34;,
+            &#34;MeanAbsoluteError&#34;,
+            &#34;CosineSimilarity&#34;,
+        ],
+        &#34;validation_metrics&#34;: [
+            &#34;MeanSquaredError&#34;,
+            &#34;MeanAbsoluteError&#34;,
+            &#34;CosineSimilarity&#34;,
+        ],
+        &#34;use_rand_net&#34;: True,
+        &#34;net_type&#34;: &#34;DenseNet&#34;,
+        &#34;nets_param&#34;: [
+            [
+                shape,  # shape
+                [&#34;sigmoid&#34;] * len(shape) + [&#34;linear&#34;],  # activation functions
+                [None] * (len(shape) + 1),  # decorator parameters for activation
+            ]
+            for shape in _default_shapes
+        ],
+    }
+    for kw in kwargs:
+        args[kw] = kwargs[kw]
+
+    if args[&#34;debug&#34;]:
+        print(&#34;Start train func&#34;)
+
+    # determining the number of inputs and outputs of the neural network
+    if type(x_data[0]) is np.ndarray:
+        input_len = len(x_data[0])
+    else:
+        input_len = 1
+
+    if type(y_data[0]) is np.ndarray:
+        output_len = len(y_data[0])
+    else:
+        output_len = 1
+
+    # prepare data (normalize)
+    norm_coff = 1
+    if args[&#34;normalize&#34;]:
+        x_data, norm_coff = _normalize_array(x_data)
+        # y_data, norm_coff = _normalize_array(y_data)
+        if args[&#34;debug&#34;]:
+            print(f&#34;Normalization coefficient is {norm_coff}&#34;)
+
+    x_data = tf.convert_to_tensor(x_data, dtype=tf.float32)
+    y_data = tf.convert_to_tensor(y_data, dtype=tf.float32)
+
+    # prepare neural networks
+    if args[&#34;debug&#34;]:
+        print(&#34;Prepare neural networks and data&#34;)
+    nets = []
+    for parameters in args[&#34;nets_param&#34;]:
+        shape: list[int] = parameters[0]
+        act = parameters[1]
+        decorator_param = parameters[2]
+        str_shape = &#34;_&#34;.join(map(str, shape))
+        curr_net = imodel.IModel(
+            input_size=input_len,
+            block_size=shape,
+            output_size=output_len,
+            activation_func=act,
+            decorator_params=decorator_param,
+            net_type=args[&#34;net_type&#34;],
+            name=f&#34;net{args[&#39;name_salt&#39;]}_{str_shape}&#34;,
+            is_debug=args[&#34;debug&#34;],
+        )
+        nets.append(curr_net)
+    if args[&#34;use_rand_net&#34;]:
+        rand_net_params = _create_random_network(input_len, output_len)
+        str_shape = &#34;_&#34;.join(map(str, rand_net_params[0]))
+        rand_net = imodel.IModel(
+            input_size=input_len,
+            block_size=rand_net_params[0],
+            output_size=output_len,
+            activation_func=rand_net_params[1],
+            decorator_params=rand_net_params[2],
+            net_type=args[&#34;net_type&#34;],
+            name=f&#34;net{args[&#39;name_salt&#39;]}_{str_shape}&#34;,
+        )
+        nets.append(rand_net)
+
+    # compile
+    for nn in nets:
+        nn.compile(
+            rate=args[&#34;eps&#34;],
+            optimizer=args[&#34;optimizer&#34;],
+            loss_func=args[&#34;loss_function&#34;],
+            metrics=args[&#34;metrics&#34;],
+            # run_eagerly=True,
+        )
+
+    if args[&#34;debug&#34;]:
+        print(&#34;Success prepared&#34;)
+
+    # train
+    history = []
+    for i, nn in enumerate(nets):
+        verb = 0
+        if args[&#34;debug&#34;]:
+            print(nn)
+            verb = 1
+        temp_his = nn.train(
+            x_data,
+            y_data,
+            epochs=args[&#34;epochs&#34;],
+            validation_split=args[&#34;validation_split&#34;],
+            callbacks=[MemoryCleaner()],
+            verbose=verb,
+        )
+        temp_last_res = dict()
+        for key in temp_his.history:
+            temp_last_res[key] = temp_his.history[key].copy()
+
+        history.append(temp_last_res)
+    result_net = nets[0]
+    result_history = history[0]
+    min_err = history[0][&#34;loss&#34;]
+    for i in range(1, len(nets)):
+        if history[i][&#34;loss&#34;] &lt; min_err:
+            min_err = history[i][&#34;loss&#34;]
+            result_net = nets[i]
+            result_history = history[i]
+    if args[&#34;debug&#34;]:
+        print(f&#34;Minimal loss error is {min_err} {args[&#39;name_salt&#39;]}&#34;)
+    return result_net, result_history</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="degann.search_algorithms" href="index.html">degann.search_algorithms</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="degann.search_algorithms.pattern_search.pattern_search" href="#degann.search_algorithms.pattern_search.pattern_search">pattern_search</a></code></li>
+<li><code><a title="degann.search_algorithms.pattern_search.train" href="#degann.search_algorithms.pattern_search.train">train</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

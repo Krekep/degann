@@ -94,7 +94,7 @@ for func, func_name in gen_dataset.funcs:
                                 loss=loss,
                                 threshold=threshold,
                                 distance_method=dist_m,
-                                method=generate_neighbor,
+                                method_for_generate_next_nn=generate_neighbor,
                                 temperature_method=temp_m,
                                 min_epoch=min_epoch,
                                 max_epoch=max_epoch,

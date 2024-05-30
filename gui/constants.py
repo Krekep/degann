@@ -45,9 +45,9 @@ param_desc_phrases = [
     # "Minimum number of training epochs",
     # "Maximum number of training epochs",
     # "Number of iterations in search algorithms",
-    "Loss function",
-    "Loss function threshold",
-    "Optimizer",
+    "Loss function: ",
+    "Loss function threshold: ",
+    "Optimizer: ",
 ]
 ann_param_desc_phrases = [
     "Simulated Annealing Method Parameters",

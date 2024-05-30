@@ -19,26 +19,51 @@ expert_system_tags = {
     "data size": ["very small", "small", "median", "big", "auto"],
 }
 
-
-_base_iteration_count = 5
-_base_min_epoch_count = 200
-_base_max_epoch_count = 700
-_base_nn_max_length = 4
-_base_nn_min_length = 2
-_base_nn_block_size = 1
-_base_block_size_offset = 8
-_base_alphabet = ["".join(elem) for elem in product(alph_n_full, alphabet_activations)]
-_base_random_launch = 2
-_base_sim_launch = 2
-_base_loss_function = "MaxAbsoluteDeviation"
-_base_loss_threshold = 1
-_base_optimizer = "Adam"
+base_sam_parameters = {
+        "distance_to_neighbor": "distance_const",
+        "dist_offset": 300,
+        "dist_scale": 0,
+        "temperature_reduction_method": "temperature_lin",
+        "temperature_speed": 0,
+    }
+base_parameters = {
+    "launch_count_random_search": 2,
+    "launch_count_simulated_annealing": 2,
+    "nn_max_length": 4,
+    "nn_min_length": 1,
+    "nn_alphabet_block_size": 1,
+    "nn_alphabet_offset": 8,
+    "nn_alphabet": ["".join(elem) for elem in product(alph_n_full, alphabet_activations)],
+    "min_train_epoch": 200,
+    "max_train_epoch": 500,
+    "iteration_count": 5,
+    "loss_function": "MaxAbsoluteDeviation",
+    "loss_threshold": 1,
+    "optimizer": "Adam",
+    "simulated_annealing_params": base_sam_parameters,
+}
 
 
 def suggest_parameters(
     data: tuple = None,
     tags: dict[str, str] = None,
 ) -> dict:
+    """
+    Builds many parameters of search algorithms using labels supplied by the user,
+     describing the requirements for the result and hints on the data.
+
+    Parameters
+    ----------
+    data: Optional[tuple]
+        Dataset
+    tags: dict[str, str]
+        A subset of tags described in expert_system_tags
+
+    Returns
+    -------
+    parameters: dict
+        Parameters for search algorithms
+    """
     if tags is None:
         tags = {
             "type": "unknown",
@@ -47,36 +72,15 @@ def suggest_parameters(
             "data size": "auto",
         }
 
-    launch_count_random_search = _base_random_launch
-    launch_count_simulated_annealing = _base_sim_launch
+    parameters = base_parameters.copy()
 
-    nn_max_length = _base_nn_max_length
-    nn_min_length = _base_nn_min_length
-
-    nn_alphabet_block_size = _base_nn_block_size
-    nn_alphabet_offset = _base_block_size_offset
-    nn_alphabet: list[str] = _base_alphabet
-
-    min_train_epoch = _base_min_epoch_count
-    max_train_epoch = _base_max_epoch_count
-
-    iteration_count = _base_iteration_count
-    loss_threshold = _base_loss_threshold
-
-    simulated_annealing_params = {
-        # "distance_to_neighbor": [distance_const(150)],
-        # "temperature_reduction_method": [temperature_lin],
-        "distance_to_neighbor": "distance_const",
-        "dist_offset": 150,
-        "dist_scale": 0,
-        "temperature_reduction_method": "temperature_lin",
-        "temperature_speed": 0,
-    }
+    simulated_annealing_params = base_sam_parameters.copy()
 
     if tags["type"] in ["sin", "multidim", "unknown"]:
-        min_train_epoch *= 2
-        nn_max_length += 1
-        iteration_count += 10
+        parameters["min_train_epoch"] *= 2
+        parameters["max_train_epoch"] = 700
+        parameters["nn_max_length"] += 1
+        parameters["iteration_count"] += 10
 
         # simulated_annealing_params["distance_to_neighbor"] = [distance_const(300), distance_lin(50, 400)]
         # simulated_annealing_params["temperature_reduction_method"] = [temperature_exp(0.95), temperature_exp(0.95)]
@@ -86,24 +90,25 @@ def suggest_parameters(
         simulated_annealing_params["temperature_reduction_method"] = "temperature_exp"
         simulated_annealing_params["temperature_speed"] = 0.95
 
-        launch_count_random_search += 2
-        launch_count_simulated_annealing = 10
+        parameters["launch_count_random_search"] += 2
+        parameters["launch_count_simulated_annealing"] = 10
     elif tags["type"] in ["exp", "lin"]:
-        iteration_count += 30
+        parameters["iteration_count"] += 30
 
     if tags["precision"] == "minimal":
-        loss_threshold *= 2
+        parameters["loss_threshold"] *= 2
     if tags["precision"] == "median":
-        iteration_count = int(10 * iteration_count)
+        parameters["iteration_count"] = int(10 * parameters["iteration_count"])
     if tags["precision"] == "maximal":
-        loss_threshold /= 10
-        iteration_count = int(40 * iteration_count)
+        parameters["loss_threshold"] /= 10
+        parameters["iteration_count"] = int(40 * parameters["iteration_count"])
+        parameters["max_train_epoch"] = 700
 
     if tags["work time"] == "short":
-        nn_max_length -= 1
-        nn_min_length -= 1
+        parameters["nn_max_length"] -= 1
+        parameters["nn_min_length"] -= 1
     elif tags["work time"] == "long":
-        nn_max_length += 1
+        parameters["nn_max_length"] += 1
 
     if tags["data size"] == "auto":
         if data is None:
@@ -115,35 +120,22 @@ def suggest_parameters(
             )
             tags["data size"] = expert_system_tags["data size"][size_id]
     if tags["data size"] == "very small":
-        min_train_epoch *= 2
-        iteration_count += 10
-        launch_count_random_search += 2
-        launch_count_simulated_annealing += 2
+        parameters["min_train_epoch"] *= 2
+        parameters["max_train_epoch"] = 700
+        parameters["iteration_count"] += 10
+        parameters["launch_count_random_search"] += 2
+        parameters["launch_count_simulated_annealing"] += 2
     elif tags["data size"] == "small":
-        min_train_epoch = int(min_train_epoch * 1.5)
-        iteration_count += 10
-        launch_count_random_search += 1
-        launch_count_simulated_annealing += 1
+        parameters["min_train_epoch"] = int(parameters["min_train_epoch"] * 1.5)
+        parameters["iteration_count"] += 10
+        parameters["launch_count_random_search"] += 1
+        parameters["launch_count_simulated_annealing"] += 1
     elif tags["data size"] == "median":
-        min_train_epoch = int(min_train_epoch * 1.25)
-        iteration_count += 10
-        launch_count_random_search += 1
+        parameters["min_train_epoch"] = int(parameters["min_train_epoch"] * 1.25)
+        parameters["iteration_count"] += 10
+        parameters["launch_count_random_search"] += 1
     elif tags["data size"] == "big":
-        launch_count_random_search += 1
+        parameters["launch_count_random_search"] += 1
 
-    return {
-        "launch_count_random_search": launch_count_random_search,
-        "launch_count_simulated_annealing": launch_count_simulated_annealing,
-        "nn_max_length": nn_max_length,
-        "nn_min_length": nn_min_length,
-        "nn_alphabet_block_size": nn_alphabet_block_size,
-        "nn_alphabet_offset": nn_alphabet_offset,
-        "nn_alphabet": nn_alphabet,
-        "min_train_epoch": min_train_epoch,
-        "max_train_epoch": max_train_epoch,
-        "iteration_count": iteration_count,
-        "loss_function": _base_loss_function,
-        "loss_threshold": loss_threshold,
-        "optimizer": _base_optimizer,
-        "simulated_annealing_params": simulated_annealing_params,
-    }
+    parameters["simulated_annealing_params"] = simulated_annealing_params
+    return parameters

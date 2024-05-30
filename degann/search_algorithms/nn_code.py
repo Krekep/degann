@@ -30,7 +30,7 @@ alphabet_activations = "0123456789abc"
 
 def encode(nn: imodel.IModel, offset: int = None) -> str:
     """
-    Encode neural network to str
+    Encode neural network to string
 
     Parameters
     ----------
@@ -57,6 +57,7 @@ def encode(nn: imodel.IModel, offset: int = None) -> str:
 
 def decode(s: str, block_size: int = 1, offset: int = 0) -> Tuple[List[int], List[str]]:
     """
+    Decode neural network from string as a pair of shape and activations
 
     Parameters
     ----------
@@ -68,7 +69,8 @@ def decode(s: str, block_size: int = 1, offset: int = 0) -> Tuple[List[int], Lis
         Minimum possible layer size
     Returns
     -------
-
+    network: tuple[list[int], list[str]]
+        Pair of shape and activations for neural network
     """
     blocks = []
     activations = []

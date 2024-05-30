@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import QMainWindow, QLayout
 from degann import networks
 from degann.networks import get_all_loss_functions
 from degann.networks import get_all_optimizers
-from expert import selector
+from degann.expert import selector
 from gui.constants import (
     minimum_police_size,
     expand_minimum_police_size,
@@ -83,12 +83,14 @@ class SelectAndTrainLayout:
         loss_func_combobox.setObjectName("loss_func_combobox")
         for loss_func in get_all_loss_functions().keys():
             loss_func_combobox.addItem(loss_func)
+        loss_func_combobox.setCurrentText(str(selector.base_parameters["loss_function"]))
         param_value_area.addWidget(loss_func_combobox)
 
         loss_threshold_text = QtWidgets.QLineEdit(parent=self.centralwidget)
         loss_threshold_text.setSizePolicy(minimum_police_size)
         loss_threshold_text.setMinimumSize(QtCore.QSize(0, 60))
         loss_threshold_text.setObjectName("loss_threshold_text")
+        loss_threshold_text.setText(str(selector.base_parameters["loss_threshold"]))
         param_value_area.addWidget(loss_threshold_text)
 
         optimizer_combobox = QtWidgets.QComboBox(parent=self.centralwidget)
@@ -97,6 +99,7 @@ class SelectAndTrainLayout:
         optimizer_combobox.setObjectName("optimizer_combobox")
         for optimizer in get_all_optimizers().keys():
             optimizer_combobox.addItem(optimizer)
+        optimizer_combobox.setCurrentText(str(selector.base_parameters["optimizer"]))
         param_value_area.addWidget(optimizer_combobox)
 
         return param_value_area

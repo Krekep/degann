@@ -51,7 +51,7 @@ class SystemODE(object):
         n: int
             System size
         equations: list[list[str]]
-            System of equations. Equation yi' = f(x, yj...) and Cauchy initial value yi(x0) = yi0
+            System of equations. Equation `yi' = f(x, yj...)` and Cauchy initial value `yi(x0) = yi0`
         """
         self._size = n
         self._func_arguments = ""

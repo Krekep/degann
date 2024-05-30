@@ -15,16 +15,64 @@ def grid_search_step(
     num_epoch: int,
     opt: str,
     loss: str,
-    data,
+    data: tuple,
     repeat: int = 1,
     alphabet_block_size: int = 1,
     alphabet_offset: int = 8,
-    val_data=None,
+    val_data: tuple = None,
     update_gen_cycle: int = 0,
-    logging=False,
+    logging: bool = False,
     file_name: str = "",
-    callbacks=None,
+    callbacks: list = None,
 ):
+    """
+    This function is a step of the exhaustive search algorithm.
+    In this function, the passed neural network is trained (possibly several times).
+
+    Parameters
+    ----------
+    input_size: int
+       Size of input data
+    output_size: int
+        Size of output data
+    code: str
+        Neural network as code
+    num_epoch: int
+        Number of training epochs
+    data: tuple
+        Dataset
+    opt: str
+        Optimizer
+    loss: str
+        Name of loss function
+    alphabet_block_size: int
+        Number of literals in each `alphabet` symbol that indicate the size of hidden layer
+    alphabet_offset: int
+        Indicate the minimal number of neurons in hidden layer
+    val_data: tuple
+        Validation dataset
+    logging: bool
+        Logging search process to file
+    file_name: str
+        Path to file for logging
+    verbose: bool
+        Print additional information to console during the searching
+    Returns
+    -------
+    search_results: tuple[float, int, str, str, dict]
+        Results of the algorithm are described by these parameters
+
+        best_loss: float
+            The value of the loss function during training of the best neural network
+        best_epoch: int
+            Number of training epochs for the best neural network
+        best_loss_func: str
+            Name of the loss function of the best neural network
+        best_opt: str
+            Name of the optimizer of the best neural network
+        best_net: dict
+            Best neural network presented as a dictionary
+    """
     best_net = None
     best_loss = 1e6
     best_val_loss = 1e6

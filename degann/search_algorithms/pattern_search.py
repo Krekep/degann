@@ -58,18 +58,6 @@ def _create_random_network(
     nets_param = [shape, act, decorator_param]
     return nets_param
 
-
-def _normalize_two_array(
-    x: np.ndarray, y: np.ndarray
-) -> Tuple[np.ndarray, np.ndarray, float]:
-    m = max(abs(np.amax(x)), abs(np.amax(y)))
-    if m < 1:
-        m = 1
-    x = x / m
-    y = y / m
-    return x, y, m
-
-
 def _normalize_array(x: np.ndarray) -> Tuple[np.ndarray, float]:
     """
     Scale array from [a, b] to [0, 1]

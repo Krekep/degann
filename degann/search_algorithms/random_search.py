@@ -18,7 +18,6 @@ def random_search(
     max_epoch: int = 700,
     val_data: tuple = None,
     callbacks: list = None,
-    logging: bool = False,
     nn_min_length: int = 1,
     nn_max_length: int = 6,
     nn_alphabet: list[str] = [
@@ -27,8 +26,68 @@ def random_search(
     alphabet_block_size: int = 1,
     alphabet_offset: int = 8,
     update_gen_cycle: int = 0,
+    logging: bool = False,
     file_name: str = "",
 ) -> Tuple[float, int, str, str, dict]:
+    """
+    Algorithm for random search in the space of parameters of neural networks
+
+    Parameters
+    ----------
+    input_size: int
+       Size of input data
+    output_size: int
+        Size of output data
+    data: tuple
+        dataset
+    opt: str
+        Name of optimizer
+    loss: str
+        Name of loss function
+    iterations: int
+        The number of iterations that will be carried out within the algorithm before completion
+        (specifically, the number of trained neural networks)
+    min_epoch: int
+        Lower bound of epochs
+    max_epoch: int
+        Upper bound of epochs
+    val_data: tuple
+        Validation dataset
+    callbacks: list
+        Callbacks for neural networks training
+    nn_min_length: int
+        Starting number of hidden layers of neural networks
+    nn_max_length: int
+        Final number of hidden layers of neural networks
+    nn_alphabet: list
+        List of possible sizes of hidden layers with activations for them
+    alphabet_block_size: int
+        Number of literals in each `alphabet` symbol that indicate the size of hidden layer
+    alphabet_offset: int
+        Indicate the minimal number of neurons in hidden layer
+    update_gen_cycle: int
+        Refresh tensorflow random generator per update_gen_cycle
+    logging: bool
+        Logging search process to file
+    file_name: str
+        Path to file for logging
+
+    Returns
+    -------
+    search_results: tuple[float, int, str, str, dict]
+        Results of the algorithm are described by these parameters
+
+        best_loss: float
+            The value of the loss function during training of the best neural network
+        best_epoch: int
+            Number of training epochs for the best neural network
+        best_loss_func: str
+            Name of the loss function of the best neural network
+        best_opt: str
+            Name of the optimizer of the best neural network
+        best_net: dict
+            Best neural network presented as a dictionary
+    """
     best_net = None
     best_loss = 1e6
     best_epoch = None
@@ -104,6 +163,70 @@ def random_search_endless(
     file_name: str = "",
     verbose: bool = False,
 ) -> Tuple[float, int, str, str, dict, int]:
+    """
+    Algorithm for random search in the space of parameters of neural networks
+
+    Parameters
+    ----------
+    input_size: int
+       Size of input data
+    output_size: int
+        Size of output data
+    data: tuple
+        dataset
+    opt: str
+        Name of optimizer
+    loss: str
+        Name of loss function
+    threshold: float
+        Training will stop when the value of the loss function is less than this threshold
+    max_iter: int
+        Training will stop when the number of iterations of the algorithm exceeds this parameter
+    min_epoch: int
+        Lower bound of epochs
+    max_epoch: int
+        Upper bound of epochs
+    val_data: tuple
+        Validation dataset
+    callbacks: list
+        Callbacks for neural networks training
+    logging: bool
+        Logging search process to file
+    nn_min_length: int
+        Starting number of hidden layers of neural networks
+    nn_max_length: int
+        Final number of hidden layers of neural networks
+    nn_alphabet: list
+        List of possible sizes of hidden layers with activations for them
+    alphabet_block_size: int
+        Number of literals in each `alphabet` symbol that indicate the size of hidden layer
+    alphabet_offset: int
+        Indicate the minimal number of neurons in hidden layer
+    logging: bool
+        Logging search process to file
+    file_name: str
+        Path to file for logging
+    verbose: bool
+        If True, it will show additional information when searching
+
+    Returns
+    -------
+    search_results: tuple[float, int, str, str, dict, int]
+        Results of the algorithm are described by these parameters
+
+        best_loss: float
+            The value of the loss function during training of the best neural network
+        best_epoch: int
+            Number of training epochs for the best neural network
+        best_loss_func: str
+            Name of the loss function of the best neural network
+        best_opt: str
+            Name of the optimizer of the best neural network
+        best_net: dict
+            Best neural network presented as a dictionary
+        last_iter: int
+            Count of iterations in search algorithm
+    """
     nn_loss, nn_epoch, loss_f, opt_n, net = random_search(
         input_size,
         output_size,
