@@ -15,7 +15,7 @@ def _build_table(
 
     Parameters
     ----------
-    network: network.INetwork
+    network: imodel.IModel
         Neural network for build table
     axes: list[tuple[str, tuple[float, float, float]]]
         List of variables with parameters (left, right and step).
@@ -61,7 +61,7 @@ def build_table(
 
     Parameters
     ----------
-    network: network.INetwork
+    network: imodel.IModel
         Neural network for build table
     axes: list[tuple[str, tuple[float, float, float]]]
         List of variables with parameters (left, right and step).

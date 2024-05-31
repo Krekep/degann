@@ -58,7 +58,7 @@ class TensorflowDenseNet(tf.keras.Model):
                     weight=weight,
                     bias=biases,
                     is_debug=is_debug,
-                    name=f"MyDense0",
+                    name=f"TFDense0",
                     decorator_params=decorator_params[0],
                 )
             )
@@ -71,7 +71,7 @@ class TensorflowDenseNet(tf.keras.Model):
                         weight=weight,
                         bias=biases,
                         is_debug=is_debug,
-                        name=f"MyDense{i}",
+                        name=f"TFDense{i}",
                         decorator_params=decorator_params[i],
                     )
                 )
@@ -86,7 +86,7 @@ class TensorflowDenseNet(tf.keras.Model):
             weight=weight,
             bias=biases,
             is_debug=is_debug,
-            name=f"OutLayerMyDense",
+            name=f"OutLayerTFDense",
             decorator_params=decorator_params[-1],
         )
 
@@ -210,7 +210,7 @@ class TensorflowDenseNet(tf.keras.Model):
 
         """
         res = {
-            "net_type": "MyDense",
+            "net_type": "TFDense",
             "name": self._name,
             "input_size": self.input_size,
             "block_size": self.block_size,
