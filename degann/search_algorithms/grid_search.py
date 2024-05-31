@@ -114,7 +114,7 @@ def grid_search(
     input_size: int,
     output_size: int,
     data: tuple,
-    opt: List[str],
+    optimizers: List[str],
     loss: List[str],
     min_epoch: int = 100,
     max_epoch: int = 700,
@@ -144,7 +144,7 @@ def grid_search(
         Size of output data
     data: tuple
         dataset
-    opt: list
+    optimizers: list
         List of optimizers
     loss: list
         list of loss functions
@@ -201,7 +201,7 @@ def grid_search(
         for elem in codes:
             code = "".join(elem)
             for epoch in range(min_epoch, max_epoch + 1, epoch_step):
-                for opt in opt:
+                for opt in optimizers:
                     for loss_func in loss:
                         curr_loss, curr_val_loss, curr_nn = grid_search_step(
                             input_size=input_size,

@@ -178,6 +178,8 @@ class IModel(object):
             Array of output vectors
         validation_split: float
             Percentage of data to validate
+        validation_data: tuple[np.ndarray, np.ndarray]
+            Validation dataset
         epochs: int
             Count of epochs for training
         mini_batch_size: int

@@ -4,7 +4,8 @@ from typing import Union, Any, Tuple, List
 import numpy as np
 import tensorflow as tf
 
-from degann import MemoryCleaner, get_all_optimizers, get_all_metric_functions
+from degann.networks.callbacks import MemoryCleaner
+from degann.networks import get_all_optimizers, get_all_metric_functions
 from degann.networks import activations, imodel, losses
 
 _default_shapes = [
@@ -80,7 +81,10 @@ def _normalize_array(x: np.ndarray) -> Tuple[np.ndarray, float]:
 
 
 def train(
-    x_data: np.ndarray, y_data: np.ndarray, **kwargs
+    x_data: np.ndarray,
+    y_data: np.ndarray,
+    val_data: tuple[np.ndarray, np.ndarray] = None,
+    **kwargs,
 ) -> tuple[imodel.IModel, dict[Union[str, Any], Any]]:
     """
     Choose and return neural network which present the minimal average absolute deviation.
@@ -92,6 +96,9 @@ def train(
         Array of inputs --- [input1, input2, ...]
     y_data: np.ndarray
         List of outputs --- [output1, output2, ...]
+    val_data: np.ndarray
+        Validation dataset
+
     Returns
     -------
     net: imodel.IModel
@@ -215,7 +222,7 @@ def train(
             x_data,
             y_data,
             epochs=args["epochs"],
-            validation_split=args["validation_split"],
+            validation_data=val_data,
             callbacks=[MemoryCleaner()],
             verbose=verb,
         )
@@ -335,7 +342,10 @@ def pattern_search(
             print(f"Number of set {i}")
         trained, history = train(x_data, y_data, val_data=val_data, **params)
         loss = history["loss"][-1]
-        val_loss = history["val_loss"][-1]
+        if val_data is not None:
+            val_loss = history["val_loss"][-1]
+        else:
+            val_loss = 10**9
         best_nets.append([params, loss, val_loss, trained])
 
     best_nets.sort(key=lambda x: [x[1], x[2]])
