@@ -98,7 +98,7 @@ def train(
         List of outputs --- [output1, output2, ...]
     val_data: np.ndarray
         Validation dataset
-        
+
     Returns
     -------
     net: imodel.IModel
