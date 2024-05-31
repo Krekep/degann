@@ -2,7 +2,12 @@ import pytest
 
 import numpy as np
 from degann.networks.imodel import IModel
-from degann.search_algorithms import pattern_search, grid_search, random_search_endless, simulated_annealing
+from degann.search_algorithms import (
+    pattern_search,
+    grid_search,
+    random_search_endless,
+    simulated_annealing,
+)
 
 
 @pytest.mark.parametrize(
@@ -29,10 +34,7 @@ def test_pattern_search(path_to_train_data, path_to_validate_data):
         "loss_functions": ["MeanSquaredError"],
         "optimizers": ["Adam"],
         "metrics": ["MaxAbsoluteDeviation", "MeanSquaredLogarithmicError"],
-        "net_shapes": [
-            [20],
-            [10]
-        ],
+        "net_shapes": [[20], [10]],
         "activations": ["parabolic", "exponential"],
         "validation_split": 0,
         "rates": [1e-2],
@@ -73,7 +75,13 @@ def test_grid_search(path_to_train_data, path_to_validate_data, in_size, out_siz
     validation_data_x = validation_data_x.reshape((1, -1)).T
     validation_data_y = validation_data_y.reshape((1, -1)).T
 
-    result_loss, result_epoch, result_loss_name, result_optimizer, result_nn = grid_search(
+    (
+        result_loss,
+        result_epoch,
+        result_loss_name,
+        result_optimizer,
+        result_nn,
+    ) = grid_search(
         input_size=in_size,
         output_size=out_size,
         data=(train_data_x, train_data_y),
@@ -112,7 +120,14 @@ def test_random_search(path_to_train_data, path_to_validate_data, in_size, out_s
     validation_data_x = validation_data_x.reshape((1, -1)).T
     validation_data_y = validation_data_y.reshape((1, -1)).T
 
-    result_loss, result_epoch, result_loss_name, result_optimizer, result_nn, final_iteration = random_search_endless(
+    (
+        result_loss,
+        result_epoch,
+        result_loss_name,
+        result_optimizer,
+        result_nn,
+        final_iteration,
+    ) = random_search_endless(
         input_size=in_size,
         output_size=out_size,
         data=(train_data_x, train_data_y),
@@ -152,7 +167,14 @@ def test_sam(path_to_train_data, path_to_validate_data, in_size, out_size):
     validation_data_x = validation_data_x.reshape((1, -1)).T
     validation_data_y = validation_data_y.reshape((1, -1)).T
 
-    result_loss, result_epoch, result_loss_name, result_optimizer, result_nn, final_iteration = simulated_annealing(
+    (
+        result_loss,
+        result_epoch,
+        result_loss_name,
+        result_optimizer,
+        result_nn,
+        final_iteration,
+    ) = simulated_annealing(
         input_size=in_size,
         output_size=out_size,
         data=(train_data_x, train_data_y),
