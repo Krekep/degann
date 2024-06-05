@@ -7,7 +7,7 @@ import degann.networks
 from gui.export_window import ExportNNLayout
 from gui.load_dataset_window import LoadDatasetLayout
 from gui.train_window import SelectAndTrainLayout
-from degann import IModel
+from degann.networks.imodel import IModel
 from degann.expert import selector
 
 
@@ -15,6 +15,8 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setup_ui()
+
+        self.parameters = selector.base_parameters.copy()
 
     def setup_ui(self):
         self.setObjectName("MainWindow")

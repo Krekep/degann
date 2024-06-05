@@ -484,6 +484,7 @@ def activation_to_cpp_template(name: str, activation_name: str) -> str:
         "softsign": lambda x: f"{x} = {x} / (abs({x}) + 1.0);\n",
         "swish": lambda x: f"{x} = {x} / (1 + exp(-{x}));\n",
         "tanh": lambda x: f"{x} = ((exp({x}) - exp(-{x}))/(exp({x}) + exp(-{x})));\n",
+        "parabolic": lambda x: f"if ({x} >= 0) {x} = 0 + sqrt(2 * 1/5.0 * {x}); else {x} = 0 - sqrt(-2 * 1/5.0 * {x});\n",
     }
 
     return d[activation_name](name)
