@@ -48,7 +48,7 @@ train_idx.sort()
 train_data_x = x_data[train_idx, :]  # X data
 train_data_y = y_data[train_idx, :]  # Y data
 
-nn_1_32_16_8_1 = IModel(input_size=1, block_size=[32, 16, 8], output_size=1, activation_func=["swish", "parabolic", "softplus", "relu"])
+nn_1_32_16_8_1 = IModel(input_size=1, block_size=[32, 16, 8], output_size=1)
 print(nn_1_32_16_8_1)
 
 shape = [10, 10]
