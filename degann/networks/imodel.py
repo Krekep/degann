@@ -178,6 +178,8 @@ class IModel(object):
             Array of output vectors
         validation_split: float
             Percentage of data to validate
+        validation_data: tuple[np.ndarray, np.ndarray]
+            Validation dataset
         epochs: int
             Count of epochs for training
         mini_batch_size: int
@@ -277,8 +279,7 @@ class IModel(object):
         del self._evaluate_history
 
     def export_to_cpp(
-            self, path: str, array_type: str = "[]", path_to_compiler: str = None, vectorized_level: str = "auto",
-            **kwargs
+        self, path: str, array_type: str = "[]", path_to_compiler: str = None, **kwargs
     ) -> None:
         """
         Export neural network as feedforward function on c++
@@ -290,15 +291,14 @@ class IModel(object):
         array_type: str
             c-style or cpp-style ("[]" or "vector")
         path_to_compiler: str
-            path to c/c++ compiler
+            path to c/c++ compiler, if `None` then the resulting code will not be compiled
         kwargs
 
         Returns
         -------
 
         """
-        self.network.export_to_cpp(path, array_type, path_to_compiler, vectorized_level=vectorized_level)
-
+        self.network.export_to_cpp(path, array_type, path_to_compiler)
 
     def to_dict(self, **kwargs):
         """
@@ -492,29 +492,6 @@ class IModel(object):
         )
 
         return res
-
-    # perceptron activation is discrete and has no derivatives (gradient)
-    # @classmethod
-    # def create_perceptron(cls, input_size, output_size, shape, threshold=1, **kwargs):
-    #     activation, decorator_params, weight, biases, kwargs = _get_act_and_init(
-    #         kwargs,
-    #         activations.perceptron_threshold,
-    #         [{"threshold": threshold}],
-    #         tf.random_normal_initializer(),
-    #     )
-    #
-    #     res = cls(
-    #         input_size=input_size,
-    #         block_size=shape,
-    #         output_size=output_size,
-    #         activation_func=activation,
-    #         bias_init=biases,
-    #         weight_init=weight,
-    #         decorator_params=decorator_params,
-    #         **kwargs,
-    #     )
-    #
-    #     return res
 
 
 _create_functions = defaultdict(lambda: TensorflowDenseNet)

@@ -58,7 +58,7 @@ class TensorflowDenseNet(tf.keras.Model):
                     weight=weight,
                     bias=biases,
                     is_debug=is_debug,
-                    name=f"MyDense0",
+                    name=f"TFDense0",
                     decorator_params=decorator_params[0],
                 )
             )
@@ -71,7 +71,7 @@ class TensorflowDenseNet(tf.keras.Model):
                         weight=weight,
                         bias=biases,
                         is_debug=is_debug,
-                        name=f"MyDense{i}",
+                        name=f"TFDense{i}",
                         decorator_params=decorator_params[i],
                     )
                 )
@@ -86,7 +86,7 @@ class TensorflowDenseNet(tf.keras.Model):
             weight=weight,
             bias=biases,
             is_debug=is_debug,
-            name=f"OutLayerMyDense",
+            name=f"OutLayerTFDense",
             decorator_params=decorator_params[-1],
         )
 
@@ -171,7 +171,7 @@ class TensorflowDenseNet(tf.keras.Model):
             y_pred = self(x, training=True)  # Forward pass
             # Compute the loss value
             # (the loss function is configured in `compile()`)
-            loss = self.compiled_loss(y, y_pred, regularization_losses=self.losses)
+            loss = self.compute_loss(y=y, y_pred=y_pred)
 
         # Compute gradients
         trainable_vars = self.trainable_variables
@@ -179,7 +179,11 @@ class TensorflowDenseNet(tf.keras.Model):
         # Update weights
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
         # Update metrics (includes the metric that tracks the loss)
-        self.compiled_metrics.update_state(y, y_pred)
+        for metric in self.metrics:
+            if metric.name == "loss":
+                metric.update_state(loss)
+            else:
+                metric.update_state(y, y_pred)
         # Return a dict mapping metric names to current value
         return {m.name: m.result() for m in self.metrics}
 
@@ -206,7 +210,7 @@ class TensorflowDenseNet(tf.keras.Model):
 
         """
         res = {
-            "net_type": "MyDense",
+            "net_type": "TFDense",
             "name": self._name,
             "input_size": self.input_size,
             "block_size": self.block_size,
@@ -286,8 +290,7 @@ class TensorflowDenseNet(tf.keras.Model):
         self.out_layer = layer_creator.from_dict(config["out_layer"])
 
     def export_to_cpp(
-            self, path: str, array_type: str = "[]", path_to_compiler: str = None, vectorized_level: str = "auto",
-            **kwargs
+        self, path: str, array_type: str = "[]", path_to_compiler: str = None, **kwargs
     ) -> None:
         """
         Export neural network as feedforward function on c++
@@ -306,8 +309,13 @@ class TensorflowDenseNet(tf.keras.Model):
         -------
 
         """
-        res = """#include <cmath>
-#include <vector>\n"""
+        res = """
+#include <cmath>
+#include <vector>
+
+#define max(x, y) ((x < y) ? y : x)
+
+        \n"""
 
         config = self.to_dict(**kwargs)
 
@@ -316,8 +324,7 @@ class TensorflowDenseNet(tf.keras.Model):
         blocks = self.block_size
         reverse = False
         layers = config["layer"] + [config["out_layer"]]
-        if vectorized_level == "auto":
-            vectorized_level = cpp_utils.get_vectorized_level()
+
         comment = f"// This function takes {input_size} elements array and returns {output_size} elements array\n"
         signature = f""
         start_func = "{\n"
@@ -397,14 +404,7 @@ class TensorflowDenseNet(tf.keras.Model):
                 f"weight_{i}_{i + 1}",
                 f"bias_{i + 1}",
                 act_func,
-                decorator_params,
-                vectorized_level,
             )
-        vectorized_func = cpp_utils.generate_vectorized_function(vectorized_level, act_func)
-        vectorized_func_name = ""
-        if vectorized_func:
-            res = f"#include <immintrin.h>\n" + res
-            vectorized_func_name = f"void {vectorized_level}_vectorized(float* cur_layer, float* pre_layer, float* bias, float(&weight)[a][b]);"
 
         move_result = creator_heap_1d("answer", output_size)
         move_result += cpp_utils.copy_1darray_to_array(
@@ -412,7 +412,6 @@ class TensorflowDenseNet(tf.keras.Model):
         )
 
         res += comment
-        res += vectorized_func
         res += signature
         res += start_func
         res += transform_input_vector
@@ -433,7 +432,6 @@ class TensorflowDenseNet(tf.keras.Model):
         #include "{path}.cpp"
 
         {comment}
-        {vectorized_func_name}
         {signature};
 
         #endif /* {path[0].upper() + path[1:]}_hpp */

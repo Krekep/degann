@@ -71,7 +71,7 @@ for i, code in enumerate(codes):
         print(
             f"Confidence interval for neural network {code} single time prediction on {len(size)} data size is [{l}, {r}] s, mean is {m} s, dev is +-{d}"
         )
-    nn.export_to_cpp(f"time_measure_{i}", vectorized_level="sse")
+    # nn.export_to_cpp(f"time_measure_{i}")
 
 #
 # Measure train time

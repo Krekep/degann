@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>degann.expert.pipeline API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>degann.expert.pipeline</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">from typing import List
+
+from degann import random_search_endless, simulated_annealing, grid_search
+
+
+def execute_pipeline(
+    input_size: int,
+    output_size: int,
+    data: tuple,
+    parameters: dict,
+    values: dict = None,
+    run_grid_search: bool = False,
+    additional_losses: List[str] = None,
+    additional_optimizers: List[str] = None,
+    val_data=None,
+    **kwargs
+) -&gt; tuple[float, dict]:
+    &#34;&#34;&#34;
+    This function sequentially launches algorithms for searching the topology of a neural network
+    with the passed parameters and returns the resulting neural network.
+
+    Parameters
+    ----------
+    input_size: int
+        Feature vector size
+    output_size: int
+        Value vector size
+    data: tuple
+        Dataset
+    parameters: dict
+        Parameters for search algorithms
+    values: dict
+        Parameters for creating and training neural networks
+    run_grid_search: bool
+        If `True`, then if the random search and the simulated annealing method fail, the grid search will be launched
+    additional_losses: list[str]
+        Additional losses for grid search
+    additional_optimizers: list[str]
+        Additional optimizers for grid search
+    val_data: tuple
+        Validation dataset
+    kwargs
+
+    Returns
+    -------
+    search_result: tuple[float, dict]
+        Loss value and resulting neural network
+    &#34;&#34;&#34;
+    if values is None:
+        values = {
+            &#34;loss&#34;: parameters[&#34;loss_function&#34;],
+            &#34;threshold&#34;: parameters[&#34;loss_threshold&#34;],
+            &#34;opt&#34;: parameters[&#34;optimizer&#34;],
+        }
+    values[&#34;input_size&#34;] = input_size
+    values[&#34;output_size&#34;] = output_size
+    values[&#34;data&#34;] = data
+    values[&#34;val_data&#34;] = val_data
+
+    search_algorithm_arguments = {
+        &#34;max_iter&#34;: parameters[&#34;iteration_count&#34;],
+        &#34;min_epoch&#34;: parameters[&#34;min_train_epoch&#34;],
+        &#34;max_epoch&#34;: parameters[&#34;max_train_epoch&#34;],
+        &#34;nn_min_length&#34;: parameters[&#34;nn_min_length&#34;],
+        &#34;nn_max_length&#34;: parameters[&#34;nn_max_length&#34;],
+        &#34;nn_alphabet&#34;: parameters[&#34;nn_alphabet&#34;],
+        &#34;alphabet_block_size&#34;: parameters[&#34;nn_alphabet_block_size&#34;],
+        &#34;alphabet_offset&#34;: parameters[&#34;nn_alphabet_offset&#34;],
+    }
+
+    for i in range(parameters[&#34;launch_count_random_search&#34;]):
+        (
+            train_loss,
+            count_epoch,
+            loss_function,
+            optimizer,
+            result_nn,
+            last_iteration,
+        ) = random_search_endless(**values, **search_algorithm_arguments, **kwargs)
+        if train_loss &lt;= values[&#34;threshold&#34;]:
+            return train_loss, result_nn
+    print(&#34;Random search didn&#39;t find any results&#34;)
+
+    for i in range(parameters[&#34;launch_count_simulated_annealing&#34;]):
+        (
+            train_loss,
+            count_epoch,
+            loss_function,
+            optimizer,
+            result_nn,
+            last_iteration,
+        ) = simulated_annealing(**values, **search_algorithm_arguments, **kwargs)
+        if train_loss &lt;= values[&#34;threshold&#34;]:
+            return train_loss, result_nn
+    print(&#34;Simulated annealing didn&#39;t find any results&#34;)
+
+    if run_grid_search:
+        values[&#34;loss&#34;] = [values[&#34;loss&#34;]] + additional_losses
+        values[&#34;opt&#34;] = [values[&#34;opt&#34;]] + additional_optimizers
+        search_algorithm_arguments.pop(&#34;max_iter&#34;)
+        (
+            train_loss,
+            count_epoch,
+            loss_function,
+            optimizer,
+            result_nn,
+            last_iteration,
+        ) = grid_search(**values, **search_algorithm_arguments, **kwargs)
+
+        return train_loss, result_nn
+
+    return 10**9, {}</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="degann.expert.pipeline.execute_pipeline"><code class="name flex">
+<span>def <span class="ident">execute_pipeline</span></span>(<span>input_size: int, output_size: int, data: tuple, parameters: dict, values: dict = None, run_grid_search: bool = False, additional_losses: List[str] = None, additional_optimizers: List[str] = None, val_data=None, **kwargs) ‑> tuple[float, dict]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This function sequentially launches algorithms for searching the topology of a neural network
+with the passed parameters and returns the resulting neural network.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>input_size</code></strong> :&ensp;<code>int</code></dt>
+<dd>Feature vector size</dd>
+<dt><strong><code>output_size</code></strong> :&ensp;<code>int</code></dt>
+<dd>Value vector size</dd>
+<dt><strong><code>data</code></strong> :&ensp;<code>tuple</code></dt>
+<dd>Dataset</dd>
+<dt><strong><code>parameters</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Parameters for search algorithms</dd>
+<dt><strong><code>values</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Parameters for creating and training neural networks</dd>
+<dt><strong><code>run_grid_search</code></strong> :&ensp;<code>bool</code></dt>
+<dd>If <code>True</code>, then if the random search and the simulated annealing method fail, the grid search will be launched</dd>
+<dt><strong><code>additional_losses</code></strong> :&ensp;<code>list[str]</code></dt>
+<dd>Additional losses for grid search</dd>
+<dt><strong><code>additional_optimizers</code></strong> :&ensp;<code>list[str]</code></dt>
+<dd>Additional optimizers for grid search</dd>
+<dt><strong><code>val_data</code></strong> :&ensp;<code>tuple</code></dt>
+<dd>Validation dataset</dd>
+<dt><strong><code>kwargs</code></strong></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>search_result</code></strong> :&ensp;<code>tuple[float, dict]</code></dt>
+<dd>Loss value and resulting neural network</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def execute_pipeline(
+    input_size: int,
+    output_size: int,
+    data: tuple,
+    parameters: dict,
+    values: dict = None,
+    run_grid_search: bool = False,
+    additional_losses: List[str] = None,
+    additional_optimizers: List[str] = None,
+    val_data=None,
+    **kwargs
+) -&gt; tuple[float, dict]:
+    &#34;&#34;&#34;
+    This function sequentially launches algorithms for searching the topology of a neural network
+    with the passed parameters and returns the resulting neural network.
+
+    Parameters
+    ----------
+    input_size: int
+        Feature vector size
+    output_size: int
+        Value vector size
+    data: tuple
+        Dataset
+    parameters: dict
+        Parameters for search algorithms
+    values: dict
+        Parameters for creating and training neural networks
+    run_grid_search: bool
+        If `True`, then if the random search and the simulated annealing method fail, the grid search will be launched
+    additional_losses: list[str]
+        Additional losses for grid search
+    additional_optimizers: list[str]
+        Additional optimizers for grid search
+    val_data: tuple
+        Validation dataset
+    kwargs
+
+    Returns
+    -------
+    search_result: tuple[float, dict]
+        Loss value and resulting neural network
+    &#34;&#34;&#34;
+    if values is None:
+        values = {
+            &#34;loss&#34;: parameters[&#34;loss_function&#34;],
+            &#34;threshold&#34;: parameters[&#34;loss_threshold&#34;],
+            &#34;opt&#34;: parameters[&#34;optimizer&#34;],
+        }
+    values[&#34;input_size&#34;] = input_size
+    values[&#34;output_size&#34;] = output_size
+    values[&#34;data&#34;] = data
+    values[&#34;val_data&#34;] = val_data
+
+    search_algorithm_arguments = {
+        &#34;max_iter&#34;: parameters[&#34;iteration_count&#34;],
+        &#34;min_epoch&#34;: parameters[&#34;min_train_epoch&#34;],
+        &#34;max_epoch&#34;: parameters[&#34;max_train_epoch&#34;],
+        &#34;nn_min_length&#34;: parameters[&#34;nn_min_length&#34;],
+        &#34;nn_max_length&#34;: parameters[&#34;nn_max_length&#34;],
+        &#34;nn_alphabet&#34;: parameters[&#34;nn_alphabet&#34;],
+        &#34;alphabet_block_size&#34;: parameters[&#34;nn_alphabet_block_size&#34;],
+        &#34;alphabet_offset&#34;: parameters[&#34;nn_alphabet_offset&#34;],
+    }
+
+    for i in range(parameters[&#34;launch_count_random_search&#34;]):
+        (
+            train_loss,
+            count_epoch,
+            loss_function,
+            optimizer,
+            result_nn,
+            last_iteration,
+        ) = random_search_endless(**values, **search_algorithm_arguments, **kwargs)
+        if train_loss &lt;= values[&#34;threshold&#34;]:
+            return train_loss, result_nn
+    print(&#34;Random search didn&#39;t find any results&#34;)
+
+    for i in range(parameters[&#34;launch_count_simulated_annealing&#34;]):
+        (
+            train_loss,
+            count_epoch,
+            loss_function,
+            optimizer,
+            result_nn,
+            last_iteration,
+        ) = simulated_annealing(**values, **search_algorithm_arguments, **kwargs)
+        if train_loss &lt;= values[&#34;threshold&#34;]:
+            return train_loss, result_nn
+    print(&#34;Simulated annealing didn&#39;t find any results&#34;)
+
+    if run_grid_search:
+        values[&#34;loss&#34;] = [values[&#34;loss&#34;]] + additional_losses
+        values[&#34;opt&#34;] = [values[&#34;opt&#34;]] + additional_optimizers
+        search_algorithm_arguments.pop(&#34;max_iter&#34;)
+        (
+            train_loss,
+            count_epoch,
+            loss_function,
+            optimizer,
+            result_nn,
+            last_iteration,
+        ) = grid_search(**values, **search_algorithm_arguments, **kwargs)
+
+        return train_loss, result_nn
+
+    return 10**9, {}</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="degann.expert" href="index.html">degann.expert</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="degann.expert.pipeline.execute_pipeline" href="#degann.expert.pipeline.execute_pipeline">execute_pipeline</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

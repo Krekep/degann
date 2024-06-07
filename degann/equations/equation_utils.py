@@ -11,6 +11,19 @@ from degann.networks import imodel
 
 
 def system_ode_from_string(system: str) -> List[List[str]]:
+    """
+    Splits the passed multi-line system of differential equations into a list of strings
+
+    Parameters
+    ----------
+    system: str
+        SODE as string
+
+    Returns
+    -------
+    list_sode: str
+        SODE as list of strings
+    """
     s = system.split("\n")
     parsed_s = []
     for eq in s:
@@ -21,7 +34,7 @@ def system_ode_from_string(system: str) -> List[List[str]]:
 def extract_iv(eq: str) -> Tuple[float, float]:
     """
     Extract initial value for Cauchy problem
-    Format --- yi(value1)=value2 without spaces
+    Format --- `yi(value1)=value2` without spaces
 
     Parameters
     ----------

@@ -4,8 +4,8 @@ from random import randint
 
 import numpy as np
 
-from degann import full_search
-from degann.expert.nn_code import (
+from degann import grid_search
+from degann.search_algorithms.nn_code import (
     alphabet_activations_cut,
     alph_n_div3,
 )
@@ -19,8 +19,6 @@ num_epoch = 500
 data_size = 40
 file_name = f"LH_ODE_1_solution"
 nn_data_x = np.array([[i / 1000] for i in range(0, 1_001)])  # X data
-true_x = np.array([[i / 20] for i in range(0, 20)])
-true_y = np.array([LH_ODE_1_solution(x) for x in true_x])
 nn_data_y = np.array([LH_ODE_1_solution(x) for x in nn_data_x])
 train_idx = [randint(0, len(nn_data_x) - 1) for _ in range(data_size)]
 train_idx.sort()
@@ -49,9 +47,9 @@ loss = "MaxAbsoluteDeviation"  # loss function
 # Start full search over specified parameters
 #
 
-full_search(
-    in_size=1,  # size of input data (x)
-    out_size=1,  # size of output data (y)
+grid_search(
+    input_size=1,  # size of input data (x)
+    output_size=1,  # size of output data (y)
     data=(nn_data_x, nn_data_y),  # dataset
     opt=[opt],  # list of optimizers
     loss=[loss],  # list of loss functions

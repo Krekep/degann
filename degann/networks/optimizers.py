@@ -3,21 +3,46 @@ from typing import Callable
 from tensorflow import keras
 
 _optimizers: dict = {
+    "Adadelta": keras.optimizers.Adadelta,
+    "Adafactor": keras.optimizers.Adafactor,
+    "Adagrad": keras.optimizers.Adagrad,
     "Adam": keras.optimizers.Adam,
-    "AdamW": keras.optimizers.experimental.AdamW,
-    "Adamax": keras.optimizers.experimental.Adamax,
-    "Adadelta": keras.optimizers.experimental.Adadelta,
-    "Adagrad": keras.optimizers.experimental.Adagrad,
-    "Ftrl": keras.optimizers.experimental.Ftrl,
-    "Nadam": keras.optimizers.experimental.Nadam,
-    "RMSprop": keras.optimizers.experimental.RMSprop,
-    "SGD": keras.optimizers.experimental.SGD,
+    "AdamW": keras.optimizers.AdamW,
+    "Adamax": keras.optimizers.Adamax,
+    "Ftrl": keras.optimizers.Ftrl,
+    "Lion": keras.optimizers.Lion,
+    "LossScaleOptimizer": keras.optimizers.LossScaleOptimizer,
+    "Nadam": keras.optimizers.Nadam,
+    "RMSprop": keras.optimizers.RMSprop,
+    "SGD": keras.optimizers.SGD,
 }
 
 
 def get_optimizer(name: str):
+    """
+    Get optimizer by name
+    Parameters
+    ----------
+    name: str
+        Name of optimizer
+
+    Returns
+    -------
+    optimizer_class: tf.keras.losses.Loss
+        Result optimizer
+    """
     return _optimizers.get(name)
 
 
 def get_all_optimizers() -> dict[str, Callable]:
+    """
+    Get all optimizers
+    Parameters
+    ----------
+
+    Returns
+    -------
+    optimizer_class: dict[str, tf.keras.losses.Loss]
+        All optimizers
+    """
     return _optimizers

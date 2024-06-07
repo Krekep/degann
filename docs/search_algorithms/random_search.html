@@ -1,0 +1,763 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>degann.search_algorithms.random_search API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>degann.search_algorithms.random_search</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">from itertools import product
+from typing import Tuple
+
+from .nn_code import alph_n_full, alphabet_activations, decode
+from degann.networks import imodel
+from degann.search_algorithms.generate import random_generate
+from .utils import update_random_generator, log_to_file
+
+
+def random_search(
+    input_size: int,
+    output_size: int,
+    data: tuple,
+    opt: str,
+    loss: str,
+    iterations: int,
+    min_epoch: int = 100,
+    max_epoch: int = 700,
+    val_data: tuple = None,
+    callbacks: list = None,
+    nn_min_length: int = 1,
+    nn_max_length: int = 6,
+    nn_alphabet: list[str] = [
+        &#34;&#34;.join(elem) for elem in product(alph_n_full, alphabet_activations)
+    ],
+    alphabet_block_size: int = 1,
+    alphabet_offset: int = 8,
+    update_gen_cycle: int = 0,
+    logging: bool = False,
+    file_name: str = &#34;&#34;,
+) -&gt; Tuple[float, int, str, str, dict]:
+    &#34;&#34;&#34;
+    Algorithm for random search in the space of parameters of neural networks
+
+    Parameters
+    ----------
+    input_size: int
+       Size of input data
+    output_size: int
+        Size of output data
+    data: tuple
+        dataset
+    opt: str
+        Name of optimizer
+    loss: str
+        Name of loss function
+    iterations: int
+        The number of iterations that will be carried out within the algorithm before completion
+        (specifically, the number of trained neural networks)
+    min_epoch: int
+        Lower bound of epochs
+    max_epoch: int
+        Upper bound of epochs
+    val_data: tuple
+        Validation dataset
+    callbacks: list
+        Callbacks for neural networks training
+    nn_min_length: int
+        Starting number of hidden layers of neural networks
+    nn_max_length: int
+        Final number of hidden layers of neural networks
+    nn_alphabet: list
+        List of possible sizes of hidden layers with activations for them
+    alphabet_block_size: int
+        Number of literals in each `alphabet` symbol that indicate the size of hidden layer
+    alphabet_offset: int
+        Indicate the minimal number of neurons in hidden layer
+    update_gen_cycle: int
+        Refresh tensorflow random generator per update_gen_cycle
+    logging: bool
+        Logging search process to file
+    file_name: str
+        Path to file for logging
+
+    Returns
+    -------
+    search_results: tuple[float, int, str, str, dict]
+        Results of the algorithm are described by these parameters
+
+        best_loss: float
+            The value of the loss function during training of the best neural network
+        best_epoch: int
+            Number of training epochs for the best neural network
+        best_loss_func: str
+            Name of the loss function of the best neural network
+        best_opt: str
+            Name of the optimizer of the best neural network
+        best_net: dict
+            Best neural network presented as a dictionary
+    &#34;&#34;&#34;
+    best_net = None
+    best_loss = 1e6
+    best_epoch = None
+    for i in range(iterations):
+        history = dict()
+        update_random_generator(i, cycle_size=update_gen_cycle)
+        gen = random_generate(
+            min_epoch=min_epoch,
+            max_epoch=max_epoch,
+            min_length=nn_min_length,
+            max_length=nn_max_length,
+            alphabet=nn_alphabet,
+        )
+
+        b, a = decode(
+            gen[0].value(), block_size=alphabet_block_size, offset=alphabet_offset
+        )
+        curr_best = imodel.IModel(input_size, b, output_size, a + [&#34;linear&#34;])
+        curr_best.compile(optimizer=opt, loss_func=loss)
+        curr_epoch = gen[1].value()
+        hist = curr_best.train(
+            data[0], data[1], epochs=curr_epoch, verbose=0, callbacks=callbacks
+        )
+        curr_loss = hist.history[&#34;loss&#34;][-1]
+        curr_val_loss = (
+            curr_best.evaluate(val_data[0], val_data[1], verbose=0, return_dict=True)[
+                &#34;loss&#34;
+            ]
+            if val_data is not None
+            else None
+        )
+
+        history[&#34;shapes&#34;] = [curr_best.get_shape]
+        history[&#34;activations&#34;] = [a]
+        history[&#34;code&#34;] = [gen[0].value()]
+        history[&#34;epoch&#34;] = [gen[1].value()]
+        history[&#34;optimizer&#34;] = [opt]
+        history[&#34;loss function&#34;] = [loss]
+        history[&#34;loss&#34;] = [curr_loss]
+        history[&#34;validation loss&#34;] = [curr_val_loss]
+        history[&#34;train_time&#34;] = [curr_best.network.trained_time[&#34;train_time&#34;]]
+        if logging:
+            fn = f&#34;{file_name}_{len(data[0])}_0_{loss}_{opt}&#34;
+            log_to_file(history, fn)
+
+        if curr_loss &lt; best_loss:
+            best_epoch = curr_epoch
+            best_net = curr_best.to_dict()
+            best_loss = curr_loss
+    return best_loss, best_epoch, loss, opt, best_net
+
+
+def random_search_endless(
+    input_size: int,
+    output_size: int,
+    data: tuple,
+    opt: str,
+    loss: str,
+    threshold: float,
+    max_iter: int = -1,
+    min_epoch: int = 100,
+    max_epoch: int = 700,
+    val_data: tuple = None,
+    callbacks: list = None,
+    nn_min_length: int = 1,
+    nn_max_length: int = 6,
+    nn_alphabet: list[str] = [
+        &#34;&#34;.join(elem) for elem in product(alph_n_full, alphabet_activations)
+    ],
+    alphabet_block_size: int = 1,
+    alphabet_offset: int = 8,
+    logging: bool = False,
+    file_name: str = &#34;&#34;,
+    verbose: bool = False,
+) -&gt; Tuple[float, int, str, str, dict, int]:
+    &#34;&#34;&#34;
+    Algorithm for random search in the space of parameters of neural networks
+
+    Parameters
+    ----------
+    input_size: int
+       Size of input data
+    output_size: int
+        Size of output data
+    data: tuple
+        dataset
+    opt: str
+        Name of optimizer
+    loss: str
+        Name of loss function
+    threshold: float
+        Training will stop when the value of the loss function is less than this threshold
+    max_iter: int
+        Training will stop when the number of iterations of the algorithm exceeds this parameter
+    min_epoch: int
+        Lower bound of epochs
+    max_epoch: int
+        Upper bound of epochs
+    val_data: tuple
+        Validation dataset
+    callbacks: list
+        Callbacks for neural networks training
+    logging: bool
+        Logging search process to file
+    nn_min_length: int
+        Starting number of hidden layers of neural networks
+    nn_max_length: int
+        Final number of hidden layers of neural networks
+    nn_alphabet: list
+        List of possible sizes of hidden layers with activations for them
+    alphabet_block_size: int
+        Number of literals in each `alphabet` symbol that indicate the size of hidden layer
+    alphabet_offset: int
+        Indicate the minimal number of neurons in hidden layer
+    logging: bool
+        Logging search process to file
+    file_name: str
+        Path to file for logging
+    verbose: bool
+        If True, it will show additional information when searching
+
+    Returns
+    -------
+    search_results: tuple[float, int, str, str, dict, int]
+        Results of the algorithm are described by these parameters
+
+        best_loss: float
+            The value of the loss function during training of the best neural network
+        best_epoch: int
+            Number of training epochs for the best neural network
+        best_loss_func: str
+            Name of the loss function of the best neural network
+        best_opt: str
+            Name of the optimizer of the best neural network
+        best_net: dict
+            Best neural network presented as a dictionary
+        last_iter: int
+            Count of iterations in search algorithm
+    &#34;&#34;&#34;
+    nn_loss, nn_epoch, loss_f, opt_n, net = random_search(
+        input_size,
+        output_size,
+        data,
+        opt,
+        loss,
+        1,
+        min_epoch=min_epoch,
+        max_epoch=max_epoch,
+        val_data=val_data,
+        nn_min_length=nn_min_length,
+        nn_max_length=nn_max_length,
+        nn_alphabet=nn_alphabet,
+        alphabet_block_size=alphabet_block_size,
+        alphabet_offset=alphabet_offset,
+        callbacks=callbacks,
+        logging=logging,
+        file_name=file_name,
+    )
+    i = 1
+    best_net = net
+    best_loss = nn_loss
+    best_epoch = nn_epoch
+    while nn_loss &gt; threshold and i != max_iter:
+        if verbose:
+            print(
+                f&#34;Random search until less than threshold. Last loss = {nn_loss}. Iterations = {i}&#34;
+            )
+        nn_loss, nn_epoch, loss_f, opt_n, net = random_search(
+            input_size,
+            output_size,
+            data,
+            opt,
+            loss,
+            1,
+            min_epoch=min_epoch,
+            max_epoch=max_epoch,
+            val_data=val_data,
+            nn_min_length=nn_min_length,
+            nn_max_length=nn_max_length,
+            nn_alphabet=nn_alphabet,
+            alphabet_block_size=alphabet_block_size,
+            alphabet_offset=alphabet_offset,
+            callbacks=callbacks,
+            logging=logging,
+            file_name=file_name,
+        )
+        i += 1
+        if nn_loss &lt; best_loss:
+            best_net = net
+            best_loss = nn_loss
+            best_epoch = nn_epoch
+    return best_loss, best_epoch, loss, opt, best_net, i</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="degann.search_algorithms.random_search.random_search"><code class="name flex">
+<span>def <span class="ident">random_search</span></span>(<span>input_size: int, output_size: int, data: tuple, opt: str, loss: str, iterations: int, min_epoch: int = 100, max_epoch: int = 700, val_data: tuple = None, callbacks: list = None, nn_min_length: int = 1, nn_max_length: int = 6, nn_alphabet: list[str] = ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '0a', '0b', '0c', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '1a', '1b', '1c', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '2a', '2b', '2c', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '3a', '3b', '3c', '40', '41', '42', '43', '44', '45', '46', '47', '48', '49', '4a', '4b', '4c', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59', '5a', '5b', '5c', '60', '61', '62', '63', '64', '65', '66', '67', '68', '69', '6a', '6b', '6c', '70', '71', '72', '73', '74', '75', '76', '77', '78', '79', '7a', '7b', '7c', '80', '81', '82', '83', '84', '85', '86', '87', '88', '89', '8a', '8b', '8c', '90', '91', '92', '93', '94', '95', '96', '97', '98', '99', '9a', '9b', '9c', 'a0', 'a1', 'a2', 'a3', 'a4', 'a5', 'a6', 'a7', 'a8', 'a9', 'aa', 'ab', 'ac', 'b0', 'b1', 'b2', 'b3', 'b4', 'b5', 'b6', 'b7', 'b8', 'b9', 'ba', 'bb', 'bc', 'c0', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'c9', 'ca', 'cb', 'cc', 'd0', 'd1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7', 'd8', 'd9', 'da', 'db', 'dc', 'e0', 'e1', 'e2', 'e3', 'e4', 'e5', 'e6', 'e7', 'e8', 'e9', 'ea', 'eb', 'ec', 'f0', 'f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7', 'f8', 'f9', 'fa', 'fb', 'fc'], alphabet_block_size: int = 1, alphabet_offset: int = 8, update_gen_cycle: int = 0, logging: bool = False, file_name: str = '') ‑> Tuple[float, int, str, str, dict]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Algorithm for random search in the space of parameters of neural networks</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>input_size</code></strong> :&ensp;<code>int</code></dt>
+<dd>&nbsp;</dd>
+<dt>Size of input data</dt>
+<dt><strong><code>output_size</code></strong> :&ensp;<code>int</code></dt>
+<dd>Size of output data</dd>
+<dt><strong><code>data</code></strong> :&ensp;<code>tuple</code></dt>
+<dd>dataset</dd>
+<dt><strong><code>opt</code></strong> :&ensp;<code>str</code></dt>
+<dd>Name of optimizer</dd>
+<dt><strong><code>loss</code></strong> :&ensp;<code>str</code></dt>
+<dd>Name of loss function</dd>
+<dt><strong><code>iterations</code></strong> :&ensp;<code>int</code></dt>
+<dd>The number of iterations that will be carried out within the algorithm before completion
+(specifically, the number of trained neural networks)</dd>
+<dt><strong><code>min_epoch</code></strong> :&ensp;<code>int</code></dt>
+<dd>Lower bound of epochs</dd>
+<dt><strong><code>max_epoch</code></strong> :&ensp;<code>int</code></dt>
+<dd>Upper bound of epochs</dd>
+<dt><strong><code>val_data</code></strong> :&ensp;<code>tuple</code></dt>
+<dd>Validation dataset</dd>
+<dt><strong><code>callbacks</code></strong> :&ensp;<code>list</code></dt>
+<dd>Callbacks for neural networks training</dd>
+<dt><strong><code>nn_min_length</code></strong> :&ensp;<code>int</code></dt>
+<dd>Starting number of hidden layers of neural networks</dd>
+<dt><strong><code>nn_max_length</code></strong> :&ensp;<code>int</code></dt>
+<dd>Final number of hidden layers of neural networks</dd>
+<dt><strong><code>nn_alphabet</code></strong> :&ensp;<code>list</code></dt>
+<dd>List of possible sizes of hidden layers with activations for them</dd>
+<dt><strong><code>alphabet_block_size</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of literals in each <code>alphabet</code> symbol that indicate the size of hidden layer</dd>
+<dt><strong><code>alphabet_offset</code></strong> :&ensp;<code>int</code></dt>
+<dd>Indicate the minimal number of neurons in hidden layer</dd>
+<dt><strong><code>update_gen_cycle</code></strong> :&ensp;<code>int</code></dt>
+<dd>Refresh tensorflow random generator per update_gen_cycle</dd>
+<dt><strong><code>logging</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Logging search process to file</dd>
+<dt><strong><code>file_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>Path to file for logging</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>search_results</code></strong> :&ensp;<code>tuple[float, int, str, str, dict]</code></dt>
+<dd>
+<p>Results of the algorithm are described by these parameters</p>
+<p>best_loss: float
+The value of the loss function during training of the best neural network
+best_epoch: int
+Number of training epochs for the best neural network
+best_loss_func: str
+Name of the loss function of the best neural network
+best_opt: str
+Name of the optimizer of the best neural network
+best_net: dict
+Best neural network presented as a dictionary</p>
+</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def random_search(
+    input_size: int,
+    output_size: int,
+    data: tuple,
+    opt: str,
+    loss: str,
+    iterations: int,
+    min_epoch: int = 100,
+    max_epoch: int = 700,
+    val_data: tuple = None,
+    callbacks: list = None,
+    nn_min_length: int = 1,
+    nn_max_length: int = 6,
+    nn_alphabet: list[str] = [
+        &#34;&#34;.join(elem) for elem in product(alph_n_full, alphabet_activations)
+    ],
+    alphabet_block_size: int = 1,
+    alphabet_offset: int = 8,
+    update_gen_cycle: int = 0,
+    logging: bool = False,
+    file_name: str = &#34;&#34;,
+) -&gt; Tuple[float, int, str, str, dict]:
+    &#34;&#34;&#34;
+    Algorithm for random search in the space of parameters of neural networks
+
+    Parameters
+    ----------
+    input_size: int
+       Size of input data
+    output_size: int
+        Size of output data
+    data: tuple
+        dataset
+    opt: str
+        Name of optimizer
+    loss: str
+        Name of loss function
+    iterations: int
+        The number of iterations that will be carried out within the algorithm before completion
+        (specifically, the number of trained neural networks)
+    min_epoch: int
+        Lower bound of epochs
+    max_epoch: int
+        Upper bound of epochs
+    val_data: tuple
+        Validation dataset
+    callbacks: list
+        Callbacks for neural networks training
+    nn_min_length: int
+        Starting number of hidden layers of neural networks
+    nn_max_length: int
+        Final number of hidden layers of neural networks
+    nn_alphabet: list
+        List of possible sizes of hidden layers with activations for them
+    alphabet_block_size: int
+        Number of literals in each `alphabet` symbol that indicate the size of hidden layer
+    alphabet_offset: int
+        Indicate the minimal number of neurons in hidden layer
+    update_gen_cycle: int
+        Refresh tensorflow random generator per update_gen_cycle
+    logging: bool
+        Logging search process to file
+    file_name: str
+        Path to file for logging
+
+    Returns
+    -------
+    search_results: tuple[float, int, str, str, dict]
+        Results of the algorithm are described by these parameters
+
+        best_loss: float
+            The value of the loss function during training of the best neural network
+        best_epoch: int
+            Number of training epochs for the best neural network
+        best_loss_func: str
+            Name of the loss function of the best neural network
+        best_opt: str
+            Name of the optimizer of the best neural network
+        best_net: dict
+            Best neural network presented as a dictionary
+    &#34;&#34;&#34;
+    best_net = None
+    best_loss = 1e6
+    best_epoch = None
+    for i in range(iterations):
+        history = dict()
+        update_random_generator(i, cycle_size=update_gen_cycle)
+        gen = random_generate(
+            min_epoch=min_epoch,
+            max_epoch=max_epoch,
+            min_length=nn_min_length,
+            max_length=nn_max_length,
+            alphabet=nn_alphabet,
+        )
+
+        b, a = decode(
+            gen[0].value(), block_size=alphabet_block_size, offset=alphabet_offset
+        )
+        curr_best = imodel.IModel(input_size, b, output_size, a + [&#34;linear&#34;])
+        curr_best.compile(optimizer=opt, loss_func=loss)
+        curr_epoch = gen[1].value()
+        hist = curr_best.train(
+            data[0], data[1], epochs=curr_epoch, verbose=0, callbacks=callbacks
+        )
+        curr_loss = hist.history[&#34;loss&#34;][-1]
+        curr_val_loss = (
+            curr_best.evaluate(val_data[0], val_data[1], verbose=0, return_dict=True)[
+                &#34;loss&#34;
+            ]
+            if val_data is not None
+            else None
+        )
+
+        history[&#34;shapes&#34;] = [curr_best.get_shape]
+        history[&#34;activations&#34;] = [a]
+        history[&#34;code&#34;] = [gen[0].value()]
+        history[&#34;epoch&#34;] = [gen[1].value()]
+        history[&#34;optimizer&#34;] = [opt]
+        history[&#34;loss function&#34;] = [loss]
+        history[&#34;loss&#34;] = [curr_loss]
+        history[&#34;validation loss&#34;] = [curr_val_loss]
+        history[&#34;train_time&#34;] = [curr_best.network.trained_time[&#34;train_time&#34;]]
+        if logging:
+            fn = f&#34;{file_name}_{len(data[0])}_0_{loss}_{opt}&#34;
+            log_to_file(history, fn)
+
+        if curr_loss &lt; best_loss:
+            best_epoch = curr_epoch
+            best_net = curr_best.to_dict()
+            best_loss = curr_loss
+    return best_loss, best_epoch, loss, opt, best_net</code></pre>
+</details>
+</dd>
+<dt id="degann.search_algorithms.random_search.random_search_endless"><code class="name flex">
+<span>def <span class="ident">random_search_endless</span></span>(<span>input_size: int, output_size: int, data: tuple, opt: str, loss: str, threshold: float, max_iter: int = -1, min_epoch: int = 100, max_epoch: int = 700, val_data: tuple = None, callbacks: list = None, nn_min_length: int = 1, nn_max_length: int = 6, nn_alphabet: list[str] = ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '0a', '0b', '0c', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '1a', '1b', '1c', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '2a', '2b', '2c', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '3a', '3b', '3c', '40', '41', '42', '43', '44', '45', '46', '47', '48', '49', '4a', '4b', '4c', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59', '5a', '5b', '5c', '60', '61', '62', '63', '64', '65', '66', '67', '68', '69', '6a', '6b', '6c', '70', '71', '72', '73', '74', '75', '76', '77', '78', '79', '7a', '7b', '7c', '80', '81', '82', '83', '84', '85', '86', '87', '88', '89', '8a', '8b', '8c', '90', '91', '92', '93', '94', '95', '96', '97', '98', '99', '9a', '9b', '9c', 'a0', 'a1', 'a2', 'a3', 'a4', 'a5', 'a6', 'a7', 'a8', 'a9', 'aa', 'ab', 'ac', 'b0', 'b1', 'b2', 'b3', 'b4', 'b5', 'b6', 'b7', 'b8', 'b9', 'ba', 'bb', 'bc', 'c0', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'c9', 'ca', 'cb', 'cc', 'd0', 'd1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7', 'd8', 'd9', 'da', 'db', 'dc', 'e0', 'e1', 'e2', 'e3', 'e4', 'e5', 'e6', 'e7', 'e8', 'e9', 'ea', 'eb', 'ec', 'f0', 'f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7', 'f8', 'f9', 'fa', 'fb', 'fc'], alphabet_block_size: int = 1, alphabet_offset: int = 8, logging: bool = False, file_name: str = '', verbose: bool = False) ‑> Tuple[float, int, str, str, dict, int]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Algorithm for random search in the space of parameters of neural networks</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>input_size</code></strong> :&ensp;<code>int</code></dt>
+<dd>&nbsp;</dd>
+<dt>Size of input data</dt>
+<dt><strong><code>output_size</code></strong> :&ensp;<code>int</code></dt>
+<dd>Size of output data</dd>
+<dt><strong><code>data</code></strong> :&ensp;<code>tuple</code></dt>
+<dd>dataset</dd>
+<dt><strong><code>opt</code></strong> :&ensp;<code>str</code></dt>
+<dd>Name of optimizer</dd>
+<dt><strong><code>loss</code></strong> :&ensp;<code>str</code></dt>
+<dd>Name of loss function</dd>
+<dt><strong><code>threshold</code></strong> :&ensp;<code>float</code></dt>
+<dd>Training will stop when the value of the loss function is less than this threshold</dd>
+<dt><strong><code>max_iter</code></strong> :&ensp;<code>int</code></dt>
+<dd>Training will stop when the number of iterations of the algorithm exceeds this parameter</dd>
+<dt><strong><code>min_epoch</code></strong> :&ensp;<code>int</code></dt>
+<dd>Lower bound of epochs</dd>
+<dt><strong><code>max_epoch</code></strong> :&ensp;<code>int</code></dt>
+<dd>Upper bound of epochs</dd>
+<dt><strong><code>val_data</code></strong> :&ensp;<code>tuple</code></dt>
+<dd>Validation dataset</dd>
+<dt><strong><code>callbacks</code></strong> :&ensp;<code>list</code></dt>
+<dd>Callbacks for neural networks training</dd>
+<dt><strong><code>logging</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Logging search process to file</dd>
+<dt><strong><code>nn_min_length</code></strong> :&ensp;<code>int</code></dt>
+<dd>Starting number of hidden layers of neural networks</dd>
+<dt><strong><code>nn_max_length</code></strong> :&ensp;<code>int</code></dt>
+<dd>Final number of hidden layers of neural networks</dd>
+<dt><strong><code>nn_alphabet</code></strong> :&ensp;<code>list</code></dt>
+<dd>List of possible sizes of hidden layers with activations for them</dd>
+<dt><strong><code>alphabet_block_size</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of literals in each <code>alphabet</code> symbol that indicate the size of hidden layer</dd>
+<dt><strong><code>alphabet_offset</code></strong> :&ensp;<code>int</code></dt>
+<dd>Indicate the minimal number of neurons in hidden layer</dd>
+<dt><strong><code>logging</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Logging search process to file</dd>
+<dt><strong><code>file_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>Path to file for logging</dd>
+<dt><strong><code>verbose</code></strong> :&ensp;<code>bool</code></dt>
+<dd>If True, it will show additional information when searching</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>search_results</code></strong> :&ensp;<code>tuple[float, int, str, str, dict, int]</code></dt>
+<dd>
+<p>Results of the algorithm are described by these parameters</p>
+<p>best_loss: float
+The value of the loss function during training of the best neural network
+best_epoch: int
+Number of training epochs for the best neural network
+best_loss_func: str
+Name of the loss function of the best neural network
+best_opt: str
+Name of the optimizer of the best neural network
+best_net: dict
+Best neural network presented as a dictionary
+last_iter: int
+Count of iterations in search algorithm</p>
+</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def random_search_endless(
+    input_size: int,
+    output_size: int,
+    data: tuple,
+    opt: str,
+    loss: str,
+    threshold: float,
+    max_iter: int = -1,
+    min_epoch: int = 100,
+    max_epoch: int = 700,
+    val_data: tuple = None,
+    callbacks: list = None,
+    nn_min_length: int = 1,
+    nn_max_length: int = 6,
+    nn_alphabet: list[str] = [
+        &#34;&#34;.join(elem) for elem in product(alph_n_full, alphabet_activations)
+    ],
+    alphabet_block_size: int = 1,
+    alphabet_offset: int = 8,
+    logging: bool = False,
+    file_name: str = &#34;&#34;,
+    verbose: bool = False,
+) -&gt; Tuple[float, int, str, str, dict, int]:
+    &#34;&#34;&#34;
+    Algorithm for random search in the space of parameters of neural networks
+
+    Parameters
+    ----------
+    input_size: int
+       Size of input data
+    output_size: int
+        Size of output data
+    data: tuple
+        dataset
+    opt: str
+        Name of optimizer
+    loss: str
+        Name of loss function
+    threshold: float
+        Training will stop when the value of the loss function is less than this threshold
+    max_iter: int
+        Training will stop when the number of iterations of the algorithm exceeds this parameter
+    min_epoch: int
+        Lower bound of epochs
+    max_epoch: int
+        Upper bound of epochs
+    val_data: tuple
+        Validation dataset
+    callbacks: list
+        Callbacks for neural networks training
+    logging: bool
+        Logging search process to file
+    nn_min_length: int
+        Starting number of hidden layers of neural networks
+    nn_max_length: int
+        Final number of hidden layers of neural networks
+    nn_alphabet: list
+        List of possible sizes of hidden layers with activations for them
+    alphabet_block_size: int
+        Number of literals in each `alphabet` symbol that indicate the size of hidden layer
+    alphabet_offset: int
+        Indicate the minimal number of neurons in hidden layer
+    logging: bool
+        Logging search process to file
+    file_name: str
+        Path to file for logging
+    verbose: bool
+        If True, it will show additional information when searching
+
+    Returns
+    -------
+    search_results: tuple[float, int, str, str, dict, int]
+        Results of the algorithm are described by these parameters
+
+        best_loss: float
+            The value of the loss function during training of the best neural network
+        best_epoch: int
+            Number of training epochs for the best neural network
+        best_loss_func: str
+            Name of the loss function of the best neural network
+        best_opt: str
+            Name of the optimizer of the best neural network
+        best_net: dict
+            Best neural network presented as a dictionary
+        last_iter: int
+            Count of iterations in search algorithm
+    &#34;&#34;&#34;
+    nn_loss, nn_epoch, loss_f, opt_n, net = random_search(
+        input_size,
+        output_size,
+        data,
+        opt,
+        loss,
+        1,
+        min_epoch=min_epoch,
+        max_epoch=max_epoch,
+        val_data=val_data,
+        nn_min_length=nn_min_length,
+        nn_max_length=nn_max_length,
+        nn_alphabet=nn_alphabet,
+        alphabet_block_size=alphabet_block_size,
+        alphabet_offset=alphabet_offset,
+        callbacks=callbacks,
+        logging=logging,
+        file_name=file_name,
+    )
+    i = 1
+    best_net = net
+    best_loss = nn_loss
+    best_epoch = nn_epoch
+    while nn_loss &gt; threshold and i != max_iter:
+        if verbose:
+            print(
+                f&#34;Random search until less than threshold. Last loss = {nn_loss}. Iterations = {i}&#34;
+            )
+        nn_loss, nn_epoch, loss_f, opt_n, net = random_search(
+            input_size,
+            output_size,
+            data,
+            opt,
+            loss,
+            1,
+            min_epoch=min_epoch,
+            max_epoch=max_epoch,
+            val_data=val_data,
+            nn_min_length=nn_min_length,
+            nn_max_length=nn_max_length,
+            nn_alphabet=nn_alphabet,
+            alphabet_block_size=alphabet_block_size,
+            alphabet_offset=alphabet_offset,
+            callbacks=callbacks,
+            logging=logging,
+            file_name=file_name,
+        )
+        i += 1
+        if nn_loss &lt; best_loss:
+            best_net = net
+            best_loss = nn_loss
+            best_epoch = nn_epoch
+    return best_loss, best_epoch, loss, opt, best_net, i</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="degann.search_algorithms" href="index.html">degann.search_algorithms</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="degann.search_algorithms.random_search.random_search" href="#degann.search_algorithms.random_search.random_search">random_search</a></code></li>
+<li><code><a title="degann.search_algorithms.random_search.random_search_endless" href="#degann.search_algorithms.random_search.random_search_endless">random_search_endless</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
