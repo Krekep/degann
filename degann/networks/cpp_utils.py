@@ -474,7 +474,15 @@ def activation_to_cpp_template(
         Name of variable
     activation_name: str
         Name of activation func
-
+    vectorized_level: str
+        Level of vectorization
+        Some editing functions only work on ICC or Visual Studio C++.
+        These include mathematical functions. They are used in the following activation functions:
+        exponential - exp
+        sigmoid - exp
+        softplus - log, exp
+        swish  - exp
+        tanh - exp
     Returns
     -------
     c_activation: str
@@ -583,6 +591,19 @@ def activation_to_cpp_template(
 
 
 def generate_vectorized_function(vectorized_level: str, activation_func: str) -> str:
+    """
+    This function creates vectorized code based on feed_forward_step at the vectorization level!= "none"
+    Parameters
+    ----------
+    vectorized_level: str
+        level of code vectorization
+    activation_func: str
+        Name of activation for right layer
+    Returns
+    -------
+    code: str
+        Code to feed forward step
+    """
     if vectorized_level == "none":
         return ""
     typename, funcname = get_vectorized_names(vectorized_level)
@@ -698,6 +719,17 @@ void {vectorized_level}_vectorized_{activation_func}(float* cur_layer, float* pr
 
 
 def get_vectorized_names(vectorized_level: str) -> tuple:
+    """
+    This function returns names for vectorized functions based on the vectorization level
+    Parameters
+    ----------
+    vectorized_level: str
+        level of code vectorization
+    Returns
+    -------
+    names: tuple
+        names for vectorized_functions
+    """
     intrinsics = ["sse", "avx", "avx512f"]
     if vectorized_level not in intrinsics:
         raise ValueError("Unknown vectorized level")
@@ -710,6 +742,13 @@ def get_vectorized_names(vectorized_level: str) -> tuple:
 
 
 def get_vectorized_level() -> str:
+    """
+    This function returns the best available vectorization level
+    Returns
+    -------
+    vectorized_level: str
+        best available vectorization level
+    """
     intrinsics = ["sse", "avx", "avx512f"]
     flags_info = cpuinfo.get_cpu_info()["flags"]
     vectorized_level = ""
@@ -720,6 +759,13 @@ def get_vectorized_level() -> str:
 
 
 def get_available_vectorized_levels() -> list:
+    """
+    This function returns all available vectorization level
+    Returns
+    -------
+    res: list
+        availables vectorization level
+    """
     res = []
     flags_info = cpuinfo.get_cpu_info()["flags"]
     if "sse" in flags_info:
@@ -732,6 +778,18 @@ def get_available_vectorized_levels() -> list:
 
 
 def create_main_func(type: str = "default") -> str:
+    """
+    This function generates and returns the main function for C++ code
+    Parametrs
+    -------
+    type: str
+        type of main funtion
+        need for tests
+    Returns
+    -------
+    res: str
+        main function
+    """
     res = ""
     if type == "default":
         res = """

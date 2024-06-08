@@ -421,7 +421,6 @@ class TensorflowDenseNet(tf.keras.Model):
                 f"weight_{i}_{i + 1}",
                 f"bias_{i + 1}",
                 act_func,
-                decorator_params,
                 vectorized_level,
             )
             if act_func not in already_have:
