@@ -11,10 +11,10 @@ from degann.networks.topology.tf_densenet import TensorflowDenseNet
 
 
 def _get_act_and_init(
-        kwargs: dict,
-        default_act,
-        default_dec: Optional[List[Optional[Dict[str, float]]]],
-        default_init,
+    kwargs: dict,
+    default_act,
+    default_dec: Optional[List[Optional[Dict[str, float]]]],
+    default_init,
 ):
     if kwargs.get("activation") is None:
         activation = default_act
@@ -49,17 +49,17 @@ class IModel(object):
     """
 
     def __init__(
-            self,
-            input_size: int,
-            block_size: List[int],
-            output_size: int,
-            activation_func="sigmoid",
-            weight_init=tf.random_uniform_initializer(minval=-1, maxval=1),
-            bias_init=tf.random_uniform_initializer(minval=-1, maxval=1),
-            name="net",
-            net_type="DenseNet",
-            is_debug=False,
-            **kwargs,
+        self,
+        input_size: int,
+        block_size: List[int],
+        output_size: int,
+        activation_func="sigmoid",
+        weight_init=tf.random_uniform_initializer(minval=-1, maxval=1),
+        bias_init=tf.random_uniform_initializer(minval=-1, maxval=1),
+        name="net",
+        net_type="DenseNet",
+        is_debug=False,
+        **kwargs,
     ):
         self.network = _create_functions[net_type](
             input_size,
@@ -79,12 +79,12 @@ class IModel(object):
         self.set_name(name)
 
     def compile(
-            self,
-            rate=1e-2,
-            optimizer="SGD",
-            loss_func="MeanSquaredError",
-            metrics=None,
-            run_eagerly=False,
+        self,
+        rate=1e-2,
+        optimizer="SGD",
+        loss_func="MeanSquaredError",
+        metrics=None,
+        run_eagerly=False,
     ) -> None:
         """
         Configures the model for training
@@ -157,15 +157,15 @@ class IModel(object):
         return self.network.predict(inputs, verbose=0, callbacks=callbacks)
 
     def train(
-            self,
-            x_data: np.ndarray,
-            y_data: np.ndarray,
-            validation_split=0.0,
-            validation_data=None,
-            epochs=10,
-            mini_batch_size=None,
-            callbacks: List = None,
-            verbose="auto",
+        self,
+        x_data: np.ndarray,
+        y_data: np.ndarray,
+        validation_split=0.0,
+        validation_data=None,
+        epochs=10,
+        mini_batch_size=None,
+        callbacks: List = None,
+        verbose="auto",
     ) -> keras.callbacks.History:
         """
         Train network on passed dataset and return training history
@@ -220,13 +220,13 @@ class IModel(object):
         return temp
 
     def evaluate(
-            self,
-            x_data: np.ndarray,
-            y_data: np.ndarray,
-            batch_size=None,
-            callbacks: List = None,
-            verbose="auto",
-            **kwargs,
+        self,
+        x_data: np.ndarray,
+        y_data: np.ndarray,
+        batch_size=None,
+        callbacks: List = None,
+        verbose="auto",
+        **kwargs,
     ) -> Union[float, List[float]]:
         """
         Evaluate network on passed dataset and return evaluate history
@@ -279,8 +279,12 @@ class IModel(object):
         del self._evaluate_history
 
     def export_to_cpp(
-            self, path: str, array_type: str = "[]", path_to_compiler: str = None, vectorized_level: str = "none",
-            **kwargs
+        self,
+        path: str,
+        array_type: str = "[]",
+        path_to_compiler: str = None,
+        vectorized_level: str = "none",
+        **kwargs,
     ) -> None:
         """
         Export neural network as feedforward function on c++
@@ -299,7 +303,13 @@ class IModel(object):
         -------
 
         """
-        self.network.export_to_cpp(path, array_type, path_to_compiler, vectorized_level=vectorized_level, **kwargs)
+        self.network.export_to_cpp(
+            path,
+            array_type,
+            path_to_compiler,
+            vectorized_level=vectorized_level,
+            **kwargs,
+        )
 
     def to_dict(self, **kwargs):
         """
@@ -456,7 +466,7 @@ class IModel(object):
 
     @classmethod
     def create_neuron(
-            cls, input_size: int, output_size: int, shape: list[int], **kwargs
+        cls, input_size: int, output_size: int, shape: list[int], **kwargs
     ):
         """
         Create neural network with passed size and sigmoid activation

@@ -12,15 +12,15 @@ from degann.networks.layers.tf_dense import TensorflowDense
 
 class TensorflowDenseNet(tf.keras.Model):
     def __init__(
-            self,
-            input_size: int = 2,
-            block_size: list = None,
-            output_size: int = 10,
-            activation_func: str = "linear",
-            weight=keras.initializers.RandomUniform(minval=-1, maxval=1),
-            biases=keras.initializers.RandomUniform(minval=-1, maxval=1),
-            is_debug: bool = False,
-            **kwargs,
+        self,
+        input_size: int = 2,
+        block_size: list = None,
+        output_size: int = 10,
+        activation_func: str = "linear",
+        weight=keras.initializers.RandomUniform(minval=-1, maxval=1),
+        biases=keras.initializers.RandomUniform(minval=-1, maxval=1),
+        is_debug: bool = False,
+        **kwargs,
     ):
         decorator_params: List[Optional[Dict]] = [None]
         if "decorator_params" in kwargs.keys():
@@ -30,17 +30,17 @@ class TensorflowDenseNet(tf.keras.Model):
             decorator_params = [None]
 
         if (
-                isinstance(decorator_params, list)
-                and len(decorator_params) == 1
-                and decorator_params[0] is None
-                or decorator_params is None
+            isinstance(decorator_params, list)
+            and len(decorator_params) == 1
+            and decorator_params[0] is None
+            or decorator_params is None
         ):
             decorator_params = [None] * (len(block_size) + 1)
 
         if (
-                isinstance(decorator_params, list)
-                and len(decorator_params) == 1
-                and decorator_params[0] is not None
+            isinstance(decorator_params, list)
+            and len(decorator_params) == 1
+            and decorator_params[0] is not None
         ):
             decorator_params = decorator_params * (len(block_size) + 1)
 
@@ -99,12 +99,12 @@ class TensorflowDenseNet(tf.keras.Model):
         self.trained_time = {"train_time": 0.0, "epoch_time": [], "predict_time": 0}
 
     def custom_compile(
-            self,
-            rate=1e-2,
-            optimizer="SGD",
-            loss_func="MeanSquaredError",
-            metric_funcs=None,
-            run_eagerly=False,
+        self,
+        rate=1e-2,
+        optimizer="SGD",
+        loss_func="MeanSquaredError",
+        metric_funcs=None,
+        run_eagerly=False,
     ):
         """
         Configures the model for training
@@ -226,12 +226,12 @@ class TensorflowDenseNet(tf.keras.Model):
 
     @classmethod
     def from_layers(
-            cls,
-            input_size: int,
-            block_size: List[int],
-            output_size: int,
-            layers: List[TensorflowDense],
-            **kwargs,
+        cls,
+        input_size: int,
+        block_size: List[int],
+        output_size: int,
+        layers: List[TensorflowDense],
+        **kwargs,
     ):
         """
         Restore neural network from list of layers
@@ -290,8 +290,12 @@ class TensorflowDenseNet(tf.keras.Model):
         self.out_layer = layer_creator.from_dict(config["out_layer"])
 
     def export_to_cpp(
-            self, path: str, array_type: str = "[]", path_to_compiler: str = None, vectorized_level: str = "none",
-            **kwargs
+        self,
+        path: str,
+        array_type: str = "[]",
+        path_to_compiler: str = None,
+        vectorized_level: str = "none",
+        **kwargs,
     ) -> None:
         """
         Export neural network as feedforward function on c++
@@ -345,12 +349,15 @@ class TensorflowDenseNet(tf.keras.Model):
         transform_output_array = ""
         return_stat = "return answer;\n"
 
-        creator_1d: Callable[[str, int, Optional[list]],
-        str] = cpp_utils.array1d_creator("float")
-        creator_heap_1d: Callable[
-            [str, int], str] = cpp_utils.array1d_heap_creator("float")
-        creator_2d: Callable[[str, int, int, Optional[list]],
-        str] = cpp_utils.array2d_creator("float")
+        creator_1d: Callable[
+            [str, int, Optional[list]], str
+        ] = cpp_utils.array1d_creator("float")
+        creator_heap_1d: Callable[[str, int], str] = cpp_utils.array1d_heap_creator(
+            "float"
+        )
+        creator_2d: Callable[
+            [str, int, int, Optional[list]], str
+        ] = cpp_utils.array2d_creator("float")
         if array_type == "[]":
             signature = f"float* feedforward(float x_array[])\n"
 
@@ -358,22 +365,23 @@ class TensorflowDenseNet(tf.keras.Model):
             signature = f"std::vector<float> feedforward(std::vector<float> x)\n"
 
             transform_input_vector = cpp_utils.transform_1dvector_to_array(
-                "float", input_size, "x", "x_array")
+                "float", input_size, "x", "x_array"
+            )
             transform_output_array = cpp_utils.transform_1darray_to_vector(
-                "float", output_size, "answer_vector", "answer")
+                "float", output_size, "answer_vector", "answer"
+            )
             return_stat = "return answer_vector;\n"
 
         create_layers = ""
         create_layers += creator_1d(f"layer_0", input_size, initial_value=0)
         for i, size in enumerate(blocks):
-            create_layers += creator_1d(f"layer_{i + 1}",
-                                        size,
-                                        initial_value=0)
-        create_layers += creator_1d(f"layer_{len(blocks) + 1}",
-                                    output_size,
-                                    initial_value=0)
+            create_layers += creator_1d(f"layer_{i + 1}", size, initial_value=0)
+        create_layers += creator_1d(
+            f"layer_{len(blocks) + 1}", output_size, initial_value=0
+        )
         create_layers += cpp_utils.copy_1darray_to_array(
-            input_size, "x_array", "layer_0")
+            input_size, "x_array", "layer_0"
+        )
 
         create_weights = ""
         for i, layer_dict in enumerate(layers):
@@ -400,11 +408,11 @@ class TensorflowDenseNet(tf.keras.Model):
         vectorized_func, already_have = "", []
         for i, layer_dict in enumerate(layers):
             left_size = layer_dict[
-                LAYER_DICT_NAMES["inp_size"]]  # if i != 0 else input_size
+                LAYER_DICT_NAMES["inp_size"]
+            ]  # if i != 0 else input_size
             right_size = layer_dict[LAYER_DICT_NAMES["shape"]]
             act_func = layer_dict[LAYER_DICT_NAMES["activation"]]
-            decorator_params = layer_dict.get(
-                LAYER_DICT_NAMES["decorator_params"])
+            decorator_params = layer_dict.get(LAYER_DICT_NAMES["decorator_params"])
             feed_forward_cycles += cpp_utils.feed_forward_step(
                 f"layer_{i}",
                 left_size,
@@ -418,7 +426,8 @@ class TensorflowDenseNet(tf.keras.Model):
             )
             if act_func not in already_have:
                 vectorized_func += cpp_utils.generate_vectorized_function(
-                    vectorized_level, act_func)
+                    vectorized_level, act_func
+                )
                 if vectorized_level != "none":
                     vectorized_func_name += f"void {vectorized_level}_vectorized_{act_func}(float* cur_layer, float* pre_layer, float* bias, float(&weight)[a][b]);\n\t\t"
                 already_have.append(act_func)
@@ -428,7 +437,8 @@ class TensorflowDenseNet(tf.keras.Model):
 
         move_result = creator_heap_1d("answer", output_size)
         move_result += cpp_utils.copy_1darray_to_array(
-            output_size, f"layer_{len(blocks) + 1}", "answer")
+            output_size, f"layer_{len(blocks) + 1}", "answer"
+        )
 
         if "layers" in kwargs and kwargs["layers"] != "":
             create_layers = kwargs["layers"]
