@@ -490,17 +490,17 @@ def activation_to_cpp_template(
     """
     d = {
         "linear": lambda x: f"{x} = {x};\n",
-        "elu": lambda x: f"if ({x} >= 0) {x} = {x}; else {x} = 1.0 * (exp({x}) - 1);\n",
+        "elu": lambda x: f"if ({x} >= 0) {x} = {x}; else {x} = 1.0 * (std::exp{x}) - 1);\n",
         "gelu": lambda x: f"{x} = 0.5 * {x} * (1 + tanh(sqrt(2 / 3.14159265) * ({x} + 0.044715 * {x} * {x} * {x})))",
-        "relu": lambda x: f"{x} = max({x}, 0.0f);\n",
-        "selu": lambda x: f"if ({x} >= 0) {x} = 1.05070098 * {x}; else {x} = 1.05070098 * 1.67326324 * (exp({x}) - 1);\n",
-        "exponential": lambda x: f"{x} = exp({x});\n",
+        "relu": lambda x: f"{x} = std::max({x}, 0.0f);\n",
+        "selu": lambda x: f"if ({x} >= 0) {x} = 1.05070098 * {x}; else {x} = 1.05070098 * 1.67326324 * (std::exp{x}) - 1);\n",
+        "exponential": lambda x: f"{x} = std::exp{x});\n",
         "hard_sigmoid": lambda x: f"if ({x} < -2.5) {x} = 0; else if ({x} > 2.5) {x} = 1; else {x} = 0.2 * {x} + 0.5;\n",
-        "sigmoid": lambda x: f"{x} = 1 / (1 + exp(-{x}));\n",
-        "softplus": lambda x: f"{x} = log(exp({x}) + 1);\n",
-        "softsign": lambda x: f"{x} = {x} / (abs({x}) + 1.0);\n",
-        "swish": lambda x: f"{x} = {x} / (1 + exp(-{x}));\n",
-        "tanh": lambda x: f"{x} = ((exp({x}) - exp(-{x}))/(exp({x}) + exp(-{x})));\n",
+        "sigmoid": lambda x: f"{x} = 1 / (1 + std::exp-{x}));\n",
+        "softplus": lambda x: f"{x} = log(std::exp{x}) + 1);\n",
+        "softsign": lambda x: f"{x} = {x} / (std::abs({x}) + 1.0);\n",
+        "swish": lambda x: f"{x} = {x} / (1 + std::exp-{x}));\n",
+        "tanh": lambda x: f"{x} = ((std::exp{x}) - std::exp-{x}))/(std::exp{x}) + std::exp-{x})));\n",
     }
 
     if vectorized_level == "none":
@@ -780,31 +780,28 @@ def get_available_vectorized_levels() -> list:
 def create_main_func(type: str = "default") -> str:
     """
     This function generates and returns the main function for C++ code
+    need for tests
     Parametrs
     -------
     type: str
         type of main funtion
-        need for tests
     Returns
     -------
     res: str
         main function
     """
     res = ""
-    if type == "default":
-        res = """
-    return 0;
-"""
-    elif type == "val_test":
-        res = """\tfloat a[1] = { 0.0045 };
+    if type == "val_test":
+        res = """int main(){\n\tfloat a[1] = { 0.0045 };
     std::ofstream result("result.txt");
     float* ans = feedforward(a);
     result << ans[0];
     result.close();
     return 0;
+}
 """
     elif type == "time_test":
-        res = """\tauto start = std::chrono::high_resolution_clock::now();
+        res = """int main(){\n\tauto start = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < 250000; ++i) {
 	    float a[1] = { (float)(rand() % 20 + 1.0f) / (rand() % 20 + 5.0f) };
         feedforward(a);
@@ -815,5 +812,6 @@ def create_main_func(type: str = "default") -> str:
     result << duration.count();
     result.close();
     return 0;
+}
 """
     return res

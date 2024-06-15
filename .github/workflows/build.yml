@@ -53,3 +53,7 @@ jobs:
         with:
           name: degann
           path: ./dist/Degann.exe
+
+      # Install g++
+      - name: Install g++
+        uses: egor-tensin/setup-gcc@v1.3

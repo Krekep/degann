@@ -47,6 +47,10 @@ jobs:
           python -m pip install -r requirements.txt
           python -m pip list
 
+      # Install g++
+      - name: Install g++
+        uses: egor-tensin/setup-gcc@v1.3
+
       # Run tests from /tests directory
       - name: Run tests
         run: |
