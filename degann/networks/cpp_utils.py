@@ -592,17 +592,17 @@ def activation_to_cpp_template(
 
 def generate_vectorized_function(vectorized_level: str, activation_func: str) -> str:
     """
-    This function creates vectorized code based on feed_forward_step at the vectorization level!= "none"
-    Parameters
-    ----------
-    vectorized_level: str
-        level of code vectorization
-    activation_func: str
-        Name of activation for right layer
-    Returns
-    -------
-    code: str
-        Code to feed forward step
+        This function creates vectorized code based on feed_forward_step at the vectorization level!= "none"
+        Parameters
+        ----------
+        vectorized_level: str
+            level of code vectorization
+        activation_func: str
+            Name of activation for right layer
+        Returns
+        -------
+        code: str
+            Code to feed forward step
     """
     if vectorized_level == "none":
         return ""
@@ -720,15 +720,15 @@ void {vectorized_level}_vectorized_{activation_func}(float* cur_layer, float* pr
 
 def get_vectorized_names(vectorized_level: str) -> tuple:
     """
-    This function returns names for vectorized functions based on the vectorization level
-    Parameters
-    ----------
-    vectorized_level: str
-        level of code vectorization
-    Returns
-    -------
-    names: tuple
-        names for vectorized_functions
+        This function returns names for vectorized functions based on the vectorization level
+        Parameters
+        ----------
+        vectorized_level: str
+            level of code vectorization
+        Returns
+        -------
+        names: tuple
+            names for vectorized_functions
     """
     intrinsics = ["sse", "avx", "avx512f"]
     if vectorized_level not in intrinsics:
@@ -743,11 +743,11 @@ def get_vectorized_names(vectorized_level: str) -> tuple:
 
 def get_vectorized_level() -> str:
     """
-    This function returns the best available vectorization level
-    Returns
-    -------
-    vectorized_level: str
-        best available vectorization level
+        This function returns the best available vectorization level
+        Returns
+        -------
+        vectorized_level: str
+            best available vectorization level
     """
     intrinsics = ["sse", "avx", "avx512f"]
     flags_info = cpuinfo.get_cpu_info()["flags"]
@@ -760,11 +760,11 @@ def get_vectorized_level() -> str:
 
 def get_available_vectorized_levels() -> list:
     """
-    This function returns all available vectorization level
-    Returns
-    -------
-    res: list
-        availables vectorization level
+        This function returns all available vectorization level
+        Returns
+        -------
+        res: list
+            availables vectorization level
     """
     res = []
     flags_info = cpuinfo.get_cpu_info()["flags"]
@@ -777,23 +777,25 @@ def get_available_vectorized_levels() -> list:
     return res
 
 
-def create_main_func(type: str = "default") -> str:
+def create_main_func(type: str = "default", path: str = "") -> str:
     """
-    This function generates and returns the main function for C++ code
-    need for tests
-    Parametrs
-    -------
-    type: str
-        type of main funtion
-    Returns
-    -------
-    res: str
-        main function
+        This function generates and returns the main function for C++ code
+        need for tests
+        Parametrs
+        -------
+        type: str
+            type of main funtion
+        path: str
+            path to save result.txt
+        Returns
+        -------
+        res: str
+            main function
     """
     res = ""
     if type == "val_test":
         res = """int main(){\n\tfloat a[1] = { 0.0045 };
-    std::ofstream result("result.txt");
+""" + f'    std::ofstream result("{path}result.txt");' + """
     float* ans = feedforward(a);
     result << ans[0];
     result.close();
@@ -808,7 +810,7 @@ def create_main_func(type: str = "default") -> str:
     }
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> duration = end - start;
-    std::ofstream result("result.txt");
+""" + f'    std::ofstream result("{path}result.txt");' + """
     result << duration.count();
     result.close();
     return 0;
