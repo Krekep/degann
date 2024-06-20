@@ -21,10 +21,7 @@ from degann.networks.cpp_utils import get_available_vectorized_levels
         (
             1,
             [200, 200, 200, 200, 200, 200],
-            [
-                "hard_sigmoid", "relu", "softsign", "linear", "softsign",
-                "softsign"
-            ],
+            ["hard_sigmoid", "relu", "softsign", "linear", "softsign", "softsign"],
             1,
             2,
         ),
@@ -39,7 +36,7 @@ def test_value(input_size, shapes, act_funcs, output_size, test):
         folder_path = os.path.dirname(current_file) + "\\"
         for x in folder_path:
             if x == "\\":
-                path_for_export+= "\\"
+                path_for_export += "\\"
             path_for_export += x
     shapes_size, vec_levels_size = len(shapes), 0
     vectorized_levels = {0: "none"}
