@@ -6,15 +6,15 @@ from degann.networks.imodel import IModel
 from degann.networks.cpp_utils import get_available_vectorized_levels
 
 
-def compile(path_to_compiler: str, flags: str, test: int):
-    os.system(f"g++ -fno-tree-vectorize test_{test}.cpp -o test_{test}.exe")
+def compile(path_to_compiler: str, flag: str, test: int):  # to compile .cpp files
+    os.system(f"{path_to_compiler} {flag} test_{test}.cpp -o test_{test}.exe")
 
 
-def run_file(path: str):
+def run_file(path: str):  # to run .exe files
     os.system(path)
 
 
-def remove_files(path):
+def remove_files(path):  # to delete unnecessary files
     os.remove(f"{path}.cpp")
     os.remove(f"{path}.hpp")
     os.remove(f"{path}.exe")
@@ -34,12 +34,13 @@ def time_test(input_size, shapes, act_funcs, output_size, test):
     if "avx512f" in available_vectorized_levels:
         vec_levels_size += 1
         vectorized_levels[vec_levels_size] = "avx512f"
-
     nn = IModel(input_size, shapes, output_size, act_funcs)
     vec_levels_size += 1
     if test == 1:
-        results = open("./time_results.txt", "w")
-    results = open("./time_results.txt", "a")
+        results = open("./time_results.txt", "w")  # to create file with results
+    results = open(
+        "./time_results.txt", "a"
+    )  # to add file with results if it already exists
     results.write(f"test #{test}:\n")
     for i in range(vec_levels_size):
         results.write(f"vectorized level: {vectorized_levels[i]}, time:")
@@ -59,10 +60,9 @@ def time_test(input_size, shapes, act_funcs, output_size, test):
         results.write(res[-1])
         results.write("\n")
         result.close()
-
     for i in range(vec_levels_size):  # remove files
-        remove_files(f"./test_{i}")
-    os.remove(f"result.txt")
+        remove_files(f"test_{i}")
+    os.remove("result.txt")
     results.close()
 
 
@@ -73,6 +73,9 @@ time_test(
     1,
     1,
 )
+f = open("time_results.txt", "r").read().strip()  # look at the results
+print(f)
+# below other input data for tests
 # time_test(1, [200, 200, 200, 200, 200, 200], ["hard_sigmoid", "relu", "softsign", "linear", "softsign", "softsign"], 1, 2)
 # time_test(1, [400, 400], ["linear", "hard_sigmoid"], 1, 3)
 # time_test(1, [500, 500, 500, 500], ["relu", "linear", "hard_sigmoid", "relu"], 1, 4)
