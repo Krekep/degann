@@ -439,15 +439,13 @@ def feed_forward_step(
         Name of activation for right layer
     vectorized_level: str
         level of code vectorization
+
     Returns
     -------
     code: str
         Code to feed forward step
     """
-    res = f"""
-    {vectorized_level}_vectorized_{activation_func}({right_name}, {left_name}, {bias_name}, {weight_name});
-    """
-    if vectorized_level == "none":
+    if vectorized_level == "none" or not is_vectorized(activation_func):
         res = f"""
     for (int i = 0; i < {right_size}; i++)
     {{
@@ -459,6 +457,10 @@ def feed_forward_step(
         {activation_to_cpp_template(right_name + "[i]", activation_func, vectorized_level)}
     }}
     """
+    else:
+        res = f"""
+    {vectorized_level}_vectorized_{activation_func}({right_name}, {left_name}, {bias_name}, {weight_name});
+        """
     return res
 
 
@@ -483,6 +485,7 @@ def activation_to_cpp_template(
         softplus - log, exp
         swish  - exp
         tanh - exp
+
     Returns
     -------
     c_activation: str
@@ -501,12 +504,14 @@ def activation_to_cpp_template(
         "softsign": lambda x: f"{x} = {x} / (std::abs({x}) + 1.0);\n",
         "swish": lambda x: f"{x} = {x} / (1 + std::exp-{x}));\n",
         "tanh": lambda x: f"{x} = ((std::exp{x}) - std::exp-{x}))/(std::exp{x}) + std::exp-{x})));\n",
+        "parabolic": lambda x: f"if ({x} >= 0) {x} = 0 + sqrt(2 * 1/5.0 * {x}); else {x} = 0 - sqrt(-2 * 1/5.0 * {x});\n",
     }
 
-    if vectorized_level == "none":
+    if vectorized_level == "none" or not is_vectorized(activation_name):
         return d[activation_name](name)
 
     typename, funcname = get_vectorized_names(vectorized_level)
+
     vectorized_d = {
         "linear": f"__m{typename} vans = vsum;\n",
         "elu": f"""__m{typename} vflag = _mm{funcname}_cmpge_ps(vsum, _mm{funcname}_set1_ps(0.0f)), vans = _mm{funcname}_setzero_ps();
@@ -534,12 +539,15 @@ def activation_to_cpp_template(
             abs_vsum = _mm{funcname}_add_ps(abs_vsum, _mm{funcname}_and_ps(vflag, _mm{funcname}_mul_ps(_mm{funcname}_set1_ps(-1.0f), vsum)));
             abs_vsum = _mm{funcname}_add_ps(abs_vsum, _mm{funcname}_andnot_ps(vflag, vsum));
             __m{typename} vans = _mm{funcname}_div_ps(vsum, _mm{funcname}_add_ps(abs_vsum, _mm{funcname}_set1_ps(1.0f)));\n""",
-        # "softmax": lambda x: ,
         "swish": f"""__m{typename} vans = _mm{funcname}_div_ps(vsum,
         (_mm{funcname}_add_ps(_mm{funcname}_set1_ps(1.0f), _mm{funcname}_exp_ps(_mm{funcname}_mul_ps(_mm{funcname}_set1_ps(-1.0f), vsum)))));\n""",
         "tanh": f"""__m{typename} vans = _mm{funcname}_div_ps(_mm{funcname}_sub_ps(_mm{funcname}_exp_ps(vsum), _mm{funcname}_exp_ps(_mm{funcname}_mul_ps(_mm{funcname}_set1_ps(-1.0f), vsum))),
         _mm{funcname}_add_ps(_mm{funcname}_exp_ps(vsum), _mm{funcname}_exp_ps(_mm{funcname}_mul_ps(_mm{funcname}_set1_ps(-1.0f), vsum))));\n""",
+        "parabolic": f"""__m{typename} vflag = _mm{funcname}_cmpge_ps(vsum, _mm{funcname}_set1_ps(0.0f)), vans = _mm{funcname}_setzero_ps();
+        vans = _mm{funcname}_add_ps(vans, _mm{funcname}_and_ps(vflag, _mm{funcname}_add_ps(_mm{funcname}_set1_ps(0.0f), _mm{funcname}_sqrt_ps(_mm{funcname}_mul_ps(_mm{funcname}_mul_ps(_mm{funcname}_set1_ps(2.0f), _mm{funcname}_div_ps(_mm{funcname}_set1_ps(1.0f), _mm{funcname}_set1_ps(5.0f))), vsum)))));
+vans = _mm{funcname}_add_ps(vans, _mm{funcname}_andnot_ps(vflag, _mm{funcname}_sub_ps(_mm{funcname}_set1_ps(0.0f), _mm{funcname}_sqrt_ps(_mm{funcname}_mul_ps(_mm{funcname}_mul_ps(_mm{funcname}_set1_ps(-2.0f), _mm{funcname}_div_ps(_mm{funcname}_set1_ps(1.0f), _mm{funcname}_set1_ps(5.0f))), vsum)))));""",
     }
+
     if vectorized_level == "avx":
         vectorized_d[
             "elu"
@@ -563,6 +571,12 @@ def activation_to_cpp_template(
             abs_vsum = _mm{funcname}_add_ps(abs_vsum, _mm{funcname}_and_ps(vflag, _mm{funcname}_mul_ps(_mm{funcname}_set1_ps(-1.0f), vsum)));
             abs_vsum = _mm{funcname}_add_ps(abs_vsum, _mm{funcname}_andnot_ps(vflag, vsum));
             __m{typename} vans = _mm{funcname}_div_ps(vsum, _mm{funcname}_add_ps(abs_vsum, _mm{funcname}_set1_ps(1.0f)));\n"""
+        vectorized_d[
+            "parabolic"
+        ] = f"""__m{typename} vflag = _mm{funcname}_cmp_ps(vsum, _mm{funcname}_set1_ps(0.0f), _CMP_NLT_US), vans = _mm{funcname}_setzero_ps();
+        vans = _mm{funcname}_add_ps(vans, _mm{funcname}_and_ps(vflag, _mm{funcname}_add_ps(_mm{funcname}_set1_ps(0.0f), _mm{funcname}_sqrt_ps(_mm{funcname}_mul_ps(_mm{funcname}_mul_ps(_mm{funcname}_set1_ps(2.0f), _mm{funcname}_div_ps(_mm{funcname}_set1_ps(1.0f), _mm{funcname}_set1_ps(5.0f))), vsum)))));
+vans = _mm{funcname}_add_ps(vans, _mm{funcname}_andnot_ps(vflag, _mm{funcname}_sub_ps(_mm{funcname}_set1_ps(0.0f), _mm{funcname}_sqrt_ps(_mm{funcname}_mul_ps(_mm{funcname}_mul_ps(_mm{funcname}_set1_ps(-2.0f), _mm{funcname}_div_ps(_mm{funcname}_set1_ps(1.0f), _mm{funcname}_set1_ps(5.0f))), vsum)))));"""
+
     if vectorized_level == "avx512f":
         float_size_bits = 32
         vectorized_d[
@@ -586,25 +600,35 @@ def activation_to_cpp_template(
     abs_vsum = _mm{funcname}_add_ps(abs_vsum, _mm{funcname}_and_ps(flag, _mm{funcname}_mul_ps(_mm{funcname}_set1_ps(-1.0f), vsum)));
     abs_vsum = _mm{funcname}_add_ps(abs_vsum, _mm{funcname}_andnot_ps(flag, vsum));
     __m{typename} vans = _mm{funcname}_div_ps(vsum, _mm{funcname}_add_ps(abs_vsum, _mm{funcname}_set1_ps(1.0f)));"""
+        vectorized_d[
+            "parabolic"
+        ] = f"""__mmask{int(typename) // float_size_bits} mask_not_less = _mm{funcname}_cmp_ps_mask(vsum, _mm{funcname}_set1_ps(0.0f), _CMP_NLT_US);
+__mmask{int(typename) // float_size_bits}  mask_less = _mm{funcname}_cmp_ps_mask(vsum, _mm{funcname}_set1_ps(0.0f), _CMP_LT_OS);
+__m{typename} vans = _mm{funcname}_setzero_ps();
+vans = _mm{funcname}_mask_add_ps(vans, mask_not_less, _mm{funcname}_set1_ps(0.0f), _mm{funcname}_sqrt_ps(_mm{funcname}_mul_ps(_mm{funcname}_mul_ps(_mm{funcname}_set1_ps(2.0f), _mm{funcname}_div_ps(_mm{funcname}_set1_ps(1.0f), _mm{funcname}_set1_ps(5.0f))), vsum)));
+vans = _mm{funcname}_mask_sub_ps(vans, mask_less, _mm{funcname}_set1_ps(0.0f), _mm{funcname}_sqrt_ps(_mm{funcname}_mul_ps(_mm{funcname}_mul_ps(_mm{funcname}_set1_ps(-2.0f), _mm{funcname}_div_ps(_mm{funcname}_set1_ps(1.0f), _mm{funcname}_set1_ps(5.0f))), vsum)));"""
 
     return vectorized_d[activation_name]
 
 
 def generate_vectorized_function(vectorized_level: str, activation_func: str) -> str:
     """
-    This function creates vectorized code based on feed_forward_step at the vectorization level!= "none"
+    This function creates vectorized code based on feed_forward_step
+    at the vectorization level is not "none"
+
     Parameters
     ----------
     vectorized_level: str
-        level of code vectorization
+        Level of code vectorization
     activation_func: str
         Name of activation for right layer
+
     Returns
     -------
     code: str
         Code to feed forward step
     """
-    if vectorized_level == "none":
+    if vectorized_level == "none" or not is_vectorized(activation_func):
         return ""
     typename, funcname = get_vectorized_names(vectorized_level)
     weights_for_st_setr = ""
@@ -715,20 +739,22 @@ void {vectorized_level}_vectorized_{activation_func}(float* cur_layer, float* pr
         + """}
                     }\n\n"""
     )
-    return res if vectorized_level != "none" else ""
+    return res
 
 
 def get_vectorized_names(vectorized_level: str) -> tuple:
     """
     This function returns names for vectorized functions based on the vectorization level
+
     Parameters
     ----------
     vectorized_level: str
-        level of code vectorization
+        Level of code vectorization
+
     Returns
     -------
     names: tuple
-        names for vectorized_functions
+        Names for vectorized_functions
     """
     intrinsics = ["sse", "avx", "avx512f"]
     if vectorized_level not in intrinsics:
@@ -744,10 +770,11 @@ def get_vectorized_names(vectorized_level: str) -> tuple:
 def get_vectorized_level() -> str:
     """
     This function returns the best available vectorization level
+
     Returns
     -------
     vectorized_level: str
-        best available vectorization level
+        Best available vectorization level
     """
     intrinsics = ["sse", "avx", "avx512f"]
     flags_info = cpuinfo.get_cpu_info()["flags"]
@@ -761,10 +788,11 @@ def get_vectorized_level() -> str:
 def get_available_vectorized_levels() -> list:
     """
     This function returns all available vectorization level
+
     Returns
     -------
     res: list
-        availables vectorization level
+        Availables vectorization level
     """
     res = []
     flags_info = cpuinfo.get_cpu_info()["flags"]
@@ -777,51 +805,34 @@ def get_available_vectorized_levels() -> list:
     return res
 
 
-def create_main_func(type: str = "default", path: str = "") -> str:
+def is_vectorized(act_func: str) -> bool:
     """
-    This function generates and returns the main function for C++ code
-    need for tests
-    Parametrs
-    -------
-    type: str
-        type of main funtion
-    path: str
-        path to save result.txt
+    This function checks for vectorization for the activation function
+
+    Parameters
+    ----------
+    act_func: str
+        Name of activation function to check
+
     Returns
     -------
-    res: str
-        main function
+    res: bool
+        True if vectorization exist else false
     """
-    res = ""
-    if type == "val_test":
-        res = (
-            """int main(){\n\tfloat a[1] = { 0.0045 };
-"""
-            + f'    std::ofstream result("{path}result.txt");'
-            + """
-    float* ans = feedforward(a);
-    result << ans[0];
-    result.close();
-    return 0;
-}
-"""
-        )
-    elif type == "time_test":
-        res = (
-            """int main(){\n\tauto start = std::chrono::high_resolution_clock::now();
-    for (int i = 0; i < 250000; ++i) {
-	    float a[1] = { (float)(rand() % 20 + 1.0f) / (rand() % 20 + 5.0f) };
-        feedforward(a);
-    }
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> duration = end - start;
-"""
-            + f'    std::ofstream result("{path}result.txt");'
-            + """
-    result << duration.count();
-    result.close();
-    return 0;
-}
-"""
-        )
+    vectorized_act_funcs = [
+        "linear",
+        "elu",
+        "gelu",
+        "relu",
+        "selu",
+        "exponential",
+        "hard_sigmoid",
+        "sigmoid",
+        "softplus",
+        "softsign",
+        "swish",
+        "tanh",
+        "parabolic",
+    ]
+    res = act_func in vectorized_act_funcs
     return res

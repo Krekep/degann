@@ -336,16 +336,6 @@ class TensorflowDenseNet(tf.keras.Model):
         signature = f""
         start_func = "{\n"
         end_func = "}\n"
-        main = cpp_utils.create_main_func()
-        if "main" in kwargs:
-            result_path = ""
-            if "res_path" in kwargs:
-                result_path = kwargs["res_path"]
-            main = cpp_utils.create_main_func(type=kwargs["main"], path=result_path)
-            if kwargs["main"] == "time_test":
-                res += "#include <fstream>\n#include<chrono>\n"
-            if kwargs["main"] == "val_test":
-                res += "#include <fstream>\n"
 
         transform_input_vector = ""
         transform_output_array = ""
@@ -463,7 +453,6 @@ class TensorflowDenseNet(tf.keras.Model):
         res += transform_output_array
         res += return_stat
         res += end_func
-        res += main
 
         header_res = f"""
                 #ifndef {path[0].upper() + path[1:]}_hpp

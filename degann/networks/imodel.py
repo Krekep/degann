@@ -297,6 +297,10 @@ class IModel(object):
             c-style or cpp-style ("[]" or "vector")
         path_to_compiler: str
             path to c/c++ compiler, if `None` then the resulting code will not be compiled
+        vectorized_level: str
+            Level of code vectorization
+            Available levels: none, auto (the program will choose the latest level by itself),
+            sse, avx, avx512f
         kwargs
 
         Returns
