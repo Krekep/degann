@@ -61,6 +61,7 @@ def test_value(input_size, shapes, act_funcs, output_size, test):
         )
         main_code = open(f"{folder_path}main.cpp", "w")
         main_code.write(create_main_func(type="val_test", path=path_for_export))
+        main_code.close()
         if i == 0:
             os.system(
                 f"g++ -fno-tree-vectorize {folder_path}main.cpp -o {folder_path}main.exe"
