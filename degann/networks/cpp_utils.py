@@ -478,13 +478,10 @@ def activation_to_cpp_template(
         Name of activation func
     vectorized_level: str
         Level of vectorization
-        Some editing functions only work on ICC or Visual Studio C++.
-        These include mathematical functions. They are used in the following activation functions:
-        exponential - exp
-        sigmoid - exp
-        softplus - log, exp
-        swish  - exp
-        tanh - exp
+        Some mathematical functions work only on special compilers
+        They include the following functions: exp, log, etc
+        Accordingly, the following activation functions work on ICC or MSVC (maybe something else):
+        exponential, sigmoid, softplus, swish, tanh
 
     Returns
     -------
@@ -493,17 +490,17 @@ def activation_to_cpp_template(
     """
     d = {
         "linear": lambda x: f"{x} = {x};\n",
-        "elu": lambda x: f"if ({x} >= 0) {x} = {x}; else {x} = 1.0 * (std::exp{x}) - 1);\n",
+        "elu": lambda x: f"if ({x} >= 0) {x} = {x}; else {x} = 1.0 * (exp{x}) - 1);\n",
         "gelu": lambda x: f"{x} = 0.5 * {x} * (1 + tanh(sqrt(2 / 3.14159265) * ({x} + 0.044715 * {x} * {x} * {x})))",
         "relu": lambda x: f"{x} = std::max({x}, 0.0f);\n",
-        "selu": lambda x: f"if ({x} >= 0) {x} = 1.05070098 * {x}; else {x} = 1.05070098 * 1.67326324 * (std::exp{x}) - 1);\n",
-        "exponential": lambda x: f"{x} = std::exp{x});\n",
+        "selu": lambda x: f"if ({x} >= 0) {x} = 1.05070098 * {x}; else {x} = 1.05070098 * 1.67326324 * (exp{x}) - 1);\n",
+        "exponential": lambda x: f"{x} = exp{x});\n",
         "hard_sigmoid": lambda x: f"if ({x} < -2.5) {x} = 0; else if ({x} > 2.5) {x} = 1; else {x} = 0.2 * {x} + 0.5;\n",
-        "sigmoid": lambda x: f"{x} = 1 / (1 + std::exp-{x}));\n",
-        "softplus": lambda x: f"{x} = log(std::exp{x}) + 1);\n",
+        "sigmoid": lambda x: f"{x} = 1 / (1 + exp-{x}));\n",
+        "softplus": lambda x: f"{x} = log(exp{x}) + 1);\n",
         "softsign": lambda x: f"{x} = {x} / (std::abs({x}) + 1.0);\n",
-        "swish": lambda x: f"{x} = {x} / (1 + std::exp-{x}));\n",
-        "tanh": lambda x: f"{x} = ((std::exp{x}) - std::exp-{x}))/(std::exp{x}) + std::exp-{x})));\n",
+        "swish": lambda x: f"{x} = {x} / (1 + exp-{x}));\n",
+        "tanh": lambda x: f"{x} = ((exp{x}) - exp-{x}))/(exp{x}) + exp-{x})));\n",
         "parabolic": lambda x: f"if ({x} >= 0) {x} = 0 + sqrt(2 * 1/5.0 * {x}); else {x} = 0 - sqrt(-2 * 1/5.0 * {x});\n",
     }
 

@@ -431,13 +431,6 @@ class TensorflowDenseNet(tf.keras.Model):
             output_size, f"layer_{len(blocks) + 1}", "answer"
         )
 
-        if "layers" in kwargs and kwargs["layers"] != "":
-            create_layers = kwargs["layers"]
-        if "weights" in kwargs and kwargs["weights"] != "":
-            create_weights = kwargs["weights"]
-        if "biases" in kwargs and kwargs["biases"] != "":
-            create_biases = kwargs["biases"]
-
         res += vectorized_func
         res += comment
         res += signature
