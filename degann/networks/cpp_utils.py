@@ -478,10 +478,9 @@ def activation_to_cpp_template(
         Name of activation func
     vectorized_level: str
         Level of vectorization
-        Some mathematical functions work only on special compilers
-        They include the following functions: exp, log, etc
-        Accordingly, the following activation functions work on ICC or MSVC (maybe something else):
-        exponential, sigmoid, softplus, swish, tanh
+        The vectorized exp and log functions used in the exported activation functions work
+        only in the ICC and MSVC compilers (they have not been tested with others).
+        Accordingly, the vectorized activation functions exponential, sigmoid, softplus, swish and tanh work only in ICC and MSVC.
 
     Returns
     -------
