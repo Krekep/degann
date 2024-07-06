@@ -445,6 +445,7 @@ def feed_forward_step(
     code: str
         Code to feed forward step
     """
+
     if vectorized_level == "none" or not is_vectorized(activation_func):
         res = f"""
     for (int i = 0; i < {right_size}; i++)
@@ -489,17 +490,17 @@ def activation_to_cpp_template(
     """
     d = {
         "linear": lambda x: f"{x} = {x};\n",
-        "elu": lambda x: f"if ({x} >= 0) {x} = {x}; else {x} = 1.0 * (exp{x}) - 1);\n",
+        "elu": lambda x: f"if ({x} >= 0) {x} = {x}; else {x} = 1.0 * (exp({x})) - 1);\n",
         "gelu": lambda x: f"{x} = 0.5 * {x} * (1 + tanh(sqrt(2 / 3.14159265) * ({x} + 0.044715 * {x} * {x} * {x})))",
         "relu": lambda x: f"{x} = std::max({x}, 0.0f);\n",
-        "selu": lambda x: f"if ({x} >= 0) {x} = 1.05070098 * {x}; else {x} = 1.05070098 * 1.67326324 * (exp{x}) - 1);\n",
-        "exponential": lambda x: f"{x} = exp{x});\n",
+        "selu": lambda x: f"if ({x} >= 0) {x} = 1.05070098 * {x}; else {x} = 1.05070098 * 1.67326324 * (exp({x})) - 1);\n",
+        "exponential": lambda x: f"{x} = exp({x}));\n",
         "hard_sigmoid": lambda x: f"if ({x} < -2.5) {x} = 0; else if ({x} > 2.5) {x} = 1; else {x} = 0.2 * {x} + 0.5;\n",
-        "sigmoid": lambda x: f"{x} = 1 / (1 + exp-{x}));\n",
-        "softplus": lambda x: f"{x} = log(exp{x}) + 1);\n",
+        "sigmoid": lambda x: f"{x} = 1 / (1 + exp(-{x})));\n",
+        "softplus": lambda x: f"{x} = log(exp({x})) + 1);\n",
         "softsign": lambda x: f"{x} = {x} / (std::abs({x}) + 1.0);\n",
-        "swish": lambda x: f"{x} = {x} / (1 + exp-{x}));\n",
-        "tanh": lambda x: f"{x} = ((exp{x}) - exp-{x}))/(exp{x}) + exp-{x})));\n",
+        "swish": lambda x: f"{x} = {x} / (1 + exp(-{x})));\n",
+        "tanh": lambda x: f"{x} = ((exp({x})) - exp(-{x})))/(exp({x})) + exp(-{x}))));\n",
         "parabolic": lambda x: f"if ({x} >= 0) {x} = 0 + sqrt(2 * 1/5.0 * {x}); else {x} = 0 - sqrt(-2 * 1/5.0 * {x});\n",
     }
 
