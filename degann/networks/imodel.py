@@ -301,7 +301,6 @@ class IModel(object):
             Level of code vectorization
             Available levels: none, auto (the program will choose the latest level by itself),
             sse, avx, avx512f
-        kwargs
 
         Returns
         -------

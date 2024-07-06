@@ -445,6 +445,7 @@ def feed_forward_step(
     code: str
         Code to feed forward step
     """
+
     if vectorized_level == "none" or not is_vectorized(activation_func):
         res = f"""
     for (int i = 0; i < {right_size}; i++)
