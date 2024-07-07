@@ -290,7 +290,12 @@ class TensorflowDenseNet(tf.keras.Model):
         self.out_layer = layer_creator.from_dict(config["out_layer"])
 
     def export_to_cpp(
-        self, path: str, array_type: str = "[]", path_to_compiler: str = None, **kwargs
+        self,
+        path: str,
+        array_type: str = "[]",
+        path_to_compiler: str = None,
+        vectorized_level: str = "none",
+        **kwargs,
     ) -> None:
         """
         Export neural network as feedforward function on c++
@@ -303,20 +308,21 @@ class TensorflowDenseNet(tf.keras.Model):
             c-style or cpp-style ("[]" or "vector")
         path_to_compiler: str
             path to c/c++ compiler
+        vectorized_level: str
+            this is the vectorized level of C++ code
+            if value is none, there is will standart code
+            if value is auto, program will choose better availabale vectorization level
+            and will use it
+            if value is one of available vectorization levels (sse, avx, avx512f)
+            then it level will be used in C++ code
         kwargs
 
         Returns
         -------
 
         """
-        res = """
-#include <cmath>
-#include <vector>
-
-#define max(x, y) ((x < y) ? y : x)
-
-        \n"""
-
+        res = """#include <cmath>
+        #include <vector>\n"""
         config = self.to_dict(**kwargs)
 
         input_size = self.input_size
@@ -324,11 +330,13 @@ class TensorflowDenseNet(tf.keras.Model):
         blocks = self.block_size
         reverse = False
         layers = config["layer"] + [config["out_layer"]]
-
+        if vectorized_level == "auto":
+            vectorized_level = cpp_utils.get_vectorized_level()
         comment = f"// This function takes {input_size} elements array and returns {output_size} elements array\n"
         signature = f""
         start_func = "{\n"
         end_func = "}\n"
+
         transform_input_vector = ""
         transform_output_array = ""
         return_stat = "return answer;\n"
@@ -386,9 +394,10 @@ class TensorflowDenseNet(tf.keras.Model):
                 layer_dict[LAYER_DICT_NAMES["shape"]],
                 layer_dict[LAYER_DICT_NAMES["bias"]],
             )
-
+        vectorized_func_name = ""
         fill_biases = ""
         feed_forward_cycles = ""
+        vectorized_func, already_have = "", []
         for i, layer_dict in enumerate(layers):
             left_size = layer_dict[
                 LAYER_DICT_NAMES["inp_size"]
@@ -404,13 +413,25 @@ class TensorflowDenseNet(tf.keras.Model):
                 f"weight_{i}_{i + 1}",
                 f"bias_{i + 1}",
                 act_func,
+                vectorized_level,
             )
+            if act_func not in already_have:
+                vectorized_func += cpp_utils.generate_vectorized_function(
+                    vectorized_level, act_func
+                )
+                if vectorized_level != "none":
+                    vectorized_func_name += f"void {vectorized_level}_vectorized_{act_func}(float* cur_layer, float* pre_layer, float* bias, float(&weight)[a][b]);\n\t\t"
+                already_have.append(act_func)
+
+        if vectorized_func:
+            res = f"#include <immintrin.h>\n" + res
 
         move_result = creator_heap_1d("answer", output_size)
         move_result += cpp_utils.copy_1darray_to_array(
             output_size, f"layer_{len(blocks) + 1}", "answer"
         )
 
+        res += vectorized_func
         res += comment
         res += signature
         res += start_func
@@ -427,16 +448,17 @@ class TensorflowDenseNet(tf.keras.Model):
         res += end_func
 
         header_res = f"""
-        #ifndef {path[0].upper() + path[1:]}_hpp
-        #define {path[0].upper() + path[1:]}_hpp
-        #include "{path}.cpp"
+                #ifndef {path[0].upper() + path[1:]}_hpp
+                #define {path[0].upper() + path[1:]}_hpp
+                #include "{path}.cpp"
 
-        {comment}
-        {signature};
+                {vectorized_func_name};
+                {comment}
+                {signature};
 
-        #endif /* {path[0].upper() + path[1:]}_hpp */
+                #endif /* {path[0].upper() + path[1:]}_hpp */
 
-                """
+                        """
 
         with open(path + ".cpp", "w") as f:
             f.write(res)

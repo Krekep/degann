@@ -279,7 +279,12 @@ class IModel(object):
         del self._evaluate_history
 
     def export_to_cpp(
-        self, path: str, array_type: str = "[]", path_to_compiler: str = None, **kwargs
+        self,
+        path: str,
+        array_type: str = "[]",
+        path_to_compiler: str = None,
+        vectorized_level: str = "none",
+        **kwargs,
     ) -> None:
         """
         Export neural network as feedforward function on c++
@@ -292,13 +297,23 @@ class IModel(object):
             c-style or cpp-style ("[]" or "vector")
         path_to_compiler: str
             path to c/c++ compiler, if `None` then the resulting code will not be compiled
+        vectorized_level: str
+            Level of code vectorization
+            Available levels: none, auto (the program will choose the latest level by itself),
+            sse, avx, avx512f
         kwargs
 
         Returns
         -------
 
         """
-        self.network.export_to_cpp(path, array_type, path_to_compiler)
+        self.network.export_to_cpp(
+            path,
+            array_type,
+            path_to_compiler,
+            vectorized_level=vectorized_level,
+            **kwargs,
+        )
 
     def to_dict(self, **kwargs):
         """
