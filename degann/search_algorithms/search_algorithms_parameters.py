@@ -12,8 +12,8 @@ from degann.search_algorithms.simulated_annealing_functions import (
 )
 from degann.search_algorithms.utils import add_useless_argument
 
-from degann.networks.topology.topology_parameters import BaseTopologyParams
-from degann.networks.topology.compile_parameters import BaseCompileParams
+from degann.networks.topology.base_topology_configs import BaseTopologyParams
+from degann.networks.topology.base_compile_configs import BaseCompileParams
 
 
 class BaseSearchParameters:

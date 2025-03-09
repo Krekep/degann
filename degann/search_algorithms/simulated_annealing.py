@@ -58,7 +58,7 @@ def simulated_annealing(
             block_size=parameters.nn_alphabet_block_size,
             offset=parameters.nn_alphabet_offset,
         )
-        cfg = imodel.TensorflowDenseNetParams(
+        cfg = imodel.DenseNetParams(
             input_size=parameters.input_size,
             block_size=b,
             output_size=parameters.output_size,
@@ -66,7 +66,7 @@ def simulated_annealing(
         )
         curr_best = imodel.IModel(cfg)
     else:
-        cfg = imodel.TensorflowDenseNetParams(
+        cfg = imodel.DenseNetParams(
             input_size=parameters.input_size,
             block_size=[],
             output_size=parameters.output_size,
@@ -75,7 +75,7 @@ def simulated_annealing(
         curr_best = imodel.IModel(cfg)
         curr_best = curr_best.from_dict(parameters.start_net)
 
-    compile_cfg = imodel.SingleNetworkCompileParams(
+    compile_cfg = imodel.DenseNetCompileParams(
         optimizer=parameters.optimizer,
         loss_func=parameters.loss_function,
         metric_funcs=[parameters.eval_metric] + parameters.metrics,
@@ -149,14 +149,14 @@ def simulated_annealing(
             block_size=parameters.nn_alphabet_block_size,
             offset=parameters.nn_alphabet_offset,
         )
-        neighbor_cfg = imodel.TensorflowDenseNetParams(
+        neighbor_cfg = imodel.DenseNetParams(
             input_size=parameters.input_size,
             block_size=b,
             output_size=parameters.output_size,
             activation_func=a + ["linear"],
         )
         neighbor = imodel.IModel(neighbor_cfg)
-        neighbor_compile_cfg = imodel.SingleNetworkCompileParams(
+        neighbor_compile_cfg = imodel.DenseNetCompileParams(
             optimizer=parameters.optimizer,
             loss_func=parameters.loss_function,
             metric_funcs=[parameters.eval_metric] + parameters.metrics,

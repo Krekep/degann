@@ -16,11 +16,11 @@ from degann.search_algorithms.search_algorithms_parameters import (
 )
 from degann.search_algorithms.simulated_annealing_functions import distance_lin
 
-from degann.networks.topology.topology_parameters import (
+from degann.networks.topology.base_topology_configs import (
     TensorflowDenseNetParams,
     GANTopologyParams,
 )
-from degann.networks.topology.compile_parameters import (
+from degann.networks.topology.base_compile_configs import (
     SingleNetworkCompileParams,
     GANCompileParams,
 )

@@ -7,13 +7,13 @@ from degann.networks.config_format import LAYER_DICT_NAMES
 from degann.networks import layer_creator, losses, metrics, cpp_utils
 from degann.networks import optimizers
 from degann.networks.layers.tf_dense import TensorflowDense
-from degann.networks.topology.topology_parameters import TensorflowDenseNetParams
-from degann.networks.topology.compile_parameters import SingleNetworkCompileParams
+from degann.networks.topology.densenet.topology_config import DenseNetParams
+from degann.networks.topology.densenet.compile_config import DenseNetCompileParams
 
 
 class TensorflowDenseNet(tf.keras.Model):
     def __init__(
-        self, config: TensorflowDenseNetParams = TensorflowDenseNetParams(), **kwargs
+        self, config: DenseNetParams = DenseNetParams(), **kwargs
     ):
         decorator_params: List[Optional[Dict]] = [None]
         if "decorator_params" in kwargs.keys():
@@ -101,14 +101,14 @@ class TensorflowDenseNet(tf.keras.Model):
         self.trained_time = {"train_time": 0.0, "epoch_time": [], "predict_time": 0}
 
     def custom_compile(
-        self, config: SingleNetworkCompileParams = SingleNetworkCompileParams()
+        self, config: DenseNetCompileParams = DenseNetCompileParams()
     ):
         """
         Configures the model for training
 
         Parameters
         ----------
-        config: SingleNetworkCompileParams
+        config: DenseNetCompileParams
             parameters for compilation containing learning rate, optimizer,
             loss function and metrics
 

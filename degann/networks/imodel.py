@@ -7,15 +7,15 @@ import tensorflow as tf
 from tensorflow import keras
 
 from degann.networks.config_format import HEADER_OF_APG_FILE
-from degann.networks.topology.tf_densenet import TensorflowDenseNet
-from degann.networks.topology.gan import GAN
-from degann.networks.topology.topology_parameters import (
-    BaseTopologyParams,
-    TensorflowDenseNetParams,
+from degann.networks.topology.densenet.tf_densenet import TensorflowDenseNet
+from degann.networks.topology.densenet.topology_config import DenseNetParams
+from degann.networks.topology.densenet.compile_config import DenseNetCompileParams
+from degann.networks.topology.gan.gan import GAN
+from degann.networks.topology.base_topology_configs import (
+    BaseTopologyParams
 )
-from degann.networks.topology.compile_parameters import (
-    BaseCompileParams,
-    SingleNetworkCompileParams,
+from degann.networks.topology.base_compile_configs import (
+    BaseCompileParams
 )
 
 
@@ -58,7 +58,7 @@ class IModel(object):
     """
 
     def __init__(
-        self, config: BaseTopologyParams = TensorflowDenseNetParams(), **kwargs
+        self, config: BaseTopologyParams = DenseNetParams(), **kwargs
     ):
         self.network = _create_functions[config.net_type](config, **kwargs)
         self._input_size = config.input_size
@@ -68,7 +68,7 @@ class IModel(object):
         self._is_debug = config.is_debug
         self.set_name(config.name)
 
-    def compile(self, config: BaseCompileParams = SingleNetworkCompileParams()) -> None:
+    def compile(self, config: BaseCompileParams = DenseNetCompileParams()) -> None:
         """
         Configures the model for training
 
@@ -449,7 +449,7 @@ class IModel(object):
             tf.random_normal_initializer(),
         )
 
-        neuron_cfg = TensorflowDenseNetParams(
+        neuron_cfg = DenseNetParams(
             input_size=input_size,
             block_size=shape,
             output_size=output_size,

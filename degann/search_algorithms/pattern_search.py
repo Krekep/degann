@@ -147,7 +147,7 @@ def train(
         act = parameters[1]
         decorator_param = parameters[2]
         str_shape = "_".join(map(str, shape))
-        net_cfg = imodel.TensorflowDenseNetParams(
+        net_cfg = imodel.DenseNetParams(
             input_size=input_len,
             block_size=shape,
             output_size=output_len,
@@ -161,7 +161,7 @@ def train(
     if args.use_rand_net:
         rand_net_params = _create_random_network(input_len, output_len)
         str_shape = "_".join(map(str, rand_net_params[0]))
-        net_cfg = imodel.TensorflowDenseNetParams(
+        net_cfg = imodel.DenseNetParams(
             input_size=input_len,
             block_size=rand_net_params[0],
             output_size=output_len,
@@ -174,7 +174,7 @@ def train(
 
     # compile
     for nn in nets:
-        compile_cfg = imodel.SingleNetworkCompileParams(
+        compile_cfg = imodel.DenseNetCompileParams(
             rate=args.eps,
             optimizer=args.optimizer,
             loss_func=args.loss_function,

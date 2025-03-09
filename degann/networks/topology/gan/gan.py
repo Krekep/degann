@@ -2,9 +2,9 @@ from typing import Optional, List
 
 import tensorflow as tf
 
-from degann.networks.topology.tf_densenet import TensorflowDenseNet
-from degann.networks.topology.topology_parameters import GANTopologyParams
-from degann.networks.topology.compile_parameters import GANCompileParams
+from degann.networks.topology.densenet.tf_densenet import TensorflowDenseNet
+from degann.networks.topology.gan.topology_config import GANTopologyParams
+from degann.networks.topology.gan.compile_config import GANCompileParams
 from degann.networks import metrics, optimizers, losses
 
 

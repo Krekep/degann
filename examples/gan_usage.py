@@ -3,11 +3,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from degann.networks import IModel
-from degann.networks.topology.topology_parameters import (
+from degann.networks.topology.base_topology_configs import (
     TensorflowDenseNetParams,
     GANTopologyParams,
 )
-from degann.networks.topology.compile_parameters import (
+from degann.networks.topology.base_compile_configs import (
     SingleNetworkCompileParams,
     GANCompileParams,
 )
@@ -65,13 +65,13 @@ gen_compile_config = SingleNetworkCompileParams(
     rate=0.0002,
     optimizer="Adam",
     loss_func="BinaryCrossentropy",
-    metric_funcs=["MeanAbsoluteError"],
+    metric_funcs=["mean_absolute_error"],
 )
 disc_compile_config = SingleNetworkCompileParams(
     rate=0.0002,
     optimizer="Adam",
     loss_func="BinaryCrossentropy",
-    metric_funcs=["BinaryAccuracy"],
+    metric_funcs=["binary_accuracy"],
 )
 gan_compile_config = GANCompileParams(
     generator_params=gen_compile_config, discriminator_params=disc_compile_config

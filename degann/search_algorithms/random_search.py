@@ -61,14 +61,14 @@ def random_search(
             block_size=parameters.nn_alphabet_block_size,
             offset=parameters.nn_alphabet_offset,
         )
-        cfg = imodel.TensorflowDenseNetParams(
+        cfg = imodel.DenseNetParams(
             input_size=parameters.input_size,
             block_size=b,
             output_size=parameters.output_size,
             activation_func=a + ["linear"],
         )
         curr_best = imodel.IModel(cfg)
-        compile_cfg = imodel.SingleNetworkCompileParams(
+        compile_cfg = imodel.DenseNetCompileParams(
             optimizer=parameters.optimizer,
             loss_func=parameters.loss_function,
             metric_funcs=[parameters.eval_metric] + parameters.metrics,

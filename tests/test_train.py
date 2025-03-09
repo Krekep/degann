@@ -2,8 +2,8 @@ import pytest
 
 import numpy as np
 from degann.networks.imodel import IModel
-from degann.networks.topology.topology_parameters import TensorflowDenseNetParams
-from degann.networks.topology.compile_parameters import SingleNetworkCompileParams
+from degann.networks.topology.base_topology_configs import TensorflowDenseNetParams
+from degann.networks.topology.base_compile_configs import SingleNetworkCompileParams
 
 
 @pytest.fixture

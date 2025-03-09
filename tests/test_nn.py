@@ -1,8 +1,8 @@
 import pytest
 import numpy as np
 
-from degann.networks.topology.tf_densenet import TensorflowDenseNet
-from degann.networks.topology.topology_parameters import TensorflowDenseNetParams
+from degann.networks.topology.densenet.tf_densenet import TensorflowDenseNet
+from degann.networks.topology.base_topology_configs import TensorflowDenseNetParams
 from degann.networks.imodel import IModel
 from tests.utils import array_compare, init_params
 

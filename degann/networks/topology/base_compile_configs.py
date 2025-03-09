@@ -1,7 +1,4 @@
 from dataclasses import dataclass, field
-from typing import Optional
-
-from degann.networks.topology.utils import TuningMetadata
 
 
 @dataclass
@@ -16,8 +13,6 @@ class BaseCompileParams:
         (This base class does not define any fields by itself but acts as a base
         for inheritance.)
     """
-
-    tuning_metadata: dict[str, TuningMetadata] = field(default_factory=dict)
 
 
 @dataclass
@@ -51,33 +46,3 @@ class SingleNetworkCompileParams(BaseCompileParams):
 
     def add_eval_metric(self, metric: str):
         self.metric_funcs.append(metric)
-
-
-@dataclass(kw_only=True)
-class GANCompileParams(BaseCompileParams):
-    """
-    Compilation parameters for a GAN (Generative Adversarial Network) topology.
-
-    This configuration includes separate compile settings for the generator and discriminator.
-
-    Attributes:
-        generator_params (SingleNetworkCompileParams): Compile parameters for the generator.
-        discriminator_params (SingleNetworkCompileParams): Compile parameters for the discriminator.
-    """
-
-    generator_params: SingleNetworkCompileParams
-    discriminator_params: SingleNetworkCompileParams
-
-    def get_losses(self):
-        return (
-            self.generator_params.get_losses() + self.discriminator_params.get_losses()
-        )
-
-    def get_optimizers(self):
-        return (
-            self.generator_params.get_optimizers()
-            + self.discriminator_params.get_optimizers()
-        )
-
-    def add_eval_metric(self, metric: str):
-        self.generator_params.add_eval_metric(metric)
