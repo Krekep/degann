@@ -1,13 +1,33 @@
-from dataclasses import dataclass, fields, asdict, is_dataclass
-from typing import Any, Optional, Union, get_type_hints, get_origin, get_args
+import numpy as np
+
+from dataclasses import dataclass, fields, is_dataclass, asdict
+from typing import Any, Optional, Union, Type, get_args, get_origin, get_type_hints
 from itertools import product
 
 
 @dataclass
-class TuningMetadata:
+class FieldMetadata:
     choices: Optional[list[Any]] = None
-    value_range: Optional[Union[tuple[int, int, int], tuple[float, float]]] = None
+    value_range: Optional[
+        Union[tuple[int, int, int], tuple[float, float, float]]
+    ] = None
     length_boundary: Optional[tuple[int, int]] = None
+
+
+class TuningMetadata:
+    def __init__(self, dataclass_cls: Type):
+        self.__metadata = {f.name: FieldMetadata() for f in fields(dataclass_cls)}
+        self.__metadata.pop("tuning_metadata", None)
+
+    def get(self, name, default):
+        return self.__metadata.get(name, default)
+
+    def set_metadata(self, metadata: Optional[dict]):
+        if metadata is None:
+            return
+
+        for k, v in self.__metadata.items():
+            self.__metadata[k] = metadata.get(k, v)
 
 
 def _is_union_list_type(field_type: Any) -> Optional[Any]:
@@ -22,10 +42,12 @@ def _is_union_list_type(field_type: Any) -> Optional[Any]:
     """
     if get_origin(field_type) is Union:
         args = get_args(field_type)
-        if len(args) == 2 and list in map(get_origin, args):
-            base, lst = args if get_origin(args[1]) is list else args[::-1]
-            if base == get_args(lst)[0]:
-                return base
+        if len(args) == 2 and any(get_origin(arg) is list for arg in args):
+            if get_origin(args[0]) is list:
+                base = get_args(args[0])[0]
+            else:
+                base = get_args(args[1])[0]
+            return base
     return None
 
 
@@ -59,18 +81,19 @@ def generate_all_configurations(config_instance: Any):
 
     # Dictionary to store possible values for each field
     candidate_dict = {}
-    type_hints = get_type_hints(config_instance.__class__)
 
-    tuning_metadata: dict[str, TuningMetadata] = config_instance.tuning_metadata
+    type_hints = get_type_hints(config_instance.__class__)
+    tuning_metadata: TuningMetadata = config_instance.tuning_metadata
+
     for f in fields(config_instance):
         # Skip the tuning_metadata field itself.
-        if f.name == "tuning_metadata":
+        if f.name in ("tuning_metadata"):
             continue
 
         value = getattr(config_instance, f.name)
 
-        meta = tuning_metadata.get(f.name, {})
-        meta = asdict(meta) if is_dataclass(meta) else meta
+        meta = tuning_metadata.get(f.name, None)
+        meta = asdict(meta) if meta else meta
 
         ftype = type_hints.get(f.name)
         candidates = []
@@ -87,27 +110,27 @@ def generate_all_configurations(config_instance: Any):
             if union_elem is not None:
                 # Generate candidate values for type X.
                 if union_elem is str:
-                    if not meta["choices"]:
-                        # No "choices" -> retain the current value.
-                        candidate_dict[f.name] = [value]
-                        continue
-                    possible_vals = meta["choices"]
-                elif union_elem is int:
-                    if not meta["value_range"]:
-                        # No "value_range" -> retain the current value.
+                    possible_vals = meta["choices"] or (
+                        value if type(value) is list else [value]
+                    )
+                elif union_elem in (int, float):
+                    if not (0 < bool(meta["value_range"]) + bool(meta["choices"]) < 2):
+                        # In this case we either can't choose or can't configure
                         candidate_dict[f.name] = [value]
                         continue
 
-                    boundaries = meta["value_range"]
-                    if len(boundaries) == 3 and all(
-                        isinstance(x, int) for x in boundaries
-                    ):
-                        min_val, max_val, step = boundaries
-                        possible_vals = list(range(min_val, max_val + 1, step))
+                    if meta["choices"]:
+                        possible_vals = meta["choices"]
                     else:
-                        # "value_range" is specified for float -> retain the current value.
-                        candidate_dict[f.name] = [value]
-                        continue
+                        min_val, max_val, step = meta["value_range"]
+                        if union_elem is int:
+                            possible_vals = list(range(min_val, max_val + 1, step))
+                        else:
+                            possible_vals = []
+                            current = min_val
+                            while current <= max_val:
+                                possible_vals.append(current)
+                                current += step
                 else:
                     candidate_dict[f.name] = [value]
                     continue
@@ -118,8 +141,9 @@ def generate_all_configurations(config_instance: Any):
                     min_len, max_len = length_boundary
 
                     for l in range(min_len, max_len + 1):
-                        for combo in product(possible_vals, repeat=l):
-                            candidates.append(list(combo))
+                        candidates.extend(
+                            [list(combo) for combo in product(possible_vals, repeat=l)]
+                        )
                 # Without length_boundary, treat as a scalar.
                 else:
                     candidates = possible_vals
@@ -129,27 +153,26 @@ def generate_all_configurations(config_instance: Any):
                 underlying_type = get_args(ftype)[0]
 
                 if underlying_type is str:
-                    if not meta["choices"]:
-                        # No "choices" -> retain the current value.
-                        candidate_dict[f.name] = [value]
-                        continue
-                    possible_vals = meta["choices"]
-                elif underlying_type is int:
-                    if not meta["value_range"]:
-                        # No "value_range" -> retain the current value.
+                    possible_vals = meta["choices"] or value
+                elif underlying_type in (int, float):
+                    if not (0 < bool(meta["value_range"]) + bool(meta["choices"]) < 2):
+                        # In this case we either can't choose or can't configure
                         candidate_dict[f.name] = [value]
                         continue
 
-                    boundaries = meta["value_range"]
-                    if len(boundaries) == 3 and all(
-                        isinstance(x, int) for x in boundaries
-                    ):
-                        min_val, max_val, step = boundaries
-                        possible_vals = list(range(min_val, max_val + 1, step))
+                    if meta["choices"]:
+                        possible_vals = meta["choices"]
                     else:
-                        # "value_range" is specified for float -> retain the current value.
-                        candidate_dict[f.name] = [value]
-                        continue
+                        min_val, max_val, step = meta["value_range"]
+                        if union_elem is int:
+                            possible_vals = list(range(min_val, max_val + 1, step))
+                        else:
+                            possible_vals = []
+                            current = min_val
+                            while current <= max_val:
+                                possible_vals.append(current)
+                                current += step
+
                 else:
                     candidate_dict[f.name] = [value]
                     continue
@@ -166,30 +189,27 @@ def generate_all_configurations(config_instance: Any):
                     for combo in product(possible_vals, repeat=l):
                         candidates.append(list(combo))
 
-            # Case 3: Scalar field (int, float, str, etc.)
+            # Case 3: Scalar field (int, str, etc.)
             else:
                 if ftype is str:
-                    if not meta["choices"]:
-                        # No "choices" -> retain the current value.
-                        candidate_dict[f.name] = [value]
-                        continue
-                    candidates = meta["choices"]
-                elif ftype is int:
-                    if not meta["value_range"]:
-                        # No "value_range" -> retain the current value.
+                    candidates = meta["choices"] or [value]
+                elif ftype in (int, float):
+                    if not (0 < bool(meta["value_range"]) + bool(meta["choices"]) < 2):
+                        # In this case we either can't choose or can't configure
                         candidate_dict[f.name] = [value]
                         continue
 
-                    boundaries = meta["value_range"]
-                    if len(boundaries) == 3 and all(
-                        isinstance(x, int) for x in boundaries
-                    ):
-                        min_val, max_val, step = boundaries
-                        candidates = list(range(min_val, max_val + 1, step))
+                    if meta["choices"]:
+                        candidates = meta["choices"]
                     else:
-                        # "value_range" is specified for float -> retain the current value.
-                        candidate_dict[f.name] = [value]
-                        continue
+                        min_val, max_val, step = meta["value_range"]
+                        if union_elem is int:
+                            candidates = list(range(min_val, max_val + 1, step))
+                        else:
+                            current = min_val
+                            while current <= max_val:
+                                candidates.append(current)
+                                current += step
                 else:
                     candidate_dict[f.name] = [value]
                     continue
@@ -201,7 +221,3 @@ def generate_all_configurations(config_instance: Any):
     for comb in product(*(candidate_dict[k] for k in keys)):
         # Build a candidate instance from the product.
         yield type(config_instance)(**dict(zip(keys, comb)))
-
-
-def generate_random_configuration():
-    pass

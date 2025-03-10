@@ -1,4 +1,7 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, InitVar
+from typing import Optional
+
+from degann.networks.topology.tuning_utils import TuningMetadata
 
 
 @dataclass
@@ -13,6 +16,13 @@ class BaseCompileParams:
         (This base class does not define any fields by itself but acts as a base
         for inheritance.)
     """
+
+    metadata: InitVar[dict | None] = None
+    tuning_metadata: Optional[TuningMetadata] = field(default=None, init=False)
+
+    def __post_init__(self, metadata=None):
+        self.tuning_metadata = TuningMetadata(type(self))
+        self.tuning_metadata.set_metadata(metadata)
 
 
 @dataclass

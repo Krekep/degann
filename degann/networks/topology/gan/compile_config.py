@@ -1,6 +1,9 @@
 from dataclasses import dataclass
 
-from degann.networks.topology.base_compile_configs import BaseCompileParams, SingleNetworkCompileParams
+from degann.networks.topology.base_compile_configs import (
+    BaseCompileParams,
+    SingleNetworkCompileParams,
+)
 
 
 @dataclass(kw_only=True)
@@ -17,6 +20,9 @@ class GANCompileParams(BaseCompileParams):
 
     generator_params: SingleNetworkCompileParams
     discriminator_params: SingleNetworkCompileParams
+
+    def __post_init__(self, metadata=None):
+        super().__post_init__(metadata)
 
     def get_losses(self):
         return (

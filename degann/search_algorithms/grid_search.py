@@ -5,7 +5,7 @@ import numpy as np
 
 from degann.networks.callbacks import MeasureTrainTime
 from degann.networks import imodel
-from degann.networks.topology.utils import generate_all_configurations
+from degann.networks.topology.tuning_utils import generate_all_configurations
 from .search_algorithms_parameters import GridSearchParameters
 from .utils import update_random_generator, log_to_file, SearchHistory, log_search_step
 

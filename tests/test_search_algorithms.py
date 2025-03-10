@@ -16,15 +16,13 @@ from degann.search_algorithms.search_algorithms_parameters import (
 )
 from degann.search_algorithms.simulated_annealing_functions import distance_lin
 
-from degann.networks.topology.base_topology_configs import (
-    TensorflowDenseNetParams,
-    GANTopologyParams,
-)
-from degann.networks.topology.base_compile_configs import (
-    SingleNetworkCompileParams,
-    GANCompileParams,
-)
-from degann.networks.topology.utils import TuningMetadata
+from degann.networks.topology.densenet.compile_config import DenseNetCompileParams
+from degann.networks.topology.densenet.topology_config import DenseNetParams
+
+from degann.networks.topology.gan.topology_config import GANTopologyParams
+from degann.networks.topology.gan.compile_config import GANCompileParams
+
+from degann.networks.topology.tuning_utils import FieldMetadata
 
 
 @pytest.fixture
@@ -102,17 +100,17 @@ def test_grid_search(equation_data, in_size, out_size):
     validation_data_y = equation_data[1][1]
 
     model_metadata = {
-        "block_size": TuningMetadata(value_range=(10, 20, 10), length_boundary=(1, 1)),
-        "activation_func": TuningMetadata(choices=["sigmoid", "relu"]),
+        "block_size": FieldMetadata(value_range=(10, 20, 10), length_boundary=(1, 1)),
+        "activation_func": FieldMetadata(choices=["sigmoid", "relu"]),
     }
-    model_cfg = TensorflowDenseNetParams(
-        input_size=in_size, output_size=out_size, tuning_metadata=model_metadata
+    model_cfg = DenseNetParams(
+        input_size=in_size, output_size=out_size, metadata=model_metadata
     )
 
     compile_metadata = {
-        "optimizer": TuningMetadata(choices=["SGD", "Adam"]),
+        "optimizer": FieldMetadata(choices=["SGD", "Adam"]),
     }
-    compile_cfg = SingleNetworkCompileParams(tuning_metadata=compile_metadata)
+    compile_cfg = DenseNetCompileParams(metadata=compile_metadata)
 
     search_alg_params = BaseSearchParameters()
     search_alg_params.model_cfg = model_cfg
@@ -135,37 +133,33 @@ def test_grid_search(equation_data, in_size, out_size):
 
     # Grid search for GAN
 
-    # Search the number of neurons in a layer (10 or 20) and the number of layers (1 or 2)
     generator_metadata = {
-        "block_size": TuningMetadata(
+        "block_size": FieldMetadata(
             value_range=(10, 20, 10),
+            length_boundary=(1, 1),
         ),
     }
-    generator_cfg = TensorflowDenseNetParams(
-        tuning_metadata=generator_metadata, activation_func="relu"
-    )
+    generator_cfg = DenseNetParams(metadata=generator_metadata, activation_func="relu")
 
-    # Search the number of neurons in a layer (10 or 20)
     discriminator_metadata = {
-        "block_size": TuningMetadata(value_range=(10, 20, 10), length_boundary=(1, 2)),
+        "block_size": FieldMetadata(value_range=(10, 20, 10), length_boundary=(1, 2)),
     }
-    discriminator_cfg = TensorflowDenseNetParams(
-        tuning_metadata=discriminator_metadata, input_size=2, activation_func="relu"
+    discriminator_cfg = DenseNetParams(
+        metadata=discriminator_metadata, input_size=2, activation_func="relu"
     )
 
     GAN_config = GANTopologyParams(
         generator_params=generator_cfg, discriminator_params=discriminator_cfg
     )
 
-    generator_compile_config = SingleNetworkCompileParams(
+    generator_compile_config = DenseNetCompileParams(
         optimizer="Adam", loss_func="BinaryCrossentropy", metric_funcs=[]
     )
-    # Run with 2 optimisers: Adam and SGD
     compile_metadata = {
-        "optimizer": TuningMetadata(choices=["SGD", "Adam"]),
+        "optimizer": FieldMetadata(choices=["SGD", "Adam"]),
     }
-    discriminator_compile_config = SingleNetworkCompileParams(
-        tuning_metadata=compile_metadata,
+    discriminator_compile_config = DenseNetCompileParams(
+        metadata=compile_metadata,
         loss_func="BinaryCrossentropy",
         metric_funcs=[],
     )

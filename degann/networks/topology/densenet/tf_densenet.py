@@ -12,9 +12,7 @@ from degann.networks.topology.densenet.compile_config import DenseNetCompilePara
 
 
 class TensorflowDenseNet(tf.keras.Model):
-    def __init__(
-        self, config: DenseNetParams = DenseNetParams(), **kwargs
-    ):
+    def __init__(self, config: DenseNetParams = DenseNetParams(), **kwargs):
         decorator_params: List[Optional[Dict]] = [None]
         if "decorator_params" in kwargs.keys():
             value = kwargs.get("decorator_params")
@@ -100,9 +98,7 @@ class TensorflowDenseNet(tf.keras.Model):
         self.output_size = config.output_size
         self.trained_time = {"train_time": 0.0, "epoch_time": [], "predict_time": 0}
 
-    def custom_compile(
-        self, config: DenseNetCompileParams = DenseNetCompileParams()
-    ):
+    def custom_compile(self, config: DenseNetCompileParams = DenseNetCompileParams()):
         """
         Configures the model for training
 

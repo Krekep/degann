@@ -11,12 +11,8 @@ from degann.networks.topology.densenet.tf_densenet import TensorflowDenseNet
 from degann.networks.topology.densenet.topology_config import DenseNetParams
 from degann.networks.topology.densenet.compile_config import DenseNetCompileParams
 from degann.networks.topology.gan.gan import GAN
-from degann.networks.topology.base_topology_configs import (
-    BaseTopologyParams
-)
-from degann.networks.topology.base_compile_configs import (
-    BaseCompileParams
-)
+from degann.networks.topology.base_topology_configs import BaseTopologyParams
+from degann.networks.topology.base_compile_configs import BaseCompileParams
 
 
 def _get_act_and_init(
@@ -57,9 +53,7 @@ class IModel(object):
     Interface class for working with neural topology
     """
 
-    def __init__(
-        self, config: BaseTopologyParams = DenseNetParams(), **kwargs
-    ):
+    def __init__(self, config: BaseTopologyParams = DenseNetParams(), **kwargs):
         self.network = _create_functions[config.net_type](config, **kwargs)
         self._input_size = config.input_size
         self._shape = config.block_size

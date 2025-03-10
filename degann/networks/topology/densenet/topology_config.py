@@ -9,5 +9,7 @@ class DenseNetParams(SingleNetworkParams):
     Parameters for a fully-connected (dense) neural network topology.
     """
 
-    def __post_init__(self):
+    def __post_init__(self, metadata=None):
+        super().__post_init__(metadata)
+
         self.net_type = "DenseNet"

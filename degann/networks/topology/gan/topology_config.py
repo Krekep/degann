@@ -1,6 +1,9 @@
 from dataclasses import dataclass
 
-from degann.networks.topology.base_topology_configs import BaseTopologyParams, SingleNetworkParams
+from degann.networks.topology.base_topology_configs import (
+    BaseTopologyParams,
+    SingleNetworkParams,
+)
 
 
 @dataclass(
@@ -22,7 +25,8 @@ class GANTopologyParams(BaseTopologyParams):
     generator_params: SingleNetworkParams
     discriminator_params: SingleNetworkParams
 
-    def __post_init__(self):
+    def __post_init__(self, metadata=None):
+        super().__post_init__(metadata)
         # Set the overall GAN configuration based on the generator and discriminator settings.
         # The overall input size is taken from the generator.
         self.input_size = self.generator_params.input_size
