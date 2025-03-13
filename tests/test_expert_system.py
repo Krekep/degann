@@ -10,8 +10,9 @@ from degann.expert.tags import (
     RequiredModelPrecision,
 )
 from degann.networks import IModel
-from degann.networks.topology.base_topology_configs import TensorflowDenseNetParams
-from degann.networks.topology.base_compile_configs import SingleNetworkCompileParams
+
+from degann.networks.topology.densenet.topology_config import DenseNetParams
+from degann.networks.topology.densenet.compile_config import DenseNetCompileParams
 
 
 @pytest.fixture
@@ -49,11 +50,9 @@ def test_expert_system(equation_data):
     validation_data_x = equation_data[1][0]
     validation_data_y = equation_data[1][1]
 
-    topology_cfg = TensorflowDenseNetParams(
-        input_size=1, block_size=[32, 16, 8], output_size=1
-    )
+    topology_cfg = DenseNetParams(input_size=1, block_size=[32, 16, 8], output_size=1)
 
-    compile_cfg = SingleNetworkCompileParams(
+    compile_cfg = DenseNetCompileParams(
         optimizer="Adam", loss_func="MaxAbsoluteDeviation", metric_funcs=[]
     )
 
@@ -82,7 +81,7 @@ def test_expert_system(equation_data):
     model_from_expert_system = IModel()
     model_from_expert_system.from_dict(result_nn)  # restore model from dict
 
-    compile_cfg = SingleNetworkCompileParams(
+    compile_cfg = DenseNetCompileParams(
         optimizer="Adam", loss_func="MaxAbsoluteDeviation", metric_funcs=[]
     )
     model_from_expert_system.compile(compile_cfg)
