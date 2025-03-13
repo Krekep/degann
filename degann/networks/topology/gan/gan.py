@@ -68,10 +68,18 @@ class GAN(tf.keras.Model):
         )
         self.gan: tf.keras.Model = tf.keras.Model(gan_input, gan_output)
 
-        opt = optimizers.get_optimizer(config.generator_params.optimizer)(
-            learning_rate=config.generator_params.rate
+        opt = (
+            optimizers.get_optimizer(config.generator_params.optimizer)(
+                learning_rate=config.generator_params.rate
+            )
+            if isinstance(config.generator_params.optimizer, str)
+            else config.generator_params.optimizer
         )
-        loss = losses.get_loss(config.generator_params.loss_func)
+        loss = (
+            losses.get_loss(config.generator_params.loss_func)
+            if isinstance(config.generator_params.loss_func, str)
+            else config.generator_params.loss_func
+        )
 
         self.gan.compile(
             optimizer=opt,

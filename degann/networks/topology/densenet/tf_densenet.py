@@ -112,8 +112,16 @@ class TensorflowDenseNet(tf.keras.Model):
         -------
 
         """
-        opt = optimizers.get_optimizer(config.optimizer)(learning_rate=config.rate)
-        loss = losses.get_loss(config.loss_func)
+        opt = (
+            optimizers.get_optimizer(config.optimizer)(learning_rate=config.rate)
+            if isinstance(config.optimizer, str)
+            else config.optimizer
+        )
+        loss = (
+            losses.get_loss(config.loss_func)
+            if isinstance(config.loss_func, str)
+            else config.loss_func
+        )
         m = [metrics.get_metric(metric) for metric in config.metric_funcs]
         self.compile(
             optimizer=opt,

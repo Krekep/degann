@@ -1,5 +1,7 @@
+import tensorflow as tf
+
 from dataclasses import dataclass, field, InitVar
-from typing import Optional
+from typing import Optional, Union
 
 from degann.networks.topology.tuning_utils import TuningMetadata
 
@@ -32,15 +34,15 @@ class SingleNetworkCompileParams(BaseCompileParams):
 
     Attributes:
         rate (float): Learning rate for the optimizer.
-        optimizer (str): Name of the optimizer.
-        loss_func (str): Loss function to use.
+        optimizer (str | tf.keras.Optimizer): Name of the optimizer or the optimizer itself.
+        loss_func (str | tf.keras.Loss): Name of the loss function or loss function itself.
         metric_funcs (List[str]): List of metric function names.
         run_eagerly (bool): Whether to run eagerly.
     """
 
     rate: float = 1e-2
-    optimizer: str = "SGD"
-    loss_func: str = "MeanSquaredError"
+    optimizer: Union[str, tf.keras.Optimizer] = "SGD"
+    loss_func: Union[str, tf.keras.Loss] = "MeanSquaredError"
     metric_funcs: list[str] = field(
         default_factory=lambda: [
             "root_mean_squared_error",
