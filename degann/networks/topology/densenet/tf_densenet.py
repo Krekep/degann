@@ -98,7 +98,9 @@ class TensorflowDenseNet(tf.keras.Model):
         self.output_size = config.output_size
         self.trained_time = {"train_time": 0.0, "epoch_time": [], "predict_time": 0}
 
-    def custom_compile(self, config: DenseNetCompileParams = DenseNetCompileParams()):
+    def custom_compile(
+        self, config: DenseNetCompileParams = DenseNetCompileParams()
+    ) -> None:
         """
         Configures the model for training
 
@@ -147,7 +149,7 @@ class TensorflowDenseNet(tf.keras.Model):
             x = layer(x, **kwargs)
         return self.out_layer(x, **kwargs)
 
-    def train_step(self, data):
+    def train_step(self, data) -> dict[str, tf.Tensor]:
         """
         Custom train step from tensorflow tutorial
 
@@ -182,7 +184,7 @@ class TensorflowDenseNet(tf.keras.Model):
         # Return a dict mapping metric names to current value
         return {m.name: m.result() for m in self.metrics}
 
-    def set_name(self, new_name):
+    def set_name(self, new_name) -> None:
         self._name = new_name
 
     def __str__(self):
@@ -192,7 +194,7 @@ class TensorflowDenseNet(tf.keras.Model):
         res += str(self.out_layer)
         return res
 
-    def to_dict(self, **kwargs):
+    def to_dict(self, **kwargs) -> dict:
         """
         Export neural network to dictionary
 
@@ -448,5 +450,5 @@ class TensorflowDenseNet(tf.keras.Model):
         """
         return [layer.get_activation for layer in self.blocks]
 
-    def get_loss_names(self):
+    def get_loss_names(self) -> tuple[str, ...]:
         return ("loss",)

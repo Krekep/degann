@@ -37,14 +37,14 @@ class GAN(tf.keras.Model):
         super(GAN, self).__init__(**kwargs)
 
     @property
-    def metrics(self):
+    def metrics(self) -> List[tf.keras.metrics.Metric]:
         """
         Returns a list of all metrics to be reset between epochs.
         """
         base_metrics = [self.d_loss_tracker, self.g_loss_tracker]
         return base_metrics + self.disc_metrics + self.gen_metrics
 
-    def custom_compile(self, config: GANCompileParams):
+    def custom_compile(self, config: GANCompileParams) -> None:
         """
         Configures the model for training
 
@@ -112,7 +112,7 @@ class GAN(tf.keras.Model):
         return self.generator(inputs, **kwargs)
 
     @tf.function
-    def train_step(self, data):
+    def train_step(self, data) -> dict[str, tf.Tensor]:
         """
         Custom train step for GAN framework
 
@@ -179,7 +179,7 @@ class GAN(tf.keras.Model):
         return {m.name: m.result() for m in self.metrics}
 
     @tf.function
-    def test_step(self, data):
+    def test_step(self, data) -> dict[str, tf.Tensor]:
         """
         Custom test (evaluation) step for GAN.
         """
@@ -216,13 +216,13 @@ class GAN(tf.keras.Model):
 
         return {m.name: m.result() for m in self.metrics}
 
-    def set_name(self, new_name):
+    def set_name(self, new_name) -> None:
         self._name = new_name
 
     def __str__(self):
         return str(self.generator) + "\n\n" + str(self.discriminator)
 
-    def to_dict(self, **kwargs):
+    def to_dict(self, **kwargs) -> dict:
         """
         Export neural network to dictionary
 
@@ -305,5 +305,5 @@ class GAN(tf.keras.Model):
             self.generator.get_activations + ["|"] + self.discriminator.get_activations
         )
 
-    def get_loss_names(self):
+    def get_loss_names(self) -> tuple[str, ...]:
         return "g_loss", "d_loss"

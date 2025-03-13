@@ -22,7 +22,7 @@ class BaseCompileParams:
     metadata: InitVar[dict | None] = None
     tuning_metadata: Optional[TuningMetadata] = field(default=None, init=False)
 
-    def __post_init__(self, metadata=None):
+    def __post_init__(self, metadata: Optional[dict] = None):
         self.tuning_metadata = TuningMetadata(type(self))
         self.tuning_metadata.set_metadata(metadata)
 
@@ -50,11 +50,11 @@ class SingleNetworkCompileParams(BaseCompileParams):
     )
     run_eagerly: bool = False
 
-    def get_losses(self):
+    def get_losses(self) -> list[Union[str, tf.keras.Loss]]:
         return [self.loss_func]
 
-    def get_optimizers(self):
+    def get_optimizers(self) -> list[Union[str, tf.keras.Optimizer]]:
         return [self.optimizer]
 
-    def add_eval_metric(self, metric: str):
+    def add_eval_metric(self, metric: str) -> None:
         self.metric_funcs.append(metric)

@@ -29,10 +29,10 @@ class BaseTopologyParams:
     block_size: list[int] = field(default_factory=list)
     output_size: int = 1
     name: str = "net"
-    net_type: str = "DenseNet"
+    net_type: str = field(default="DenseNet", init=False)
     is_debug: bool = False
 
-    def __post_init__(self, metadata=None):
+    def __post_init__(self, metadata: Optional[dict] = None):
         self.tuning_metadata = TuningMetadata(type(self))
         self.tuning_metadata.set_metadata(metadata)
 

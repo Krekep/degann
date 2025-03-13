@@ -1,9 +1,10 @@
 from dataclasses import dataclass
+from typing import Optional
 
 from degann.networks.topology.base_topology_configs import (
     BaseTopologyParams,
-    SingleNetworkParams,
 )
+from degann.networks.topology.densenet.topology_config import DenseNetParams
 
 
 @dataclass(
@@ -18,14 +19,14 @@ class GANTopologyParams(BaseTopologyParams):
       - A discriminator network
 
     Attributes:
-        generator_params (SingleNetworkParams): Configuration parameters for the generator.
-        discriminator_params (SingleNetworkParams): Configuration parameters for the discriminator.
+        generator_params (DenseNetParams): Configuration parameters for the generator.
+        discriminator_params (DenseNetParams): Configuration parameters for the discriminator.
     """
 
-    generator_params: SingleNetworkParams
-    discriminator_params: SingleNetworkParams
+    generator_params: DenseNetParams
+    discriminator_params: DenseNetParams
 
-    def __post_init__(self, metadata=None):
+    def __post_init__(self, metadata: Optional[dict] = None):
         super().__post_init__(metadata)
         # Set the overall GAN configuration based on the generator and discriminator settings.
         # The overall input size is taken from the generator.
