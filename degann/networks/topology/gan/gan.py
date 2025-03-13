@@ -293,7 +293,7 @@ class GAN(tf.keras.Model):
         self.generator.export_to_cpp(path, array_type, path_to_compiler, **kwargs)
 
     @property
-    def get_activations(self) -> List:
+    def get_activations(self) -> List[List]:
         """
         Get list of activations functions for each layer
 
@@ -301,9 +301,7 @@ class GAN(tf.keras.Model):
         -------
         activation: list
         """
-        return (
-            self.generator.get_activations + ["|"] + self.discriminator.get_activations
-        )
+        return [self.generator.get_activations, self.discriminator.get_activations]
 
     def get_loss_names(self) -> tuple[str, ...]:
         return "g_loss", "d_loss"
