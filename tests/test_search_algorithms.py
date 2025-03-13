@@ -131,7 +131,15 @@ def test_grid_search(equation_data, in_size, out_size):
         result_nn,
     ) = grid_search(grid_search_parameters)
 
-    # Grid search for GAN
+    assert True
+
+
+def test_grid_search_gan(equation_data):
+    train_data_x = equation_data[0][0]
+    train_data_y = equation_data[0][1]
+
+    validation_data_x = equation_data[1][0]
+    validation_data_y = equation_data[1][1]
 
     generator_metadata = {
         "block_size": FieldMetadata(
