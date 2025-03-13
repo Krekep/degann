@@ -7,6 +7,19 @@ from itertools import product
 
 @dataclass
 class FieldMetadata:
+    """
+    A class representing metadata for tunable fields in a configuration.
+
+    Attributes:
+        choices (`Optional[list[Any]]`):
+            A list of allowed values for the field.
+        value_range (`Optional[Union[tuple[int, int, int], tuple[float, float, float]]]`):
+            Defines a numeric range for the field in the format (min_value, max_value, step).
+        length_boundary (`Optional[tuple[int, int]]`):
+            Specifies the minimum and maximum allowed length for list-type fields.
+            It follows the format (min_length, max_length).
+    """
+
     choices: Optional[list[Any]] = None
     value_range: Optional[
         Union[tuple[int, int, int], tuple[float, float, float]]
@@ -15,14 +28,69 @@ class FieldMetadata:
 
 
 class TuningMetadata:
+    """
+    A class for managing tuning metadata associated with fields in a dataclass.
+
+    This class initializes metadata for all fields in a given dataclass, allowing
+    retrieval of metadata on a per-field basis.
+
+    Attributes:
+        __metadata (`dict`):
+            A dictionary mapping field names to `FieldMetadata` instances,
+            storing tuning-related metadata for each field.
+
+    Methods:
+        `get(name: str, default: Any) -> Any`:
+            Retrieves the metadata for a given field.
+            If the field is not found, returns the provided default value.
+
+        `set_metadata(metadata: Optional[dict]) -> None`:
+            Updates the metadata dictionary using the provided metadata.
+            If `metadata` is None, the method does nothing.
+            Only existing fields in `__metadata` are updated.
+    """
+
     def __init__(self, dataclass_cls: Type):
+        """
+        Initializes the TuningMetadata instance.
+
+        Args:
+            dataclass_cls (`Type`): The dataclass for which metadata will be initialized.
+
+        Constructor creates a metadata dictionary where each field in the
+        dataclass is associated with a default `FieldMetadata` instance.
+        The special `tuning_metadata` field (if present) is removed.
+        """
+
         self.__metadata = {f.name: FieldMetadata() for f in fields(dataclass_cls)}
         self.__metadata.pop("tuning_metadata", None)
 
-    def get(self, name, default):
+    def get(self, name, default) -> Any:
+        """
+        Retrieves the metadata for a specific field.
+
+        Args:
+            name (`str`): The name of the field.
+            default (`Any`): The default value to return if the field does not exist.
+
+        Returns:
+            `FieldMetadata` or `Any`: The metadata for the given field or the default value.
+        """
+
         return self.__metadata.get(name, default)
 
-    def set_metadata(self, metadata: Optional[dict]):
+    def set_metadata(self, metadata: Optional[dict]) -> None:
+        """
+        Updates the metadata dictionary with new values.
+
+        Args:
+            metadata (`Optional[dict]`): A dictionary containing new metadata values.
+
+        If `metadata` is None, the function does nothing.
+        Otherwise, it updates existing fields in `__metadata` with values from `metadata`,
+        leaving fields unchanged if they are not present in the input dictionary.
+        """
+
         if metadata is None:
             return
 
