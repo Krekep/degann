@@ -75,7 +75,7 @@ def grid_search_step(
             data[0], data[1], epochs=num_epoch, verbose=0, callbacks=callbacks
         )
 
-        loss_names = nn.network.get_loss_names()
+        loss_names = ("loss",) if model_cfg.net_type != "GAN" else ("g_loss", "d_loss")
         curr_loss = [temp_his.history[name][-1] for name in loss_names]
         curr_metric_value = temp_his.history[eval_metric][-1]
 

@@ -302,6 +302,3 @@ class GAN(tf.keras.Model):
         activation: list
         """
         return [self.generator.get_activations, self.discriminator.get_activations]
-
-    def get_loss_names(self) -> tuple[str, ...]:
-        return "g_loss", "d_loss"

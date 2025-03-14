@@ -449,6 +449,3 @@ class TensorflowDenseNet(tf.keras.Model):
         activation: list
         """
         return [layer.get_activation for layer in self.blocks]
-
-    def get_loss_names(self) -> tuple[str, ...]:
-        return ("loss",)
