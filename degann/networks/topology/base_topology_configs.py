@@ -22,6 +22,8 @@ class BaseTopologyParams:
         is_debug (bool): Flag to enable debugging mode.
     """
 
+    # TODO make not all parameters selectable in search algorithms
+
     metadata: InitVar[dict | None] = None
     tuning_metadata: Optional[TuningMetadata] = field(default=None, init=False)
 
@@ -29,7 +31,7 @@ class BaseTopologyParams:
     block_size: list[int] = field(default_factory=list)
     output_size: int = 1
     name: str = "net"
-    net_type: str = field(default="DenseNet", init=False)
+    net_type: str = "DenseNet"
     is_debug: bool = False
 
     def __post_init__(self, metadata: Optional[dict] = None):
