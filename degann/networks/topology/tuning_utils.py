@@ -30,7 +30,7 @@ class TuningMetadata:
     """
     A class for managing tuning metadata associated with fields in a dataclass.
 
-    This class initializes metadata for all fields in a given dataclass, allowing
+    This class initializes metadata for tunable fields in a given dataclass, allowing
     retrieval of metadata on a per-field basis.
 
     Attributes:
@@ -61,8 +61,11 @@ class TuningMetadata:
         The special `tuning_metadata` field (if present) is removed.
         """
 
-        self.__metadata = {f.name: FieldMetadata() for f in fields(dataclass_cls)}
-        self.__metadata.pop("tuning_metadata", None)
+        self.__metadata = {
+            f.name: FieldMetadata()
+            for f in fields(dataclass_cls)
+            if f.metadata.get("tunable", False)
+        }
 
     def get(self, name, default) -> Any:
         """
@@ -120,8 +123,8 @@ def generate_all_configurations(config_instance: Any):
     tuning_metadata: TuningMetadata = config_instance.tuning_metadata
 
     for f in fields(config_instance):
-        # Skip the tuning_metadata field itself.
-        if f.name == "tuning_metadata":
+        # Skip data that shouldn't be initialized.
+        if not f.init:
             continue
 
         ftype = type_hints.get(f.name)
@@ -136,7 +139,8 @@ def generate_all_configurations(config_instance: Any):
             candidate_dict[f.name] = list(generate_all_configurations(value))
             continue
 
-        if not meta:
+        # meta -- dict from TuningMetadata and f.metadata -- dataclass wide dict
+        if not meta or not f.metadata.get("tunable", False):
             # No metadata -> nothing to go through
             candidate_dict[f.name] = [value]
             continue

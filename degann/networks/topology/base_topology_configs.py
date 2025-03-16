@@ -22,16 +22,14 @@ class BaseTopologyParams:
         is_debug (bool): Flag to enable debugging mode.
     """
 
-    # TODO make not all parameters selectable in search algorithms
-
     metadata: InitVar[dict | None] = None
     tuning_metadata: Optional[TuningMetadata] = field(default=None, init=False)
 
     input_size: int = 1
-    block_size: list[int] = field(default_factory=list)
+    block_size: list[int] = field(default_factory=list, metadata={"tunable": True})
     output_size: int = 1
     name: str = "net"
-    net_type: str = "DenseNet"
+    net_type: str = field(default="DenseNet", init=False)
     is_debug: bool = False
 
     def __post_init__(self, metadata: Optional[dict] = None):
@@ -50,7 +48,9 @@ class SingleNetworkParams(BaseTopologyParams):
         biases (Any): Initializer for the network's biases. (Default: RandomUniform between -1 and 1)
     """
 
-    activation_func: Union[str, list[str]] = "sigmoid"
+    activation_func: Union[str, list[str]] = field(
+        default="sigmoid", metadata={"tunable": True}
+    )
     weight: Any = field(
         default_factory=lambda: tf.random_uniform_initializer(minval=-1, maxval=1)
     )

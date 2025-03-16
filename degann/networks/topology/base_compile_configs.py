@@ -41,8 +41,12 @@ class SingleNetworkCompileParams(BaseCompileParams):
     """
 
     rate: float = 1e-2
-    optimizer: Union[str, tf.keras.Optimizer] = "SGD"
-    loss_func: Union[str, tf.keras.Loss] = "MeanSquaredError"
+    optimizer: Union[str, tf.keras.Optimizer] = field(
+        default="SGD", metadata={"tunable": True}
+    )
+    loss_func: Union[str, tf.keras.Loss] = field(
+        default="MeanSquaredError", metadata={"tunable": True}
+    )
     metric_funcs: list[str] = field(
         default_factory=lambda: [
             "root_mean_squared_error",

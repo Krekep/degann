@@ -19,7 +19,7 @@ def test_int_range_config(value_range, expected_values):
     @dataclass
     class IntConfig:
         tuning_metadata: Optional[TuningMetadata] = None
-        a: int = 2
+        a: int = field(default=2, metadata={"tunable": True})
 
     tm = TuningMetadata(IntConfig)
     tm.set_metadata({"a": FieldMetadata(value_range=value_range)})
@@ -43,7 +43,7 @@ def test_float_range_config(value_range, expected_values):
     @dataclass
     class FloatConfig:
         tuning_metadata: Optional[TuningMetadata] = None
-        a: float = 2.0
+        a: float = field(default=2.0, metadata={"tunable": True})
 
     tm = TuningMetadata(FloatConfig)
     tm.set_metadata({"a": FieldMetadata(value_range=value_range)})
@@ -67,7 +67,7 @@ def test_choice_config(choices, expected_values):
     @dataclass
     class ChoiceConfig:
         tuning_metadata: Optional[TuningMetadata] = None
-        c: str = "default"
+        c: str = field(default="default", metadata={"tunable": True})
 
     tm = TuningMetadata(ChoiceConfig)
     tm.set_metadata({"c": FieldMetadata(choices=choices)})
@@ -96,7 +96,7 @@ def test_mixed_config(value_range, choices, expected_values):
     @dataclass
     class MixedConfig:
         tuning_metadata: Optional[TuningMetadata] = None
-        c: float = 5.0
+        c: float = field(default=5.0, metadata={"tunable": True})
 
     tm = TuningMetadata(MixedConfig)
     tm.set_metadata({"c": FieldMetadata(choices=choices, value_range=value_range)})
@@ -114,8 +114,8 @@ def test_mixed_config(value_range, choices, expected_values):
 def test_no_tuning_metadata():
     @dataclass
     class NoTuneConfig:
-        a: int = 10
-        b: str = "test"
+        a: int = field(default=10, metadata={"tunable": True})
+        b: str = field(default="test", metadata={"tunable": True})
 
     config = NoTuneConfig()
     candidates = list(generate_all_configurations(config))
@@ -131,8 +131,8 @@ def test_empty_metadata():
     @dataclass
     class EmptyMetadataConfig:
         tuning_metadata: Optional[TuningMetadata] = None
-        a: int = 10
-        b: str = "test"
+        a: int = field(default=10, metadata={"tunable": True})
+        b: str = field(default="test", metadata={"tunable": True})
 
     tm = TuningMetadata(EmptyMetadataConfig)
 
@@ -172,14 +172,14 @@ def test_mixed_fields(metadata_dict, configurations):
     @dataclass
     class MixedConfig:
         tuning_metadata: Optional[TuningMetadata] = None
-        a: int = 0
-        b: list[int] = field(default_factory=lambda: [10])
-        c: str = "x"
+        a: int = field(default=0, metadata={"tunable": True})
+        b: list[int] = field(default_factory=lambda: [10], metadata={"tunable": True})
+        c: str = field(default="x", metadata={"tunable": True})
 
     tm = TuningMetadata(MixedConfig)
     tm.set_metadata(metadata_dict)
 
-    config = MixedConfig(tuning_metadata=tm, a=0, b=[10], c="x")
+    config = MixedConfig(tuning_metadata=tm)
     candidates = list(generate_all_configurations(config))
 
     generated_configs = {(cfg.a, tuple(cfg.b), cfg.c) for cfg in candidates}
@@ -200,7 +200,7 @@ def test_list_with_value_range_only(value_range, length_boundary, expected_candi
     @dataclass
     class ListRangeConfig:
         tuning_metadata: Optional[TuningMetadata] = None
-        b: list[int] = field(default_factory=lambda: [10])
+        b: list[int] = field(default_factory=lambda: [10], metadata={"tunable": True})
 
     tm = TuningMetadata(ListRangeConfig)
     tm.set_metadata(
@@ -229,7 +229,9 @@ def test_list_with_choices_only(choices, length_boundary, expected_candidates):
     @dataclass
     class ListChoicesConfig:
         tuning_metadata: Optional[TuningMetadata] = None
-        b: list[int] = field(default_factory=lambda: [10, 20, 30])
+        b: list[int] = field(
+            default_factory=lambda: [10, 20, 30], metadata={"tunable": True}
+        )
 
     tm = TuningMetadata(ListChoicesConfig)
     tm.set_metadata(
@@ -248,7 +250,7 @@ def test_empty_list_field():
     @dataclass
     class EmptyListConfig:
         tuning_metadata: Optional[TuningMetadata] = None
-        b: list[int] = field(default_factory=list)
+        b: list[int] = field(default_factory=list, metadata={"tunable": True})
 
     tm = TuningMetadata(EmptyListConfig)
     # Even if the field is initially empty, we want to generate candidates of length 1.
@@ -267,7 +269,9 @@ def test_list_no_range_no_choices():
     @dataclass
     class EmptyListConfig:
         tuning_metadata: Optional[TuningMetadata] = None
-        b: list[int] = field(default_factory=lambda: [10, 20, 30])
+        b: list[int] = field(
+            default_factory=lambda: [10, 20, 30], metadata={"tunable": True}
+        )
 
     tm = TuningMetadata(EmptyListConfig)
     # Use b's default as choices
@@ -299,7 +303,7 @@ def test_nested_config():
     @dataclass
     class InnerConfig:
         tuning_metadata: Optional[TuningMetadata] = None
-        a: int = 2
+        a: int = field(default=2, metadata={"tunable": True})
 
     @dataclass
     class OuterConfig:
