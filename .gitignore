@@ -191,3 +191,4 @@ experiments/results
 *.h5
 *.apg
 publish_pypi.bat
+.vscode
