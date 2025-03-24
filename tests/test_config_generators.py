@@ -11,11 +11,21 @@ from degann.networks.topology.tuning_utils import (
 @pytest.mark.parametrize(
     "value_range, expected_values",
     [
+        # Standard integer range with step size 1
         ((1, 3, 1), {1, 2, 3}),
+        # Single-value edge case (min == max)
         ((5, 5, 1), {5}),
     ],
 )
 def test_int_range_config(value_range, expected_values):
+    """
+    Test integer value range generation with various boundary conditions.
+    Validates:
+    - Standard ranges with multiple values
+    - Single-value ranges
+    - Step size handling for integers
+    """
+
     @dataclass
     class IntConfig:
         tuning_metadata: Optional[TuningMetadata] = None
@@ -35,11 +45,20 @@ def test_int_range_config(value_range, expected_values):
 @pytest.mark.parametrize(
     "value_range, expected_values",
     [
+        # Floating point range with fractional step
         ((0.0, 0.2, 0.1), {0.0, 0.1, 0.2}),
+        # Single-value edge case with zero range
         ((0.0, 0.0, 0.5), {0.0}),
     ],
 )
 def test_float_range_config(value_range, expected_values):
+    """
+    Test floating point value range generation.
+    Validates:
+    - Handling of floating point increments
+    - Proper inclusion of endpoint values
+    """
+
     @dataclass
     class FloatConfig:
         tuning_metadata: Optional[TuningMetadata] = None
@@ -59,11 +78,26 @@ def test_float_range_config(value_range, expected_values):
 @pytest.mark.parametrize(
     "choices, expected_values",
     [
+        # Normal case with multiple choices
         (("A", "B", "C"), {"A", "B", "C"}),
+        # No choices provided (fallback to default)
         (None, {"default"}),
+        # Empty choices list (should use default)
+        ([], {"default"}),
+        # Single choice edge case
+        (["X"], {"X"}),
     ],
 )
 def test_choice_config(choices, expected_values):
+    """
+    Test choice-based configuration generation.
+    Validates:
+    - Multiple choice selection
+    - Empty/NULL choice handling
+    - Default value fallback behavior
+    - Single-choice edge cases
+    """
+
     @dataclass
     class ChoiceConfig:
         tuning_metadata: Optional[TuningMetadata] = None
@@ -85,14 +119,22 @@ def test_choice_config(choices, expected_values):
 @pytest.mark.parametrize(
     "value_range, choices, expected_values",
     [
+        # Combined value range and choices
         (
-            (0.0, 3.0, 1.0),  # [0.0, 1.0, 2.0, 3.0]
-            (0.5, 1.5, 2.5),  # [0.5, 1.5, 2.5]
-            {0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0},
+
+            (0.0, 3.0, 1.0),  # Generates [0.0, 1.0, 2.0, 3.0]
+            (0.5, 1.5, 2.5),  # Direct choices
+            {0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0},  # Combined set
         )
     ],
 )
 def test_mixed_config(value_range, choices, expected_values):
+    """
+    Test configuration generation with both value ranges and choices.
+    Validates:
+    - Combined value sources (range + choices)
+    """
+
     @dataclass
     class MixedConfig:
         tuning_metadata: Optional[TuningMetadata] = None
@@ -112,6 +154,13 @@ def test_mixed_config(value_range, choices, expected_values):
 
 
 def test_no_tuning_metadata():
+    """
+    Test behavior when no tuning metadata exists.
+    Validates:
+    - Fallback to default configuration
+    - No candidate generation when metadata is missing
+    """
+
     @dataclass
     class NoTuneConfig:
         a: int = field(default=10, metadata={"tunable": True})
@@ -122,12 +171,19 @@ def test_no_tuning_metadata():
 
     # Should return only one candidate: the original configuration.
     assert len(candidates) == 1
-
     assert candidates[0].a == 10
     assert candidates[0].b == "test"
 
 
 def test_empty_metadata():
+    """
+    Test behavior with initialized but empty metadata.
+    Validates:
+    - Default FieldMetadata handling
+    - Empty metadata initialization
+    - No candidate expansion when no constraints exist
+    """
+
     @dataclass
     class EmptyMetadataConfig:
         tuning_metadata: Optional[TuningMetadata] = None
@@ -141,7 +197,6 @@ def test_empty_metadata():
 
     # Should return only one candidate: the original configuration.
     assert len(candidates) == 1
-
     assert candidates[0].a == 10
     assert candidates[0].b == "test"
 
@@ -151,10 +206,11 @@ def test_empty_metadata():
     [
         (
             {
-                "a": FieldMetadata(value_range=(1, 2, 1)),
-                "b": FieldMetadata(choices=[10, 20]),
-                "c": FieldMetadata(choices=["x", "y"]),
+                "a": FieldMetadata(value_range=(1, 2, 1)),  # [1,2]
+                "b": FieldMetadata(choices=[10, 20]),  # [[10], [20]]
+                "c": FieldMetadata(choices=["x", "y"]),  # ["x", "y"]
             },
+            # Cartesian product of all combinations
             {
                 (1, (10,), "x"),
                 (1, (10,), "y"),
@@ -169,6 +225,14 @@ def test_empty_metadata():
     ],
 )
 def test_mixed_fields(metadata_dict, configurations):
+    """
+    Test configuration generation with multiple field types.
+    Validates:
+    - Interaction between different field types (int, list, str)
+    - Cartesian product generation across multiple fields
+    - Proper nesting of list-type fields
+    """
+
     @dataclass
     class MixedConfig:
         tuning_metadata: Optional[TuningMetadata] = None
@@ -190,13 +254,22 @@ def test_mixed_fields(metadata_dict, configurations):
 @pytest.mark.parametrize(
     "value_range, length_boundary, expected_candidates",
     [
-        # value_range (10,20,10) yields [10,20]. With length_boundary (1,1): two candidates.
+        # Fixed length list generation from value range
         ((10, 20, 10), (1, 1), {(10,), (20,)}),
-        # With length_boundary (1,2): six candidates.
+        # Variable length list generation with combinations
         ((10, 20, 10), (1, 2), {(10, 10), (10, 20), (20, 10), (20, 20), (10,), (20,)}),
     ],
 )
 def test_list_with_value_range_only(value_range, length_boundary, expected_candidates):
+    """
+    Test list generation using value ranges with length constraints.
+    Validates:
+    - Fixed-length list generation
+    - Variable-length list combinations
+    - Proper application of length boundaries
+    - Cartesian product generation for list elements
+    """
+
     @dataclass
     class ListRangeConfig:
         tuning_metadata: Optional[TuningMetadata] = None
@@ -217,15 +290,24 @@ def test_list_with_value_range_only(value_range, length_boundary, expected_candi
 @pytest.mark.parametrize(
     "choices, length_boundary, expected_candidates",
     [
-        # With explicit length_boundary: length 1 should yield [[10],[20]].
+        # Fixed-length list from explicit choices
         ([10, 20], (1, 1), {(10,), (20,)}),
-        # With explicit length_boundary: length 2 should yield [[10,10],[10,20],[20,10],[20,20]].
+        # Fixed longer length with combinations
         ([10, 20], (2, 2), {(10, 10), (10, 20), (20, 10), (20, 20)}),
         # With no length_boundary, the code should default to length 1.
         ([10, 20], None, {(10,), (20,)}),
     ],
 )
 def test_list_with_choices_only(choices, length_boundary, expected_candidates):
+    """
+    Test list generation using explicit choices with length constraints.
+    Validates:
+    - Choice-based list generation
+    - Length boundary enforcement
+    - Default length handling when no boundary specified
+    - Combination generation for multi-element lists
+    """
+
     @dataclass
     class ListChoicesConfig:
         tuning_metadata: Optional[TuningMetadata] = None
@@ -246,26 +328,13 @@ def test_list_with_choices_only(choices, length_boundary, expected_candidates):
     assert result == expected_candidates
 
 
-def test_empty_list_field():
-    @dataclass
-    class EmptyListConfig:
-        tuning_metadata: Optional[TuningMetadata] = None
-        b: list[int] = field(default_factory=list, metadata={"tunable": True})
-
-    tm = TuningMetadata(EmptyListConfig)
-    # Even if the field is initially empty, we want to generate candidates of length 1.
-    tm.set_metadata({"b": FieldMetadata(choices=[10, 20])})
-
-    config = EmptyListConfig(tuning_metadata=tm)
-    candidates = list(generate_all_configurations(config))
-
-    # Expected candidates: [[10], [20]]
-    result = {tuple(c.b) for c in candidates}
-
-    assert result == {(10,), (20,)}
-
-
 def test_list_no_range_no_choices():
+    """
+    Test list generation when no range or choices are specified.
+    Validates:
+    - Fallback to default list values as choices
+    """
+
     @dataclass
     class EmptyListConfig:
         tuning_metadata: Optional[TuningMetadata] = None
@@ -283,6 +352,7 @@ def test_list_no_range_no_choices():
     # Expected candidates: [[10], [20]]
     result = {tuple(c.b) for c in candidates}
 
+    # Verify all combinations of lengths 1 and 2 using default values
     assert result == {
         (10,),
         (20,),
@@ -300,6 +370,14 @@ def test_list_no_range_no_choices():
 
 
 def test_nested_config():
+    """
+    Test nested dataclass configuration generation.
+    Validates:
+    - Recursive configuration generation
+    - Proper metadata propagation to nested classes
+    - Independent tuning of nested components
+    """
+
     @dataclass
     class InnerConfig:
         tuning_metadata: Optional[TuningMetadata] = None
@@ -310,12 +388,13 @@ def test_nested_config():
         tuning_metadata: Optional[TuningMetadata] = None
         inner: InnerConfig = None
 
+    # Configure inner class metadata
     inner_tm = TuningMetadata(InnerConfig)
     inner_tm.set_metadata({"a": FieldMetadata(value_range=(1, 3, 1))})
     inner = InnerConfig(tuning_metadata=inner_tm)
 
+    # Outer config without specific tuning
     outer_tm = TuningMetadata(OuterConfig)
-    # Outer config does not need its own tuning for fields, so we leave it empty.
     outer = OuterConfig(tuning_metadata=outer_tm, inner=inner)
 
     candidates = list(generate_all_configurations(outer))
