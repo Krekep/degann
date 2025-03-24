@@ -154,7 +154,7 @@ def generate_all_configurations(config_instance: Any):
             is_listable = False
 
         # Generate possible values for the base type
-        possible_vals = []
+        possible_vals: list[Any] = []
 
         vr = meta.get("value_range")
         ch = meta.get("choices")

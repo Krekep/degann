@@ -121,7 +121,6 @@ def test_choice_config(choices, expected_values):
     [
         # Combined value range and choices
         (
-
             (0.0, 3.0, 1.0),  # Generates [0.0, 1.0, 2.0, 3.0]
             (0.5, 1.5, 2.5),  # Direct choices
             {0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0},  # Combined set
