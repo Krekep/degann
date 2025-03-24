@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Optional, Tuple
 
 import numpy as np
+import tensorflow as tf
 
 from degann.networks.callbacks import MeasureTrainTime
 from degann.networks import imodel
@@ -90,8 +91,22 @@ def grid_search_step(
             val_metric_value = None
 
         if logging:
-            str_losses = "_".join(compile_cfg.get_losses())
-            str_optimizers = "_".join(compile_cfg.get_optimizers())
+            str_losses = "_".join(
+                [
+                    loss.name if isinstance(loss, tf.keras.Loss) else loss
+                    for loss_list in compile_cfg.get_losses()
+                    for loss in loss_list
+                ]
+            )
+
+            str_optimizers = "_".join(
+                [
+                    # Optimizer class doesn't have `name` attribute
+                    type(opt).__name__ if isinstance(opt, tf.keras.Optimizer) else opt
+                    for opt in compile_cfg.get_optimizers()
+                ]
+            )
+
             fn = f"{file_name}_{len(data[0])}_{num_epoch}_{str_losses}_{str_optimizers}"
             log_search_step(
                 model=nn,
@@ -140,7 +155,7 @@ def grid_search(
             The value of the metric during training of the best neural network
         best_epoch: int
             Number of training epochs for the best neural network
-        best_loss_func: str
+        best_loss_func: list[list[str]]
             Name of the loss function of the best neural network
         best_opt: str
             Name of the optimizer of the best neural network

@@ -54,8 +54,9 @@ class SingleNetworkCompileParams(BaseCompileParams):
     )
     run_eagerly: bool = False
 
-    def get_losses(self) -> list[Union[str, tf.keras.Loss]]:
-        return [self.loss_func]
+    def get_losses(self) -> list[list[Union[str, tf.keras.Loss]]]:
+        # This structure can be interpreted as 1 neural network with 1 loss function
+        return [[self.loss_func]]
 
     def get_optimizers(self) -> list[Union[str, tf.keras.Optimizer]]:
         return [self.optimizer]

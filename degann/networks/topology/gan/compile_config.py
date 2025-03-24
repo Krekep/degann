@@ -27,7 +27,7 @@ class GANCompileParams(BaseCompileParams):
     def __post_init__(self, metadata: Optional[dict] = None):
         super().__post_init__(metadata)
 
-    def get_losses(self) -> list[Union[str, tf.keras.Loss]]:
+    def get_losses(self) -> list[list[Union[str, tf.keras.Loss]]]:
         return (
             self.generator_params.get_losses() + self.discriminator_params.get_losses()
         )
