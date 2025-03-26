@@ -26,6 +26,15 @@ class BaseCompileParams:
         self.tuning_metadata = TuningMetadata(type(self))
         self.tuning_metadata.set_metadata(metadata)
 
+    def get_losses(self) -> list[list[Union[str, tf.keras.Loss]]]:
+        return []
+
+    def get_optimizers(self) -> list[Union[str, tf.keras.Optimizer]]:
+        return []
+
+    def add_eval_metric(self, metric: str) -> None:
+        return
+
 
 @dataclass
 class SingleNetworkCompileParams(BaseCompileParams):

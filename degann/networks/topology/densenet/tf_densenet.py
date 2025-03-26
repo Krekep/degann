@@ -1,5 +1,5 @@
 import os
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 
 import tensorflow as tf
 
@@ -206,7 +206,7 @@ class TensorflowDenseNet(tf.keras.Model):
         -------
 
         """
-        res = {
+        res: Dict[str, Any] = {
             "net_type": "TFDense",
             # "name": self._name,
             "name": getattr(self, "_name", ""),

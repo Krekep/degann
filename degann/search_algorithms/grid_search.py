@@ -110,10 +110,10 @@ def grid_search_step(
             fn = f"{file_name}_{len(data[0])}_{num_epoch}_{str_losses}_{str_optimizers}"
             log_search_step(
                 model=nn,
-                activations=nn.get_activations(),
+                activations=nn.get_activations,
                 epoch=num_epoch,
-                optimizers=str_optimizers,
-                loss_functions=str_losses,
+                optimizer=str_optimizers,
+                loss_function=str_losses,
                 loss=curr_loss,
                 validation_loss=eval_loss,
                 metric_value=curr_metric_value,

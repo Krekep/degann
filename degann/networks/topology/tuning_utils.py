@@ -1,4 +1,4 @@
-from dataclasses import dataclass, fields, is_dataclass, asdict
+from dataclasses import dataclass, fields, is_dataclass, asdict, replace
 from typing import Any, Optional, Union, Type, get_args, get_origin, get_type_hints
 from itertools import product
 from collections import defaultdict
@@ -108,11 +108,13 @@ def generate_all_configurations(config_instance: Any):
     Yields:
         New instances of the dataclass for every combination of candidate values.
     """
-    if not is_dataclass(config_instance) or not hasattr(
-        config_instance, "tuning_metadata"
-    ):
+    if not (
+        # Check if `config_instance` is dataclass instance
+        is_dataclass(config_instance)
+        and not isinstance(config_instance, type)
+    ) or not hasattr(config_instance, "tuning_metadata"):
         # No tuning data? -> nothing to go through
-        # Not a dataclass? -> not a config
+        # Not a dataclass instance? -> not a config
         yield config_instance
         return
 
@@ -203,4 +205,4 @@ def generate_all_configurations(config_instance: Any):
     keys = list(candidate_dict.keys())
     for comb in product(*(candidate_dict[k] for k in keys)):
         # Build a candidate instance from the product.
-        yield type(config_instance)(**dict(zip(keys, comb)))
+        yield replace(config_instance, **dict(zip(keys, comb)))
