@@ -1,1 +1,1 @@
-from .tf_densenet import *
+from degann.networks.topology.densenet.tf_densenet import *

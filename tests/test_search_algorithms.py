@@ -16,6 +16,14 @@ from degann.search_algorithms.search_algorithms_parameters import (
 )
 from degann.search_algorithms.simulated_annealing_functions import distance_lin
 
+from degann.networks.topology.densenet.compile_config import DenseNetCompileParams
+from degann.networks.topology.densenet.topology_config import DenseNetParams
+
+from degann.networks.topology.gan.topology_config import GANTopologyParams
+from degann.networks.topology.gan.compile_config import GANCompileParams
+
+from degann.networks.topology.tuning_utils import FieldMetadata
+
 
 @pytest.fixture
 def train_file_name():
@@ -55,7 +63,7 @@ def test_pattern_search(equation_data):
     config = {
         "loss_functions": ["MeanSquaredError"],
         "optimizers": ["Adam"],
-        "metrics": ["MaxAbsoluteDeviation"],
+        "eval_metric": "root_mean_squared_error",
         "net_shapes": [[10], [5]],
         "activations": ["parabolic"],
         "validation_split": 0,
@@ -91,29 +99,102 @@ def test_grid_search(equation_data, in_size, out_size):
     validation_data_x = equation_data[1][0]
     validation_data_y = equation_data[1][1]
 
+    model_metadata = {
+        "block_size": FieldMetadata(value_range=(10, 20, 10), length_boundary=(1, 1)),
+        "activation_func": FieldMetadata(choices=["sigmoid", "relu"]),
+    }
+    model_cfg = DenseNetParams(
+        input_size=in_size, output_size=out_size, metadata=model_metadata
+    )
+
+    compile_metadata = {
+        "optimizer": FieldMetadata(choices=["SGD", "Adam"]),
+    }
+    compile_cfg = DenseNetCompileParams(metadata=compile_metadata)
+
     search_alg_params = BaseSearchParameters()
-    search_alg_params.input_size = in_size
-    search_alg_params.output_size = out_size
+    search_alg_params.model_cfg = model_cfg
+    search_alg_params.compile_cfg = compile_cfg
     search_alg_params.data = (train_data_x, train_data_y)
     search_alg_params.val_data = (validation_data_x, validation_data_y)
 
     grid_search_parameters = GridSearchParameters(search_alg_params)
-    grid_search_parameters.optimizers = ["Adam"]
-    grid_search_parameters.losses = ["MeanAbsolutePercentageError"]
     grid_search_parameters.min_epoch = 5
     grid_search_parameters.max_epoch = 10
     grid_search_parameters.epoch_step = 5
-    grid_search_parameters.nn_min_length = 1
-    grid_search_parameters.nn_max_length = 2
-    grid_search_parameters.nn_alphabet = ["0a", "42"]
 
     (
-        result_loss,
+        result_metric_value,
         result_epoch,
         result_loss_name,
         result_optimizer,
         result_nn,
     ) = grid_search(grid_search_parameters)
+
+    assert True
+
+
+def test_grid_search_gan(equation_data):
+    train_data_x = equation_data[0][0]
+    train_data_y = equation_data[0][1]
+
+    validation_data_x = equation_data[1][0]
+    validation_data_y = equation_data[1][1]
+
+    generator_metadata = {
+        "block_size": FieldMetadata(
+            value_range=(10, 20, 10),
+            length_boundary=(1, 1),
+        ),
+    }
+    generator_cfg = DenseNetParams(metadata=generator_metadata, activation_func="relu")
+
+    discriminator_metadata = {
+        "block_size": FieldMetadata(value_range=(10, 20, 10), length_boundary=(1, 2)),
+    }
+    discriminator_cfg = DenseNetParams(
+        metadata=discriminator_metadata, input_size=2, activation_func="relu"
+    )
+
+    GAN_config = GANTopologyParams(
+        generator_params=generator_cfg, discriminator_params=discriminator_cfg
+    )
+
+    generator_compile_config = DenseNetCompileParams(
+        optimizer="Adam", loss_func="BinaryCrossentropy", metric_funcs=[]
+    )
+    compile_metadata = {
+        "optimizer": FieldMetadata(choices=["SGD", "Adam"]),
+    }
+    discriminator_compile_config = DenseNetCompileParams(
+        metadata=compile_metadata,
+        loss_func="BinaryCrossentropy",
+        metric_funcs=[],
+    )
+    GAN_compile_cfg = GANCompileParams(
+        generator_params=generator_compile_config,
+        discriminator_params=discriminator_compile_config,
+    )
+
+    search_alg_params = BaseSearchParameters()
+    search_alg_params.model_cfg = GAN_config
+    search_alg_params.compile_cfg = GAN_compile_cfg
+    search_alg_params.data = (train_data_x, train_data_y)
+    search_alg_params.val_data = (validation_data_x, validation_data_y)
+
+    grid_search_parameters = GridSearchParameters(search_alg_params)
+    grid_search_parameters.min_epoch = 5
+    grid_search_parameters.max_epoch = 10
+    grid_search_parameters.epoch_step = 5
+
+    (
+        result_metric_value,
+        result_epoch,
+        result_loss_name,
+        result_optimizer,
+        result_nn,
+    ) = grid_search(grid_search_parameters)
+
     assert True
 
 
@@ -144,22 +225,22 @@ def test_random_search(equation_data, in_size, out_size):
     random_search_parameters.loss_function = "MaxAbsolutePercentageError"
     random_search_parameters.min_epoch = 5
     random_search_parameters.max_epoch = 10
-    random_search_parameters.loss_threshold = 20
+    random_search_parameters.metric_threshold = 2.5
     random_search_parameters.nn_min_length = 1
     random_search_parameters.nn_max_length = 3
     random_search_parameters.nn_alphabet = ["0a", "f8", "42"]
     random_search_parameters.iterations = 1
-    random_search_parameters.max_launches = 5
+    random_search_parameters.max_launches = -1
 
     (
-        result_loss,
+        result_metric_value,
         result_epoch,
         result_loss_name,
         result_optimizer,
         result_nn,
         final_iteration,
     ) = random_search_endless(random_search_parameters)
-    assert True
+    assert result_metric_value < random_search_parameters.metric_threshold
 
 
 @pytest.mark.parametrize(
@@ -191,19 +272,19 @@ def test_sam(equation_data, in_size, out_size):
     simulated_annealing_parameters.loss_function = "Huber"
     simulated_annealing_parameters.min_epoch = 5
     simulated_annealing_parameters.max_epoch = 10
-    simulated_annealing_parameters.loss_threshold = 1
+    simulated_annealing_parameters.metric_threshold = 2.5
     simulated_annealing_parameters.nn_min_length = 1
     simulated_annealing_parameters.nn_max_length = 3
     simulated_annealing_parameters.nn_alphabet = ["0a", "f8", "42"]
-    simulated_annealing_parameters.max_launches = 5
+    simulated_annealing_parameters.max_launches = 30
     simulated_annealing_parameters.distance_method = distance_lin(400, 50)
 
     (
-        result_loss,
+        result_metric_value,
         result_epoch,
         result_loss_name,
         result_optimizer,
         result_nn,
         final_iteration,
     ) = simulated_annealing(simulated_annealing_parameters)
-    assert True
+    assert result_metric_value < simulated_annealing_parameters.metric_threshold
