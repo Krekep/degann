@@ -1,31 +1,18 @@
 import os
-from numbers import Number
-from typing import List, Optional, Dict, Callable, Union
+from typing import List, Optional, Dict, Any
 
 import tensorflow as tf
-from tensorflow import keras
 
 from degann.networks.config_format import LAYER_DICT_NAMES
 from degann.networks import layer_creator, losses, metrics, cpp_utils
 from degann.networks import optimizers
 from degann.networks.layers.tf_dense import TensorflowDense
+from degann.networks.topology.densenet.topology_config import DenseNetParams
+from degann.networks.topology.densenet.compile_config import DenseNetCompileParams
 
 
 class TensorflowDenseNet(tf.keras.Model):
-    def __init__(
-        self,
-        input_size: int = 1,
-        block_size: Optional[list] = None,
-        output_size: int = 1,
-        activation_func: str | list[str] = "linear",
-        weight=keras.initializers.RandomUniform(minval=-1, maxval=1),
-        biases=keras.initializers.RandomUniform(minval=-1, maxval=1),
-        is_debug: bool = False,
-        **kwargs,
-    ):
-        if block_size is None:
-            block_size = []
-
+    def __init__(self, config: DenseNetParams = DenseNetParams(), **kwargs):
         decorator_params: List[Optional[Dict]] = [None]
         if "decorator_params" in kwargs.keys():
             value = kwargs.get("decorator_params")
@@ -44,110 +31,105 @@ class TensorflowDenseNet(tf.keras.Model):
             and decorator_params[0] is None
             or decorator_params is None
         ):
-            decorator_params = [None] * (len(block_size) + 1)
+            decorator_params = [None] * (len(config.block_size) + 1)
 
         if (
             isinstance(decorator_params, list)
             and len(decorator_params) == 1
             and decorator_params[0] is not None
         ):
-            decorator_params = decorator_params * (len(block_size) + 1)
+            decorator_params = decorator_params * (len(config.block_size) + 1)
 
         self.blocks: List[TensorflowDense] = []
 
-        if not isinstance(activation_func, list):
-            activation_func_list = [activation_func] * (len(block_size) + 1)
+        if not isinstance(config.activation_func, list):
+            activation_func_list = [config.activation_func] * (
+                len(config.block_size) + 1
+            )
         else:
-            activation_func_list = activation_func.copy()
+            activation_func_list = config.activation_func.copy()
 
-        if len(block_size) != 0:
+        if len(config.block_size) != 0:
             self.blocks.append(
                 layer_creator.create_dense(
-                    input_size,
-                    block_size[0],
+                    config.input_size,
+                    config.block_size[0],
                     activation=activation_func_list[0],
-                    weight=weight,
-                    bias=biases,
-                    is_debug=is_debug,
+                    weight=config.weight,
+                    bias=config.biases,
+                    is_debug=config.is_debug,
                     name=f"TFDense0",
                     decorator_params=decorator_params[0],
                 )
             )
-            for i in range(1, len(block_size)):
+            for i in range(1, len(config.block_size)):
                 self.blocks.append(
                     layer_creator.create_dense(
-                        block_size[i - 1],
-                        block_size[i],
+                        config.block_size[i - 1],
+                        config.block_size[i],
                         activation=activation_func_list[i],
-                        weight=weight,
-                        bias=biases,
-                        is_debug=is_debug,
+                        weight=config.weight,
+                        bias=config.biases,
+                        is_debug=config.is_debug,
                         name=f"TFDense{i}",
                         decorator_params=decorator_params[i],
                     )
                 )
-            last_block_size = block_size[-1]
+            last_block_size = config.block_size[-1]
         else:
-            last_block_size = input_size
+            last_block_size = config.input_size
 
         self.out_layer = layer_creator.create_dense(
             last_block_size,
-            output_size,
+            config.output_size,
             activation=activation_func_list[-1],
-            weight=weight,
-            bias=biases,
-            is_debug=is_debug,
+            weight=config.weight,
+            bias=config.biases,
+            is_debug=config.is_debug,
             name=f"OutLayerTFDense",
             decorator_params=decorator_params[-1],
         )
 
         self.activation_funcs = activation_func_list
-        self.weight_initializer = weight
-        self.bias_initializer = biases
-        self.input_size = input_size
-        self.block_size = block_size
-        self.output_size = output_size
+        self.weight_initializer = config.weight
+        self.bias_initializer = config.biases
+        self.input_size = config.input_size
+        self.block_size = config.block_size
+        self.output_size = config.output_size
         self.trained_time = {"train_time": 0.0, "epoch_time": [], "predict_time": 0}
 
     def custom_compile(
-        self,
-        rate: float = 1e-2,
-        optimizer: str | tf.keras.optimizers.Optimizer = "SGD",
-        loss_func: str | tf.keras.losses.Loss = "MeanSquaredError",
-        metric_funcs=None,
-        run_eagerly=False,
+        self, config: DenseNetCompileParams = DenseNetCompileParams()
     ) -> None:
         """
         Configures the model for training
 
         Parameters
         ----------
-        rate: float
-            learning rate for optimizer
-        optimizer: str
-            name of optimizer
-        loss_func: str
-            name of loss function
-        metric_funcs: list[str]
-            list with metric function names
-        run_eagerly: bool
+        config: DenseNetCompileParams
+            parameters for compilation containing learning rate, optimizer,
+            loss function and metrics
+
+        Returns
+        -------
+
         """
-        loss = losses.get_loss(loss_func) if isinstance(loss_func, str) else loss_func
         opt = (
-            optimizers.get_optimizer(optimizer)(learning_rate=rate)
-            if isinstance(optimizer, str)
-            else optimizer
+            optimizers.get_optimizer(config.optimizer)(learning_rate=config.rate)
+            if isinstance(config.optimizer, str)
+            else config.optimizer
         )
-        m = (
-            [metrics.get_metric(metric) for metric in metric_funcs]
-            if metric_funcs is not None
-            else []
+        loss = (
+            losses.get_loss(config.loss_func)
+            if isinstance(config.loss_func, str)
+            else config.loss_func
         )
+        m = [metrics.get_metric(metric) for metric in config.metric_funcs]
         self.compile(
             optimizer=opt,
             loss=loss,
             metrics=m,
-            run_eagerly=run_eagerly,
+            run_eagerly=config.run_eagerly,
         )
 
     def call(self, inputs, **kwargs):
@@ -167,7 +149,7 @@ class TensorflowDenseNet(tf.keras.Model):
             x = layer(x, **kwargs)
         return self.out_layer(x, **kwargs)
 
-    def train_step(self, data):
+    def train_step(self, data) -> dict[str, tf.Tensor]:
         """
         Custom train step from tensorflow tutorial
 
@@ -202,7 +184,7 @@ class TensorflowDenseNet(tf.keras.Model):
         # Return a dict mapping metric names to current value
         return {m.name: m.result() for m in self.metrics}
 
-    def set_name(self, new_name):
+    def set_name(self, new_name) -> None:
         self._name = new_name
 
     def __str__(self):
@@ -212,7 +194,7 @@ class TensorflowDenseNet(tf.keras.Model):
         res += str(self.out_layer)
         return res
 
-    def to_dict(self, **kwargs):
+    def to_dict(self, **kwargs) -> dict:
         """
         Export neural network to dictionary
 
@@ -224,9 +206,10 @@ class TensorflowDenseNet(tf.keras.Model):
         -------
 
         """
-        res = {
+        res: Dict[str, Any] = {
             "net_type": "TFDense",
-            "name": self._name,
+            # "name": self._name,
+            "name": getattr(self, "_name", ""),
             "input_size": self.input_size,
             "block_size": self.block_size,
             "output_size": self.output_size,
