@@ -220,7 +220,7 @@ class PhysicsInformedNet(keras.Model):
     def custom_train_step(self, inputs, block, prev_model, prev_block):
         with tf.GradientTape(persistent=True) as tape:
             tape.watch(inputs)
-            loss = 0
+            loss = 0.0
             for j, loss_func in enumerate(block.losses):
                 temp = loss_func(
                     self,

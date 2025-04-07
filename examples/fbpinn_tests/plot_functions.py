@@ -18,8 +18,9 @@ def plot_each_submodel(x, y, nn: TensorflowFBPINN, axes):
     axes.set_xlabel("x")
     axes.set_ylabel("y")
     axes.legend()
+    axes.grid()
     axes.set_title("Actual vs Predicted Data")
-    plt.show()
+    # plt.show()
 
 
 def plot_model(x, y, nn: TensorflowFBPINN, axes):
@@ -29,4 +30,4 @@ def plot_model(x, y, nn: TensorflowFBPINN, axes):
     axes.set_xlabel("x")
     axes.set_ylabel("y")
     axes.legend()
-    plt.show()
+    axes.grid()

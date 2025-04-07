@@ -15,17 +15,16 @@ from matplotlib import pyplot as plt
 import mlflow
 from degann.geometry import RectangleDomain
 from degann.geometry.decomposition import Block
-from degann.networks.topology.tffbpinn3 import TensorflowFBPINN
+from degann.networks.topology.tffbpinn import TensorflowFBPINN
 from tensorflow.keras.callbacks import EarlyStopping
 from examples.fbpinn_tests.sin_losses import (
-    physic_loss,
-    fbpinn_orig_sin,
-    boundary_loss_1,
-    boundary_loss_2,
+    fbpinn_orig_sin_full,
+    boundary_loss_full,
+    boundary_loss_full2,
 )
 from examples.fbpinn_tests.plot_functions import plot_each_submodel, plot_model
 
-original_function = lambda x: tf.sin(10.0 * x)
+original_function = lambda x: tf.sin(1 * x)
 
 
 # Создаем расписание, зависящее от эпох
@@ -45,7 +44,7 @@ class EpochBasedScheduler(tf.keras.optimizers.schedules.LearningRateSchedule):
         return tf.maximum(lr, self.last_rate)  # Не опускаемся ниже last_rate
 
 
-phys_loss = fbpinn_orig_sin
+phys_loss = fbpinn_orig_sin_full
 which = phys_loss.__doc__
 
 run_id = random.randint(1, 10000)
@@ -58,15 +57,15 @@ log_dir = f"logs/fit/model{run_id}_{datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 summary_writer = tf.summary.create_file_writer(log_dir)
 
 
-initial_rate = 2e-2
-last_rate = 1e-4
-steps = 20000
-# lr = lambda step: max(last_rate, initial_rate - (initial_rate - last_rate) / steps * step)
+initial_rate = 1e-4
+last_rate = 1e-6
+steps = 100000
+mlflow.log_param("initial learning rate", initial_rate)
+mlflow.log_param("last learning rate", last_rate)
+mlflow.log_param("scheduler steps", steps)
 lr = EpochBasedScheduler(initial_rate, last_rate, steps, 1)
 # lr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=initial_rate, first_decay_steps=steps, t_mul=1.0, m_mul=0.7, alpha=last_rate)
 
-callbacks = None
-callbacks = [EarlyStopping(monitor="loss", patience=400)]
 lc = 0
 rc = np.pi * 4
 mlflow.log_param("left_bound", lc)
@@ -79,17 +78,15 @@ model_config = {
     "block_size": 0.72,
     "models_size": [32, 32],
     "overlap": 0.3,
-    "offset": True,
+    "offset": False,
     "points_per_block": 100,
 }
 mlflow.log_params(model_config)
 
 nn = TensorflowFBPINN(
     **model_config,
-    # physic_loss=physic_loss,
-    # boundary_loss=[(boundary_loss_1, [0.0]), (boundary_loss_2, [0.0])],
     physic_loss=phys_loss,
-    boundary_loss=[(boundary_loss_1, [0.0])],
+    boundary_loss=[(boundary_loss_full, [0.0]), (boundary_loss_full2, [0.0])],
     domain=RectangleDomain([lc], [rc]),
     summary_writer=summary_writer,
 )
@@ -104,8 +101,12 @@ print("Number of submodels", len(nn.blocks))
 
 nn.custom_compile(optimizer="AdamW", rate=lr, loss_func="MSE", run_eagerly=False)
 
-x = np.linspace(lc, rc, num=5000, dtype=np.float32).reshape((-1, 1))
-# y = tf.cast(original_function(x), dtype=tf.float32)
+x = tf.reshape(
+    tf.linspace(
+        tf.constant(lc, dtype=tf.float32), tf.constant(rc, dtype=tf.float32), num=5000
+    ),
+    (-1, 1),
+)
 y = original_function(x)
 
 tf.summary.trace_on(graph=True, profiler=False)
@@ -117,27 +118,31 @@ y_pred_before_train = nn.predict(x)
 loss_before_train = nn.evaluate(x, y, verbose=0)
 
 train_config = {
-    "epochs": 15_000,
-    "patience": 2500,
+    "epochs": 30_000,
+    "patience": 3000,
     "eval_interval": 1,
-    "batch_size": 50,
+    "batch_size": 5000,
     "log_interval": 1000,
-    "mode": "sequence",
+    "mode": "full",
 }
 mlflow.log_params(train_config)
 
+# nn.full_train(
 nn.train(
     **train_config,
     verbose=0,
-    callbacks=callbacks,
     val_function=original_function,
+    val_input=x,
+    png_salt=str(run_id),
 )
 loss_after_train = nn.evaluate(x, y, verbose=0)
 print("Before", loss_before_train)
 print("After", loss_after_train)
 mlflow.log_metric("Loss before training", loss_before_train)
 mlflow.log_metric("Loss after training", loss_after_train)
+mlflow.end_run()
 
 fig, axes = plt.subplots(nrows=2, ncols=1)
-# plot_each_submodel(x, y, nn, axes[0])
+plot_each_submodel(x, y, nn, axes[0])
 plot_model(x, y, nn, axes[1])
+plt.show()

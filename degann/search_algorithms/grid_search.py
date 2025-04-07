@@ -81,7 +81,7 @@ def grid_search_step(
     """
     best_net = None
     best_metric_value = 1e6
-    best_val_metric_value: Optional[float] = 1e6
+    best_val_metric_value: Optional[float] = None
     for i in range(repeat):
         update_random_generator(i, cycle_size=update_gen_cycle)
         history = SearchHistory()

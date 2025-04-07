@@ -192,3 +192,6 @@ experiments/results
 *.apg
 publish_pypi.bat
 .vscode
+*.png
+*tfevents*
+*mlruns*

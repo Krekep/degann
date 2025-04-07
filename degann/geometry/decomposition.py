@@ -34,7 +34,7 @@ class Block:
         # data = np.linspace(self.left_down_corner, self.right_up_corner)
         return self.data
 
-    def normalization(self, data: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+    def normalization(self, data: tf.Tensor) -> tf.Tensor:
         data_norm = (
             2.0 * ((data - self.vmin) / (self.vmax - self.vmin)) - 1.0
         )  # subdomain normalisation --- R -> [-1; 1]
@@ -65,7 +65,7 @@ class Block:
         self.right_up_corner: list[float] = right_corner
         self.window_function: Callable[
             [npt.NDArray[np.float64]], npt.NDArray[np.float64]
-        ] = window_function
+        ] = tf.function(window_function)
 
         self.vmax: float = max(right_corner + left_corner)
         self.vmin: float = min(right_corner + left_corner)
@@ -115,10 +115,11 @@ class Decomposition:
         self, left_corner, right_corner, omega: float = 30
     ) -> Callable[[tf.Tensor], tf.Tensor]:
         def sigmoid(x: tf.Tensor) -> tf.Tensor:
-            return tf.maximum(1 / (1 + tf.math.exp(-x)), 1e-10)
+            x_clipped = tf.clip_by_value(x, -50.0, 50.0)
+            return tf.maximum(1 / (1 + tf.math.exp(-x_clipped)), 1e-10)
 
-        left_corner_np = np.array(left_corner)
-        right_corner_np = np.array(right_corner)
+        left_corner_np = tf.constant(left_corner, dtype=tf.float32)
+        right_corner_np = tf.constant(right_corner, dtype=tf.float32)
 
         def window_function(x: tf.Tensor) -> tf.Tensor:
             left = sigmoid((x - (left_corner_np + self.overlap / 2.0)) * omega)
