@@ -1,6 +1,6 @@
 import tensorflow as tf
 from degann.geometry.decomposition import Block
-from degann.networks.topology.tffbpinn3 import TensorflowFBPINN
+from degann.networks.topology.tffbpinn import TensorflowFBPINN
 
 
 @tf.function
