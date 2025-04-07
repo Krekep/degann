@@ -315,12 +315,12 @@ class TensorflowFBPINN(tf.keras.Model):
             self.full_train(
                 epochs,
                 verbose,
-                callbacks,
-                val_function,
-                patience,
-                log_interval,
-                eval_interval,
-                batch_size,
+                callbacks=callbacks,
+                val_function=val_function,
+                patience=patience,
+                log_interval=log_interval,
+                eval_interval=eval_interval,
+                batch_size=batch_size,
                 val_input=val_input,
                 png_salt=png_salt,
             )
