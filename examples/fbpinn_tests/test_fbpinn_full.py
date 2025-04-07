@@ -47,6 +47,7 @@ class EpochBasedScheduler(tf.keras.optimizers.schedules.LearningRateSchedule):
 phys_loss = fbpinn_orig_sin_full
 which = phys_loss.__doc__
 
+mlflow.set_experiment("FBPINN du/dx = omega * cos(omega x)")
 run_id = random.randint(1, 10000)
 run_name = f"FBPINN_{run_id}"
 mlflow.start_run(run_name=run_name)
@@ -57,7 +58,7 @@ log_dir = f"logs/fit/model{run_id}_{datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 summary_writer = tf.summary.create_file_writer(log_dir)
 
 
-initial_rate = 1e-4
+initial_rate = 1e-3
 last_rate = 1e-6
 steps = 100000
 mlflow.log_param("initial learning rate", initial_rate)
@@ -118,7 +119,7 @@ y_pred_before_train = nn.predict(x)
 loss_before_train = nn.evaluate(x, y, verbose=0)
 
 train_config = {
-    "epochs": 30_000,
+    "epochs": 10_000,
     "patience": 3000,
     "eval_interval": 1,
     "batch_size": 5000,
@@ -130,6 +131,7 @@ mlflow.log_params(train_config)
 # nn.full_train(
 nn.train(
     **train_config,
+    callbacks=None,
     verbose=0,
     val_function=original_function,
     val_input=x,
