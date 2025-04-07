@@ -1,10 +1,8 @@
 from matplotlib import pyplot as plt
 import tensorflow as tf
 
-from degann.networks.topology.tffbpinn3 import TensorflowFBPINN
 
-
-def plot_each_submodel(x, y, nn: TensorflowFBPINN, axes):
+def plot_each_submodel(x, y, nn, axes):
     axes.plot(x, y, label="Real", color="orange")
     x_plot = tf.convert_to_tensor(x, dtype=tf.float32)
     for i, (submodel, block) in enumerate(nn.blocks):
@@ -23,7 +21,7 @@ def plot_each_submodel(x, y, nn: TensorflowFBPINN, axes):
     # plt.show()
 
 
-def plot_model(x, y, nn: TensorflowFBPINN, axes):
+def plot_model(x, y, nn, axes):
     y_pred = nn(x)
     axes.plot(x, y, label="Real", color="orange")
     axes.plot(x, y_pred, label="Predicted", color="green")
