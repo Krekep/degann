@@ -8,7 +8,7 @@ from tensorflow import keras
 
 from degann.networks.config_format import HEADER_OF_APG_FILE
 from degann.networks.topology.densenet.tf_densenet import TensorflowDenseNet
-from degann.networks.topology.physics_informed_net import PhysicsInformedNet
+from degann.networks.topology.pinn.pinn import PhysicsInformedNet
 from degann.networks.topology.densenet.topology_config import DenseNetParams
 from degann.networks.topology.densenet.compile_config import DenseNetCompileParams
 from degann.networks.topology.gan.gan import GAN
