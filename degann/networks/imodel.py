@@ -9,6 +9,9 @@ from tensorflow import keras
 from degann.networks.config_format import HEADER_OF_APG_FILE
 from degann.networks.topology.densenet.tf_densenet import TensorflowDenseNet
 from degann.networks.topology.densenet.topology_config import DenseNetParams
+from degann.networks.topology.convolutionalnet.tf_convolutionalnet import (
+    TensorflowConvolutionNet,
+)
 from degann.networks.topology.densenet.compile_config import DenseNetCompileParams
 from degann.networks.topology.gan.gan import GAN
 from degann.networks.topology.base_topology_configs import BaseTopologyParams
@@ -465,4 +468,5 @@ _create_functions: defaultdict[str, Type[tf.keras.Model]] = defaultdict(
     lambda: TensorflowDenseNet
 )
 _create_functions["DenseNet"] = TensorflowDenseNet
+_create_functions["ConvolutionalNet"] = TensorflowConvolutionNet
 _create_functions["GAN"] = GAN
