@@ -1,7 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Optional, List
 
-from degann.networks.topology.base import BaseNetworkMixin
 from degann.networks.topology.base_topology_configs import SingleNetworkParams
 from degann.networks.topology.densenet.tf_densenet import TensorflowDenseNet
 from degann.networks.topology.pinn.virtual_loss import VirtualLoss
