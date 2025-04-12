@@ -17,4 +17,3 @@ class PINNParams(SingleNetworkParams):
         super().__post_init__(metadata)
 
         self.net_type = "PINN"
-    

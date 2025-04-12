@@ -5,10 +5,10 @@ from degann.networks.topology.base_compile_configs import SingleNetworkCompilePa
 from degann.networks.topology.pinn.virtual_loss import VirtualLoss
 
 
-
 @dataclass
 class PINNCompileParams(SingleNetworkCompileParams):
     """
     Compile parameters for a physics-informed neural network topology.
     """
+
     virtual_functions: List[VirtualLoss] = field(default_factory=list)
