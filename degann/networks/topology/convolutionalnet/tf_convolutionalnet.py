@@ -11,61 +11,61 @@ from degann.networks.config_format import LAYER_DICT_NAMES
 from degann.networks import layer_creator, losses, metrics, cpp_utils
 from degann.networks import optimizers
 from degann.networks.layers.tf_dense import TensorflowDense
+from degann.networks.topology.convolutionalnet.topology_config import (
+    ConvolutionalNetParams,
+)
+from degann.networks.topology.convolutionalnet.compile_config import (
+    ConvolutionalNetCompileParams,
+)
 
 
 class TensorflowConvolutionNet(tf.keras.Model):
     def __init__(
         self,
-        output_size,
-        convolution_core_size=(3, 1),
-        padding_type="same",
-        convolution_block_types=[],
-        convolution_block_sizes=[],
-        dense_block_sizes: list = [],
-        chunk_size: int = 10,
-        convolutional_activation_func: str = "relu",
-        dense_activation_func: str = "relu",
-        is_debug: bool = False,
+        config: ConvolutionalNetParams = ConvolutionalNetParams(),
         **kwargs,
     ):
         # input data validation
-        assert len(convolution_block_types) == len(
-            convolution_block_sizes
+        print(config.convolution_block_sizes)
+        print(config.convolution_block_types)
+        print(config.block_size)
+        assert len(config.convolution_block_types) == len(
+            config.convolution_block_sizes
         ), "Sizes of convolutional types array and convolutional sizes array must be the same"
 
         # model initialisation
         super(TensorflowConvolutionNet, self).__init__()
         self.blocks = []
-        self.output_size = output_size
-        self.chunk_size = chunk_size
+        self.output_size = config.output_size
+        self.chunk_size = config.chunk_size
         self.trained_time = {"train_time": 0.0, "epoch_time": [], "predict_time": 0}
-        print(len(convolution_block_types))
-        for conv_layer_number in range(len(convolution_block_types)):
-            match convolution_block_types[conv_layer_number]:
+
+        for conv_layer_number in range(len(config.convolution_block_types)):
+            match config.convolution_block_types[conv_layer_number]:
                 case "maxPooling":
                     self.blocks.append(
                         layers.MaxPooling2D(
-                            (convolution_block_sizes[conv_layer_number], 1)
+                            (config.convolution_block_sizes[conv_layer_number], 1)
                         )
                     )
                 case "conv":
                     self.blocks.append(
                         layers.Conv2D(
-                            convolution_block_sizes[conv_layer_number],
-                            convolution_core_size,
-                            activation=convolutional_activation_func,
-                            padding=padding_type,
+                            config.convolution_block_sizes[conv_layer_number],
+                            config.convolution_core_size,
+                            activation=config.convolutional_activation_func,
+                            padding=config.padding_type,
                         )
                     )
         self.blocks.append(layers.Flatten())
-        for dense_layer_number in range(len(dense_block_sizes)):
+        for dense_layer_number in range(len(config.block_size)):
             self.blocks.append(
                 layers.Dense(
-                    dense_block_sizes[dense_layer_number],
-                    activation=dense_activation_func,
+                    config.block_size[dense_layer_number],
+                    activation=config.dense_activation_func,
                 ),
             )
-        self.out_layer = layers.Dense(output_size, activation="linear")
+        self.out_layer = layers.Dense(config.output_size, activation="linear")
 
     def call(self, inputs, **kwargs):
         """
@@ -88,6 +88,10 @@ class TensorflowConvolutionNet(tf.keras.Model):
         self._name = new_name
 
     def split_data(self, x, y):
+        """
+        функция принимает на вод данные и разделяет
+        их на чанки для обучения CNN
+        """
         x_data = np.array(
             [x[i : i + self.chunk_size] for i in range(0, len(x), self.chunk_size)]
         )[..., tf.newaxis]
@@ -112,38 +116,35 @@ class TensorflowConvolutionNet(tf.keras.Model):
         return res
 
     def custom_compile(
-        self,
-        rate=1e-3,
-        optimizer="SGD",
-        loss_func="MeanSquaredError",
-        metric_funcs=None,
-        run_eagerly=False,
-    ):
+        self, config: ConvolutionalNetCompileParams = ConvolutionalNetCompileParams()
+    ) -> None:
         """
         Configures the model for training
 
         Parameters
         ----------
-        rate: float
-            learning rate for optimizer
-        optimizer: str
-            name of optimizer
-        loss_func: str
-            name of loss function
-        metric_funcs: list[str]
-            list with metric function names
-        run_eagerly: bool
+        config: DenseNetCompileParams
+            parameters for compilation containing learning rate, optimizer,
+            loss function and metrics
 
         Returns
         -------
 
         """
-        opt = optimizers.get_optimizer(optimizer)(learning_rate=rate)
-        loss = losses.get_loss(loss_func)
-        m = [metrics.get_metric(metric) for metric in metric_funcs]
+        opt = (
+            optimizers.get_optimizer(config.optimizer)(learning_rate=config.rate)
+            if isinstance(config.optimizer, str)
+            else config.optimizer
+        )
+        loss = (
+            losses.get_loss(config.loss_func)
+            if isinstance(config.loss_func, str)
+            else config.loss_func
+        )
+        m = [metrics.get_metric(metric) for metric in config.metric_funcs]
         self.compile(
             optimizer=opt,
             loss=loss,
             metrics=m,
-            run_eagerly=run_eagerly,
+            run_eagerly=config.run_eagerly,
         )
