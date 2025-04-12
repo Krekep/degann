@@ -23,8 +23,6 @@ def grid_search_step(
     file_name: str = "",
     callbacks: Optional[list] = None,
     eval_metric: str = "root_mean_squared_error",
-    net_type: str = "DenseNet",
-    net_params: NetSpecificParams = DenseParams(),
 ):
     """
     This function is a step of the exhaustive search algorithm.
