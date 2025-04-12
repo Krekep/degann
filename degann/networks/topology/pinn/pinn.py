@@ -7,12 +7,11 @@ from degann.networks.topology.pinn.topology_config import PINNParams
 from degann.networks.topology.pinn.virtual_loss import VirtualLoss
 
 
-
 class PhysicsInformedNet(tf.keras.Model):
     def __init__(self, config: Optional[PINNParams] = None, **kwargs):
         if config is None:
             config = PINNParams()
-        
+
         decorator_params: List[Optional[Dict]] = [None]
         if "decorator_params" in kwargs.keys():
             value = kwargs.get("decorator_params")
@@ -99,9 +98,7 @@ class PhysicsInformedNet(tf.keras.Model):
         self.trained_time = {"train_time": 0.0, "epoch_time": [], "predict_time": 0}
         self.virtual_functions: Optional[List[VirtualLoss]] = None
 
-    def custom_compile(
-        self, config: Optional[PINNCompileParams]
-    ) -> None:
+    def custom_compile(self, config: Optional[PINNCompileParams]) -> None:
         """
         Configures the model for training
 
@@ -128,7 +125,7 @@ class PhysicsInformedNet(tf.keras.Model):
             else config.loss_func
         )
         m = [metrics.get_metric(metric) for metric in config.metric_funcs]
-        
+
         self.virtual_functions = config.virtual_functions
         self.compile(
             optimizer=opt,
@@ -156,7 +153,6 @@ class PhysicsInformedNet(tf.keras.Model):
             x = layer(x, training=training, mask=mask)
         return self.out_layer(x, training=training, mask=mask)
 
-
     def train_step(self, data: tuple[tf.Tensor, tf.Tensor]):  # type: ignore
         """
         Custom train step with physics and
@@ -180,7 +176,7 @@ class PhysicsInformedNet(tf.keras.Model):
             total_loss = self.compute_loss(y=y, y_pred=y_pred)
             if total_loss is None:
                 total_loss = tf.constant(0, dtype=tf.float32)
-            for virtual_function in  self.virtual_functions:
+            for virtual_function in self.virtual_functions:
                 virtual_deviation = virtual_function(self, tape, x)
                 virtual_loss = self.compiled_loss(
                     tf.zeros_like(virtual_deviation), virtual_deviation
@@ -203,8 +199,6 @@ class PhysicsInformedNet(tf.keras.Model):
                 metric.update_state(y, y_pred)
         # Return a dict mapping metric names to current value
         return {m.name: m.result() for m in self.metrics}
-    
-    def train(self,)
 
     def set_name(self, new_name):
         self._name = new_name
