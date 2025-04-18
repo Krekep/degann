@@ -18,14 +18,12 @@ from degann.geometry.decomposition import Block
 from degann.networks.topology.tffbpinn import TensorflowFBPINN
 from tensorflow.keras.callbacks import EarlyStopping
 from examples.fbpinn_tests.plot_functions import plot_each_submodel, plot_model
-from sin_losses.NLF_ODE_2 import NLF_ODE_2
+from wave_1d.LF_PDE1 import LF_PDE1
 
 
 # Создаем расписание, зависящее от эпох
 class EpochBasedScheduler(tf.keras.optimizers.schedules.LearningRateSchedule):
-    def __init__(
-        self, warmup_start, warmup_len, initial_rate, last_rate, steps, steps_per_epoch
-    ):
+    def __init__(self, warmup_start, warmup_len, initial_rate, last_rate, steps, steps_per_epoch):
         self.initial_rate = initial_rate
         self.last_rate = last_rate
         self.steps = steps
@@ -37,37 +35,34 @@ class EpochBasedScheduler(tf.keras.optimizers.schedules.LearningRateSchedule):
     def __call__(self, step):
         self.current_step += 1
         if self.current_step <= self.warmup_len:
-            lr = (
-                self.warmup_start
-                + (self.initial_rate - self.warmup_start)
-                / self.warmup_len
-                * self.current_step
-            )
+            lr = self.warmup_start + (self.initial_rate - self.warmup_start) / self.warmup_len * self.current_step
         else:
             lr = (
                 self.initial_rate
-                - (self.initial_rate - self.last_rate) / self.steps * self.current_step
+                - (self.initial_rate - self.last_rate) / (self.steps - self.warmup_len) * self.current_step
             )
             lr = tf.maximum(lr, self.last_rate)
         return lr
 
+lc = [0]
+rc = [1.0]
+pde = LF_PDE1()
+phys_loss = pde.phys_loss
+which = pde.description
 
-ode = NLF_ODE_2()
-phys_loss = ode.phys_loss
-which = ode.description
-
-mlflow.set_experiment("FBPINN Sin ODE")
+mlflow.set_experiment("FBPINN PDE Wave 1D")
 run_id = random.randint(1, 10000)
 run_name = f"FBPINN_{run_id}"
 mlflow.start_run(run_name=run_name)
 mlflow.set_tag("Training Info", f"FBPINN model for {which}")
 mlflow.set_tag("mlflow.runName", f"model{run_id}")
+mlflow.set_tag("Class", pde.equation_class)
 log_dir = f"logs/fit/model{run_id}_{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
 summary_writer = tf.summary.create_file_writer(log_dir)
 
 
 warmup_start = 0
-warmup_len = 1000
+warmup_len = 2000
 initial_rate = 1e-3
 last_rate = 1e-6
 steps = 50000
@@ -79,28 +74,29 @@ mlflow.log_param("last learning rate", last_rate)
 mlflow.log_param("scheduler steps", steps)
 lr = EpochBasedScheduler(warmup_start, warmup_len, initial_rate, last_rate, steps, 1)
 
-lc = 0
-rc = np.pi * 4
 mlflow.log_param("left_bound", lc)
 mlflow.log_param("right_bound", rc)
 
 model_config = {
-    "input_size": 1,
+    "input_size": 2,
     "output_size": 1,
     "activation_func": ["tanh", "tanh", "linear"],
-    "block_size": 0.72,
+    "block_size": 0.4,
     "models_size": [32, 32],
-    "overlap": 0.3,
+    "overlap": 0.2,
     "offset": False,
-    "points_per_block": 500,
+    "points_per_block": 200,
+    "time_input": True,
+    "end_time": 2.0,
+    "time_step": 0.2
 }
 mlflow.log_params(model_config)
 
 nn = TensorflowFBPINN(
     **model_config,
     physic_loss=phys_loss,
-    boundary_loss=ode.sub_losses,
-    domain=RectangleDomain([lc], [rc]),
+    boundary_loss=pde.sub_losses,
+    domain=RectangleDomain(lc, rc),
     summary_writer=summary_writer,
 )
 
@@ -108,19 +104,18 @@ fb = nn.blocks[0][1]
 fb.data = tf.linspace(
     tf.constant(lc, dtype=tf.float32),
     tf.constant(fb.right_up_corner, dtype=tf.float32),
-    model_config["points_per_block"],
+    model_config["points_per_block"] // 2,
 )
 print("Number of submodels", len(nn.blocks))
 
 nn.custom_compile(optimizer="AdamW", rate=lr, loss_func="MSE", run_eagerly=False)
 
-x = tf.reshape(
-    tf.linspace(
+x_value = tf.linspace(
         tf.constant(lc, dtype=tf.float32), tf.constant(rc, dtype=tf.float32), num=5000
-    ),
-    (-1, 1),
-)
-y = ode.solution(x)
+    )
+t = tf.constant(1.0, shape=x_value.shape)
+x = tf.concat([t, x_value], axis=1)
+y = pde.solution(x)
 
 tf.summary.trace_on(graph=True, profiler=False)
 y_pred_before_train = nn.predict(x)
@@ -132,10 +127,10 @@ loss_before_train = nn.evaluate(x, y, verbose=0)
 
 train_config = {
     "epochs": 8_000,
-    "patience": 3000,
+    "patience": 10_000,
     "eval_interval": 1,
-    "batch_size": 100_000,
-    "log_interval": 1000,
+    "batch_size": 10_000,
+    "log_interval": 200,
     "mode": "full",
 }
 mlflow.log_params(train_config)
@@ -145,8 +140,8 @@ nn.train(
     **train_config,
     callbacks=None,
     verbose=0,
-    ode=ode,
-    val_input=x,
+    ode=pde,
+    val_input=x_value,
     png_salt=str(run_id),
 )
 loss_after_train = nn.evaluate(x, y, verbose=0)
@@ -156,7 +151,17 @@ mlflow.log_metric("Loss before training", loss_before_train)
 mlflow.log_metric("Loss after training", loss_after_train)
 mlflow.end_run()
 
-fig, axes = plt.subplots(nrows=2, ncols=1)
-plot_each_submodel(x, x, y, nn, axes[0])
-plot_model(x, x, y, nn, axes[1])
-plt.show()
+
+for t_py in [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0]:
+    fig, axes = plt.subplots(nrows=2, ncols=1)
+    t = tf.constant(t_py, shape=x_value.shape)
+    x = tf.concat([t, x_value], axis=1)
+    plot_each_submodel(x, x_value, y, nn, axes[0])
+    plot_model(x, x_value, y, nn, axes[1])
+    plt.savefig(
+        f"FBPINN_{str(run_id)}_t{str(t_py)}.png", dpi=300, bbox_inches="tight"
+    )
+    plt.close(fig)
+# plot_each_submodel(x, y, nn, axes[0])
+# plot_model(x, y, nn, axes[1])
+# plt.show()

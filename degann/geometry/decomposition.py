@@ -1,4 +1,4 @@
-from math import ceil
+from math import ceil, inf
 from typing import Callable
 
 import numpy as np
@@ -27,13 +27,21 @@ class Block:
         "mean",
         "std",
         "data_size",
+        "__weakref__",
     ]
 
-    def get_data(self) -> npt.NDArray[np.float64]:
-        # data = np.random.uniform(self.left_down_corner, self.right_up_corner, size=self.data_size)
+    @tf.function
+    def get_data(self) -> tf.Tensor:
+        data = tf.random.uniform(
+            shape=(len(self.data), 1),
+            minval=self.left_down_corner,
+            maxval=self.right_up_corner,
+            dtype=tf.float32,
+        )
         # data = np.linspace(self.left_down_corner, self.right_up_corner)
-        return self.data
+        return data
 
+    @tf.function
     def normalization(self, data: tf.Tensor) -> tf.Tensor:
         data_norm = (
             2.0 * ((data - self.vmin) / (self.vmax - self.vmin)) - 1.0
@@ -41,6 +49,7 @@ class Block:
         # data_norm = (data - self.mean) / self.std  # subdomain normalisation
         return data_norm
 
+    @tf.function
     def unnormalization(self, data: tf.Tensor) -> tf.Tensor:
         data_unnorm = (data + 1.0) * (
             self.vmax - self.vmin
@@ -48,14 +57,26 @@ class Block:
         # data_unnorm = data * self.std + self.mean  # output unnormalisation
         return data_unnorm
 
-    def set_losses(self, losses: list[tuple[Callable, list[float]]]):
+    def set_losses(
+        self,
+        losses: list[tuple[Callable, list[tuple[float]]]],
+        time_input: bool = False,
+    ) -> None:
         res = []
-        for loss, bound in losses:
+        if time_input:
+            left_down_corner = [-inf] + self.left_down_corner
+            right_up_corner = [inf] + self.right_up_corner
+        else:
+            left_down_corner = self.left_down_corner
+            right_up_corner = self.right_up_corner
+        for loss, var_bound in losses:
             fl = True
-            for lc, b, rc in zip(self.left_down_corner, bound, self.right_up_corner):
-                if b is not None and (b < lc or rc < b):
-                    fl = False
-                    break
+            for lc, var_b, rc in zip(left_down_corner, var_bound, right_up_corner):
+                if var_b is not None:
+                    for b in var_b:
+                        if b < lc or rc < b:
+                            fl = False
+                            break
             if fl:
                 res.append(loss)
         self.losses = res
@@ -66,12 +87,17 @@ class Block:
         self.window_function: Callable[
             [npt.NDArray[np.float64]], npt.NDArray[np.float64]
         ] = tf.function(window_function)
+        # ] = window_function
 
-        self.vmax: float = max(right_corner + left_corner)
-        self.vmin: float = min(right_corner + left_corner)
+        self.vmax: tf.Tensor = tf.constant(
+            max(right_corner + left_corner), dtype=tf.float32
+        )
+        self.vmin: tf.Tensor = tf.constant(
+            min(right_corner + left_corner), dtype=tf.float32
+        )
         self.mean: float = np.mean(data)
         self.std: float = np.std(data)
-        self.data = data
+        self.data: tf.Tensor = data
         self.data_size = data.shape
 
 
@@ -122,6 +148,7 @@ class Decomposition:
         right_corner_np = tf.constant(right_corner, dtype=tf.float32)
 
         def window_function(x: tf.Tensor) -> tf.Tensor:
+            # x = x_in[:, self.domain.time_index + 1:]
             left = sigmoid((x - (left_corner_np + self.overlap / 2.0)) * omega)
             right = sigmoid(((right_corner_np - self.overlap / 2.0) - x) * omega)
             return left * right
@@ -169,7 +196,8 @@ class Decomposition:
                         if rc_list[rc_i] == rc_bound:
                             rc_list[rc_i] += self.overlap
                 window_function = self.get_window_function(lc_list, rc_list)
-                data = np.random.uniform(lc_list, rc_list, size=points_per_block)
+                size = [points_per_block] + [len(lc_list)]
+                data = np.random.uniform(low=lc_list, high=rc_list, size=size)
                 # data = np.linspace(lc_list, rc_list, num=points_per_block)
                 block = Block(lc_list, rc_list, window_function, data)
                 self.blocks.append(block)

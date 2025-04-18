@@ -23,9 +23,7 @@ from sin_losses.NLF_ODE_2 import NLF_ODE_2
 
 # Создаем расписание, зависящее от эпох
 class EpochBasedScheduler(tf.keras.optimizers.schedules.LearningRateSchedule):
-    def __init__(
-        self, warmup_start, warmup_len, initial_rate, last_rate, steps, steps_per_epoch
-    ):
+    def __init__(self, warmup_start, warmup_len, initial_rate, last_rate, steps, steps_per_epoch):
         self.initial_rate = initial_rate
         self.last_rate = last_rate
         self.steps = steps
@@ -34,15 +32,10 @@ class EpochBasedScheduler(tf.keras.optimizers.schedules.LearningRateSchedule):
         self.warmup_len = warmup_len
         self.current_step = 0
 
-    def __call__(self, step):
+    def __call__(self, step):        
         self.current_step += 1
         if self.current_step <= self.warmup_len:
-            lr = (
-                self.warmup_start
-                + (self.initial_rate - self.warmup_start)
-                / self.warmup_len
-                * self.current_step
-            )
+            lr = self.warmup_start + (self.initial_rate - self.warmup_start) / self.warmup_len * self.current_step
         else:
             lr = (
                 self.initial_rate
@@ -50,7 +43,6 @@ class EpochBasedScheduler(tf.keras.optimizers.schedules.LearningRateSchedule):
             )
             lr = tf.maximum(lr, self.last_rate)
         return lr
-
 
 ode = NLF_ODE_2()
 phys_loss = ode.phys_loss
@@ -92,7 +84,7 @@ model_config = {
     "models_size": [32, 32],
     "overlap": 0.3,
     "offset": False,
-    "points_per_block": 500,
+    "points_per_block": 1000,
 }
 mlflow.log_params(model_config)
 
@@ -122,25 +114,31 @@ x = tf.reshape(
 )
 y = ode.solution(x)
 
-tf.summary.trace_on(graph=True, profiler=False)
+# tf.summary.trace_on(graph=True, profiler=False)
 y_pred_before_train = nn.predict(x)
-with summary_writer.as_default():
-    tf.summary.trace_export(name="model_graph", step=0, profiler_outdir=log_dir)
+# with summary_writer.as_default():
+#     tf.summary.trace_export(name="model_graph", step=0, profiler_outdir=log_dir)
 
 y_pred_before_train = nn.predict(x)
 loss_before_train = nn.evaluate(x, y, verbose=0)
 
 train_config = {
-    "epochs": 8_000,
+    "epochs": 100_000,
     "patience": 3000,
     "eval_interval": 1,
-    "batch_size": 100_000,
-    "log_interval": 1000,
+    "batch_size": 10_000_000,
+    "log_interval": 10000,
     "mode": "full",
 }
 mlflow.log_params(train_config)
 
-# nn.full_train(
+# noise = tf.constant(0, shape=nn.data.shape, dtype=tf.float32)
+noise_py = [0.0] * len(nn.data)
+indices = [200, 15000, 29800]
+for idx in indices:
+    noise_py[idx] = ode.solution(nn.data[idx]).cpu().numpy().item() * 0.2
+with tf.device('/GPU:0'):
+    noise = tf.constant(noise_py, shape=nn.data.shape, dtype=tf.float32)
 nn.train(
     **train_config,
     callbacks=None,
@@ -148,6 +146,7 @@ nn.train(
     ode=ode,
     val_input=x,
     png_salt=str(run_id),
+    noise=noise
 )
 loss_after_train = nn.evaluate(x, y, verbose=0)
 print("Before", loss_before_train)
@@ -157,6 +156,20 @@ mlflow.log_metric("Loss after training", loss_after_train)
 mlflow.end_run()
 
 fig, axes = plt.subplots(nrows=2, ncols=1)
-plot_each_submodel(x, x, y, nn, axes[0])
-plot_model(x, x, y, nn, axes[1])
+# plot_each_submodel(x, x, y, nn, axes[0])
+plot_model(x, x, y, nn, axes[0])
+x_model = tf.sort(nn.data, axis=0)
+y_model_true = ode.solution(x_model)
+y_noise = y_model_true + noise
+axes[1].plot(x_model, y_noise, label="Real data + noise", color="red")
+y_pred = nn(x_model)
+axes[1].plot(x_model, y_pred, label="Predicted", color="green")
+axes[1].scatter(tf.gather(x_model, indices=indices), tf.gather(y_noise, indices=indices), label="Noise offset", color="blue")
+axes[1].set_xlabel("x")
+axes[1].set_ylabel("y")
+axes[1].legend()
+axes[1].grid()
+plt.savefig(
+    f"FBPINN_{str(run_id)}.png", dpi=300, bbox_inches="tight"
+)
 plt.show()
