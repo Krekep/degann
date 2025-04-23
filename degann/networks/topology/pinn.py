@@ -172,6 +172,7 @@ class PhysicsInformedNet(keras.Model):
             run_eagerly=run_eagerly,
         )
 
+    @tf.function
     def call(self, inputs, **kwargs):
         """
         Obtaining a neural network response on the input data vector

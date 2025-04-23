@@ -10,9 +10,12 @@ class RectangleDomain:
     left_down_corner: list[float]
     right_up_corner: list[float]
 
-    def __init__(self, left_corner: list[float], right_corner: list[float]) -> None:
+    def __init__(
+        self, left_corner: list[float], right_corner: list[float], time_index: int = -1
+    ) -> None:
         self.left_down_corner = left_corner
         self.right_up_corner = right_corner
+        self.time_index = time_index  # for window function
 
 
 class Block:
@@ -33,13 +36,13 @@ class Block:
     @tf.function
     def get_data(self) -> tf.Tensor:
         data = tf.random.uniform(
-            shape=(len(self.data), 1),
+            shape=self.data.shape,
             minval=self.left_down_corner,
             maxval=self.right_up_corner,
             dtype=tf.float32,
         )
-        # data = np.linspace(self.left_down_corner, self.right_up_corner)
         return data
+        # return self.data
 
     @tf.function
     def normalization(self, data: tf.Tensor) -> tf.Tensor:
@@ -85,9 +88,10 @@ class Block:
         self.left_down_corner: list[float] = left_corner
         self.right_up_corner: list[float] = right_corner
         self.window_function: Callable[
-            [npt.NDArray[np.float64]], npt.NDArray[np.float64]
-        ] = tf.function(window_function)
-        # ] = window_function
+            [npt.NDArray[np.float64]],
+            npt.NDArray[np.float64]
+            # ] = tf.function(window_function)
+        ] = window_function
 
         self.vmax: tf.Tensor = tf.constant(
             max(right_corner + left_corner), dtype=tf.float32
@@ -129,9 +133,6 @@ class Decomposition:
             while last < domain.right_up_corner[i]:
                 number_of_blocks += 1
                 last = last - overlap + block_size
-
-            # size = domain.right_up_corner[i] - domain.left_down_corner[i]
-            # number_of_blocks = ceil(max(0.0, size - block_size) / (block_size - overlap) + 1)
             self.blocks_per_axis.append(number_of_blocks)
 
         n = len(domain.left_down_corner)
@@ -144,11 +145,15 @@ class Decomposition:
             x_clipped = tf.clip_by_value(x, -50.0, 50.0)
             return tf.maximum(1 / (1 + tf.math.exp(-x_clipped)), 1e-10)
 
-        left_corner_np = tf.constant(left_corner, dtype=tf.float32)
-        right_corner_np = tf.constant(right_corner, dtype=tf.float32)
+        left_corner_np = tf.constant(
+            left_corner[self.domain.time_index + 1 :], dtype=tf.float32
+        )
+        right_corner_np = tf.constant(
+            right_corner[self.domain.time_index + 1 :], dtype=tf.float32
+        )
 
-        def window_function(x: tf.Tensor) -> tf.Tensor:
-            # x = x_in[:, self.domain.time_index + 1:]
+        def window_function(x_in: tf.Tensor) -> tf.Tensor:
+            x = x_in[:, self.domain.time_index + 1 :]
             left = sigmoid((x - (left_corner_np + self.overlap / 2.0)) * omega)
             right = sigmoid(((right_corner_np - self.overlap / 2.0) - x) * omega)
             return left * right
@@ -197,12 +202,20 @@ class Decomposition:
                             rc_list[rc_i] += self.overlap
                 window_function = self.get_window_function(lc_list, rc_list)
                 size = [points_per_block] + [len(lc_list)]
-                data = np.random.uniform(low=lc_list, high=rc_list, size=size)
-                # data = np.linspace(lc_list, rc_list, num=points_per_block)
+                data = tf.random.uniform(
+                    # shape=size + [1],
+                    shape=size,
+                    minval=lc_list,
+                    maxval=rc_list,
+                    dtype=tf.float32,
+                )
+                data = tf.sort(data, axis=0)
                 block = Block(lc_list, rc_list, window_function, data)
                 self.blocks.append(block)
         else:
             while current_idx[current_ax] < self.blocks_per_axis[current_ax]:
-                self.build_decomposition(current_ax + 1, current_idx, n)
+                self.build_decomposition(
+                    current_ax + 1, current_idx, n, points_per_block
+                )
                 current_idx[current_ax] += 1
             current_idx[current_ax] = 0

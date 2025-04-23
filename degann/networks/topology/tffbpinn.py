@@ -42,6 +42,7 @@ class TensorflowFBPINN(tf.keras.Model):
         time_input: bool = False,
         end_time: float = 1.0,
         time_step: float = 1.0,
+        losses_weight: list = None,
         **kwargs,
     ):
         super(TensorflowFBPINN, self).__init__(**kwargs)
@@ -60,6 +61,8 @@ class TensorflowFBPINN(tf.keras.Model):
             points_per_block=points_per_block,
         )
         number_of_networks = len(self.decomposition.blocks)
+        if losses_weight is None:
+            losses_weight = [1.0] * (len(boundary_loss) + 1)
         for block in self.decomposition.blocks:
             block.set_losses(
                 boundary_loss + [(physic_loss, [None])], time_input=time_input
@@ -94,10 +97,12 @@ class TensorflowFBPINN(tf.keras.Model):
         self.model_per_loss = []
         for i, (loss, point) in enumerate(boundary_loss + [(physic_loss, None)]):
             if point is None:
-                self.model_per_loss.append((loss, list(range(0, len(self.blocks)))))
+                self.model_per_loss.append(
+                    (loss, list(range(0, len(self.blocks))), losses_weight[i])
+                )
             else:
                 models = []
-                for i, (nn, block) in enumerate(self.blocks):
+                for j, (nn, block) in enumerate(self.blocks):
                     if time_input:
                         left_down_corner = [-math.inf] + block.left_down_corner
                         right_up_corner = [math.inf] + block.right_up_corner
@@ -112,8 +117,8 @@ class TensorflowFBPINN(tf.keras.Model):
                                     fl = True
                                     break
                     if fl:
-                        models.append(i)
-                self.model_per_loss.append((loss, models))
+                        models.append(j)
+                self.model_per_loss.append((loss, models, losses_weight[i]))
 
         self.time_input = time_input
         self.time_step = time_step
@@ -209,7 +214,8 @@ class TensorflowFBPINN(tf.keras.Model):
         temp = []
         for i, block in enumerate(self.decomposition.blocks):
             block.data = tf.reshape(
-                tf.convert_to_tensor(block.get_data(), dtype=tf.float32), shape=(-1, 1)
+                tf.convert_to_tensor(block.get_data(), dtype=tf.float32),
+                shape=block.data.shape,
             )
             temp.append(block.data)
         self.data = tf.concat(temp, axis=0)
@@ -241,19 +247,19 @@ class TensorflowFBPINN(tf.keras.Model):
         return nn
 
     def split_to_batches(self, input_data, batch_size):
-        input_data = tf.random.shuffle(input_data)
-        n = input_data.shape[0]
-        k = batch_size
-        num_batches = n // k
-        remainder = n % k
+        # input_data = tf.random.shuffle(input_data)
+        # n = input_data.shape[0]
+        # k = batch_size
+        # num_batches = n // k
+        # remainder = n % k
 
-        # Полные батчи
-        if num_batches > 0:
-            full_batches = tf.split(input_data[: num_batches * k], num_batches)
-            if remainder != 0:
-                full_batches.append(input_data[num_batches * k :])
+        # # Полные батчи
+        # if num_batches > 0:
+        #     full_batches = tf.split(input_data[: num_batches * k], num_batches)
+        #     if remainder != 0:
+        #         full_batches.append(input_data[num_batches * k :])
 
-            return full_batches
+        #     return full_batches
         return [input_data]
 
     def log_weights(self, epoch, model):
@@ -332,8 +338,8 @@ class TensorflowFBPINN(tf.keras.Model):
         ) = self.get_val_score(x, ode.solution)
 
         fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(10, 6))
-        plot_each_submodel(x, val_input, y_true, self, axes[0])
-        plot_model(x, val_input, y_true, self, axes[1])
+        plot_each_submodel(x, val_input[:, 1], y_true, self, axes[0])
+        plot_model(x, val_input[:, 1], y_true, self, axes[1])
         plt.savefig(
             f"FBPINN_{png_salt}_{epoch}_t{t[0]}.png", dpi=300, bbox_inches="tight"
         )
@@ -342,23 +348,45 @@ class TensorflowFBPINN(tf.keras.Model):
         for nn, block in self.blocks:
             self.log_weights(epoch, nn)
 
-        # with tf.GradientTape() as tape:
-        #     tape.watch(x)
-        #     u = self(x)
-        #     u_x = tape.gradient(u, x)
-        #     original_d = ode.first_der("x", val_input, val_input)
-        #     fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(10, 6))
-        #     axes[0].plot(val_input, original_d, label="Truth derivative", color="red")
-        #     axes[0].plot(val_input, u_x, label="Model derivative", color="green")
-        #     axes[1].plot(val_input, original_d - u_x, label="Difference", color="blue")
-        #     axes[0].grid()
-        #     axes[1].grid()
-        #     axes[1].legend()
-        #     axes[0].legend()
-        #     plt.savefig(
-        #         f"FBPINN_{png_salt}_d_{epoch}_t{t[0]}.png", dpi=300, bbox_inches="tight"
-        #     )
-        #     plt.close(fig)
+        with tf.GradientTape() as tape:
+            tape.watch(x)
+            u = self(x)
+            u_x = tape.gradient(u, x)
+            original_dx = ode.first_der("x", val_input[:, 0], val_input[:, 1])
+            original_dt = ode.first_der("t", val_input[:, 0], val_input[:, 1])
+            fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(10, 6))
+            axes[0].plot(
+                val_input[:, 1], original_dx, label="Truth x derivative", color="red"
+            )
+            axes[0].plot(
+                val_input[:, 0], original_dt, label="Truth t derivative", color="black"
+            )
+            axes[0].plot(
+                val_input[:, 1], u_x[:, 1], label="Model x derivative", color="green"
+            )
+            axes[0].plot(
+                val_input[:, 0], u_x[:, 0], label="Model t derivative", color="purple"
+            )
+            axes[1].plot(
+                val_input[:, 1],
+                original_dx - u_x[:, 1],
+                label="Difference x",
+                color="blue",
+            )
+            axes[1].plot(
+                val_input[:, 0],
+                original_dt - u_x[:, 0],
+                label="Difference t",
+                color="orange",
+            )
+            axes[0].grid()
+            axes[1].grid()
+            axes[1].legend()
+            axes[0].legend()
+            plt.savefig(
+                f"FBPINN_{png_salt}_d_{epoch}_t{t[0]}.png", dpi=300, bbox_inches="tight"
+            )
+            plt.close(fig)
 
         print(
             f"Epoch {epoch}, loss {loss}, val mse loss {val_mse_loss}, mae loss {val_mae_loss}, rel l1loss {val_l1_loss}. {datetime.datetime.now()}"
@@ -378,6 +406,8 @@ class TensorflowFBPINN(tf.keras.Model):
         val_input=None,
         png_salt="",
         noise=None,
+        blocks_per_layer=None,
+        epoch_before_increase=None,
     ):
         self.build_data()
         self.build_time_vectors()
@@ -407,6 +437,22 @@ class TensorflowFBPINN(tf.keras.Model):
                 val_input=val_input,
                 png_salt=png_salt,
                 noise=noise,
+            )
+        elif mode == "layer":
+            self.layer_train(
+                epochs,
+                verbose,
+                callbacks=callbacks,
+                ode=ode,
+                patience=patience,
+                log_interval=log_interval,
+                eval_interval=eval_interval,
+                batch_size=batch_size,
+                val_input=val_input,
+                png_salt=png_salt,
+                noise=noise,
+                epoch_before_increase=epoch_before_increase,
+                blocks_per_layer=blocks_per_layer,
             )
         else:
             raise ValueError("Unsupported train mode")
@@ -438,14 +484,17 @@ class TensorflowFBPINN(tf.keras.Model):
             blocks_per_layer = sum(blocks_per_axis[:-1])
         layer_start = 0
         layer_end = blocks_per_layer
-        for epoch in epochs:
+        counter = 0
+        print(f"Epoch {0}, layer start {layer_start}, layer end {layer_end}")
+        for epoch in range(epochs):
             start_time = time.perf_counter()
             data = []
-            for i in range(layer_start, layer_end + 1):
-                data.append(self.blocks[i].get_data())
+            for i in range(layer_start, layer_end):
+                data.append(self.blocks[i][1].get_data())
             data = tf.concat(data, axis=0)
 
-            blocks_data = self.data
+            blocks_data = data
+            # blocks_data = self.data
             for t in self.time_data:
                 log_t = [None]
                 if t is not None:
@@ -453,11 +502,14 @@ class TensorflowFBPINN(tf.keras.Model):
                     log_t = t
                 else:
                     data = blocks_data
-                batches = self.split_to_batches(data, batch_size)
+                # batches = self.split_to_batches(data, batch_size)
                 loss = 0
-                for batch in batches:
-                    metrics = self.train_step(batch, noise, 0, len(self.blocks))
-                    loss += metrics["loss"]
+                # for batch in batches:
+                if epoch == 0:
+                    metrics = self.train_step(data, noise, 0, len(self.blocks))
+                else:
+                    metrics = self.train_step(data, noise, layer_start, layer_end)
+                loss += metrics["loss"]
                 if loss < best_loss:
                     best_loss = loss
                     curr_patience = 0
@@ -465,15 +517,30 @@ class TensorflowFBPINN(tf.keras.Model):
                 if curr_patience > patience:
                     break
             end_time = time.perf_counter()
+            if epoch == 0:
+                end_time = start_time
             if epoch % eval_interval == 0:
                 self.log_validation_metrics(
                     log_t, val_input, ode, epoch, loss, end_time - start_time
                 )
             if epoch % log_interval == 0:
                 self.log_graphics(log_t, val_input, ode, epoch, loss, png_salt)
+                print(f"Epoch {epoch}, data length {len(blocks_data)}")
             if (epoch + 1) % epoch_before_increase == 0:
-                layer_start = layer_end + 1
-                layer_end = layer_end + block_per_layer
+                if layer_end < len(self.blocks) - 1:
+                    if counter == 0:
+                        counter += 1
+                    else:
+                        layer_start = layer_start + blocks_per_layer
+                    layer_end = layer_end + blocks_per_layer
+                    print(
+                        f"Epoch {epoch}, layer start {layer_start}, layer end {layer_end}"
+                    )
+                else:
+                    layer_start = 0
+                    print(
+                        f"Epoch {epoch}, layer start {layer_start}, layer end {layer_end}"
+                    )
             if loss < best_loss:
                 best_loss = loss
                 curr_patience = 0
@@ -539,7 +606,7 @@ class TensorflowFBPINN(tf.keras.Model):
                 self.log_graphics(log_t, val_input, ode, epoch, loss, png_salt)
         self.log_graphics(log_t, val_input, ode, epoch, loss, png_salt)
 
-    @tf.function
+    # @tf.function
     def train_step(self, data, noise, layer_start, layer_end):
         """
         Custom train step from tensorflow tutorial
@@ -566,14 +633,18 @@ class TensorflowFBPINN(tf.keras.Model):
             with tf.device("/GPU:0"):
                 x = tf.identity(data)
             loss: tf.Tensor = tf.zeros(shape=1)
-            for loss_func, models in self.model_per_loss:
+            for loss_func, models, loss_weigth in self.model_per_loss:
                 active_models = []
                 for model in models:
                     if layer_start <= model <= layer_end:
                         active_models.append(self.blocks[model])
-                loss += loss_func(
-                    self, tape, x, noise=noise, active_models=active_models
-                )
+                if len(active_models) > 0:
+                    loss += (
+                        loss_func(
+                            self, tape, x, noise=noise, active_models=active_models
+                        )
+                        * loss_weigth
+                    )
 
         # Compute gradients
         trainable_vars = get_active_variables(active_models)

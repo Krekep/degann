@@ -84,6 +84,7 @@ class TensorflowDense(keras.layers.Layer):
         self.bias_initializer = bias_initializer
         self.decorator_params: Optional[dict] = decorator_params
 
+    @tf.function
     def call(self, inputs, **kwargs):
         """
         Obtaining a layer response on the input data vector
