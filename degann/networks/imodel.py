@@ -119,8 +119,8 @@ class IModel(object):
 
     def train(
         self,
-        x_data: np.ndarray | tf.Tensor,
-        y_data: np.ndarray | tf.Tensor,
+        x_data: np.ndarray | tf.Tensor | None,
+        y_data: np.ndarray | tf.Tensor | None,
         validation_split=0.0,
         validation_data=None,
         epochs=10,
@@ -168,7 +168,7 @@ class IModel(object):
                         f"log_{self.get_name}.csv", separator=",", append=False
                     )
                 ]
-        temp = self.network.fit(
+        temp = self.network.train(
             x_data,
             y_data,
             batch_size=mini_batch_size,
