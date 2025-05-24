@@ -1,14 +1,23 @@
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Callable
+import numpy as np
+import tensorflow as tf
 
-from degann.networks.topology.base_compile_configs import SingleNetworkCompileParams
+from degann.networks.topology.base_compile_configs import BaseCompileParams
 from degann.networks.topology.pinn.virtual_loss import VirtualLoss
+from degann.networks.topology.densenet.compile_config import DenseNetCompileParams
 
 
 @dataclass
-class PINNCompileParams(SingleNetworkCompileParams):
+class PINNCompileParams(BaseCompileParams):
     """
     Compile parameters for a physics-informed neural network topology.
     """
 
+    densenet_compile_params: DenseNetCompileParams = field(
+        default_factory=DenseNetCompileParams
+    )
     virtual_functions: List[VirtualLoss] = field(default_factory=list)
+    collocational_points_generator: Callable[[], tf.Variable] = lambda s: tf.Variable(
+        np.linspace(0, 1, 100).reshape(-1, 1), dtype=tf.float32
+    )
