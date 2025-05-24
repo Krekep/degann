@@ -18,6 +18,11 @@ class PINNCompileParams(BaseCompileParams):
         default_factory=DenseNetCompileParams
     )
     virtual_functions: List[VirtualLoss] = field(default_factory=list)
-    collocational_points_generator: Callable[[], tf.Variable] = lambda s: tf.Variable(
+    collocational_points_generator: Callable[
+        [], tf.Tensor
+    ] = lambda: tf.convert_to_tensor(
         np.linspace(0, 1, 100).reshape(-1, 1), dtype=tf.float32
     )
+
+    def add_eval_metric(self, metric: str) -> None:
+        self.densenet_compile_params.add_eval_metric(metric)

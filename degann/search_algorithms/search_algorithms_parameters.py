@@ -1,7 +1,6 @@
-from typing import Optional, List, Callable, TypeAlias
+from typing import Optional, List, Callable
 
 import numpy as np
-import tensorflow as tf
 
 from degann.search_algorithms.generate import generate_neighbor
 from degann.search_algorithms.nn_code import default_alphabet
@@ -47,7 +46,6 @@ class BaseSearchParameters:
         "model_cfg",
         "compile_cfg",
         "data",
-        "net_type",
         "val_data",
         "min_epoch",
         "max_epoch",
@@ -55,15 +53,12 @@ class BaseSearchParameters:
         "logging",
         "file_name",
         "eval_metric",
-        "net_specific_params",
     ]
 
     def __init__(self) -> None:
         self.model_cfg: BaseTopologyParams
         self.compile_cfg: BaseCompileParams
         self.data: tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]
-        self.net_type: str = "DenseNet"
-        self.net_specific_params: NetSpecificParams = DenseParams()
         self.val_data: Optional[
             tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]
         ] = None
@@ -78,7 +73,6 @@ class BaseSearchParameters:
         self.model_cfg = other.model_cfg
         self.compile_cfg = other.compile_cfg
         self.data = other.data
-        self.net_type = other.net_type
         self.val_data = other.val_data
         self.min_epoch = other.min_epoch
         self.max_epoch = other.max_epoch
