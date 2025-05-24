@@ -1,13 +1,11 @@
-from typing import Optional, List, Dict, Union
+from typing import Optional, List, Union
 from tensorflow.keras.callbacks import Callback
+from tensorflow.keras.optimizers import Optimizer
+from keras.src.trainers.data_adapters import data_adapter_utils
 
-# from tensorflow.keras.src.utils import traceback_utils
 import tensorflow as tf
 import numpy as np
-import math
 
-
-from degann.networks import layer_creator, losses, metrics, optimizers
 from degann.networks.topology.pinn.compile_config import PINNCompileParams
 from degann.networks.topology.pinn.topology_config import PINNParams
 from degann.networks.topology.pinn.virtual_loss import VirtualLoss
@@ -20,6 +18,7 @@ class PhysicsInformedNet(tf.keras.Model):
         if config is None:
             config = PINNParams()
         self._name = "PINN"
+        self.with_data = True
 
         self.network = TensorflowDenseNet(config.densenet_params)
         self.virtual_functions: List[VirtualLoss] = []
@@ -65,9 +64,11 @@ class PhysicsInformedNet(tf.keras.Model):
         validation_split=0.0,
         validation_data=None,
         epochs=10,
-        batch_size=None,
+        batch_size: Optional[int] = None,
         callbacks: Optional[List[Callback] | tf.keras.callbacks.CallbackList] = None,
         verbose="auto",
+        sample_weight=None,
+        initial_epoch=0,
     ):
         """
         Custom training method that internally uses train_step and test_step
@@ -82,40 +83,23 @@ class PhysicsInformedNet(tf.keras.Model):
             callbacks: List of keras callbacks
             verbose: Verbosity mode ("auto", 0, 1, or 2)
         """
-        with_data = True
-        if x_data is None or y_data is None:
-            with_data = False
-        # Handle validation data
-        if validation_data is not None:
-            x_val, y_val = validation_data
-        elif validation_split > 0 and with_data:
-            split = int(len(x_data) * (1 - validation_split))
-            x_train, y_train = x_data[:split], y_data[:split]
-            x_val, y_val = x_data[split:], y_data[split:]
-            x_data, y_data = x_train, y_train
-        else:
-            x_val, y_val = None, None
+        if x_data is not None and y_data is not None:
+            return self.network.fit(
+                x_data,
+                y_data,
+                batch_size=batch_size,
+                callbacks=callbacks,
+                validation_split=validation_split,
+                validation_data=validation_data,
+                epochs=epochs,
+                verbose=verbose,
+                sample_weight=sample_weight,
+            )
+        self.network._assert_compile_called("train")
+        self.network._eval_epoch_iterator = None
 
-        if with_data:
-            # Convert data to tensors if needed
-            if not isinstance(x_data, tf.Tensor):
-                x_data = tf.convert_to_tensor(x_data)
-            if not isinstance(y_data, tf.Tensor):
-                y_data = tf.convert_to_tensor(y_data)
-            if x_val is not None and not isinstance(x_val, tf.Tensor):
-                x_val = tf.convert_to_tensor(x_val)
-            if y_val is not None and not isinstance(y_val, tf.Tensor):
-                y_val = tf.convert_to_tensor(y_val)
-
-        num_samples = None
-        num_batches = None
-        if with_data:
-            num_samples = len(x_data) if x_data is not None else 0
-            batch_size = batch_size if batch_size is not None else num_samples
-            num_batches = math.ceil(num_samples / batch_size) if num_samples > 0 else 0
-
-        if callbacks is None:
-            callbacks = []
+        num_samples = 1
+        self.network._maybe_symbolic_build()
 
         # Initialize callbacks
         if not isinstance(callbacks, tf.keras.callbacks.CallbackList):
@@ -125,80 +109,40 @@ class PhysicsInformedNet(tf.keras.Model):
                 add_progbar=verbose != 0,
                 verbose=verbose,
                 epochs=epochs,
-                steps=num_samples if with_data else 1,
+                steps=1,  # num_samples,
                 model=self.network,
             )
-
-        # Callback hooks
-        training_logs = {}
+        self.network.stop_training = False
+        self.make_train_function()
         callbacks.on_train_begin()
+        training_logs = None
+        logs = {}
+        initial_epoch = self.network._initial_epoch or initial_epoch
 
         # Epoch loop
-        for epoch in range(epochs):
+        for epoch in range(initial_epoch, epochs):
+            self.network.reset_metrics()
             callbacks.on_epoch_begin(epoch)
-            epoch_logs = {}
+            callbacks.on_train_batch_begin(1)
 
-            self._jax_state_synced = True
+            logs = self.train_function([None])
+            callbacks.on_train_batch_end(1, logs)
+            callbacks.on_epoch_end(epoch, logs)
 
-            range_end = num_samples
-            range_step = batch_size
-
-            if not with_data:
-                range_end = 1
-                range_step = 1
-
-            # Batch training
-            epoch_losses = []
-            for step in range(0, range_end, range_step):
-                callbacks.on_train_batch_begin(step)
-                x_batch, y_batch = 0, 0
-                if with_data:
-                    batch_end = min(step + batch_size, num_samples)
-                    x_batch = x_data[step:batch_end]
-                    y_batch = y_data[step:batch_end]
-
-                    # Use train_step
-                    train_logs = self.train_step((x_batch, y_batch))
-                else:
-                    train_logs = self.train_step(None)
-                loss = train_logs["loss"]
-                epoch_losses.append(loss.numpy())
-
-                # Callback hooks for batch
-                batch_logs = {
-                    "batch": step // batch_size if batch_size is not None else 0,
-                    "size": len(x_batch) if with_data else 0,
-                    "loss": loss.numpy(),
-                }
-                batch_logs.update(train_logs)
-                callbacks.on_train_batch_end(step, batch_logs)
-
-                if self.network.stop_training:
-                    # Stop training if a callback has set
-                    # this flag in on_(train_)batch_end.
-                    break
-
-            # Epoch metrics
-            epoch_loss = np.mean(epoch_losses)
-            # history["loss"].append(epoch_loss)
-            epoch_logs["loss"] = epoch_loss
-
-            # Validation (using test_step)
-            if x_val is not None and y_val is not None:
-                val_logs = self.test_step((x_val, y_val))
-                val_loss = val_logs["loss"]
-                # history["val_loss"].append(val_loss.numpy())
-                epoch_logs["val_loss"] = val_loss
-
-                # Add other metrics if available
-                for k, v in val_logs.items():
-                    if k not in ["loss", "val_loss"]:
-                        epoch_logs[k] = v
-
-            callbacks.on_epoch_end(epoch, epoch_logs)
-            training_logs = epoch_logs
+            training_logs = logs
             if self.network.stop_training:
                 break
+
+            # TODO: custom evaluate to validate network without data
+
+        if isinstance(self.network.optimizer, Optimizer) and epochs > 0:
+            self.network.optimizer.finalize_variable_values(
+                self.network.trainable_weights
+            )
+
+        # If _eval_epoch_iterator exists, delete it after all epochs are done.
+        if getattr(self.network, "_eval_epoch_iterator", None) is not None:
+            del self.network._eval_epoch_iterator
         callbacks.on_train_end(logs=training_logs)
         return self.network.history
 
@@ -217,16 +161,20 @@ class PhysicsInformedNet(tf.keras.Model):
         # on what you pass to `fit()`.
         x = self.collocational_points_generator()
         if data is not None:
-            # print(data)
-            x, y = data
+            x, y, sample_weight = data_adapter_utils.unpack_x_y_sample_weight(data)
         with tf.GradientTape(persistent=True) as tape:
             tape.watch(x)
-            y_pred: tf.Tensor = self.network(x, training=True)  # Forward pass
-            # Compute the loss value
-            # (the loss function is configured in `compile()`)
+            y_pred: tf.Tensor = self.network(x, training=True)
             total_loss = None
             if data is not None:
-                total_loss = self.network.compute_loss(y=y, y_pred=y_pred)
+                total_loss = self.network.compute_loss(
+                    x=x,
+                    y=y,
+                    y_pred=y_pred,
+                    sample_weight=sample_weight,
+                    training=True,
+                )
+
             if total_loss is None:
                 total_loss = tf.constant(0, dtype=tf.float32)
             for virtual_function in self.virtual_functions:
@@ -254,7 +202,9 @@ class PhysicsInformedNet(tf.keras.Model):
                 metric.update_state(y, y_pred)
         # Return a dict mapping metric names to current value
         if data is not None:
-            return {m.name: m.result() for m in self.network.metrics}
+            return self.compute_metrics(
+                x, y, y_pred, sample_weight=sample_weight
+            )  # {m.name: m.result() for m in self.network.metrics}
         return {loss_metric.name: loss_metric.result()}
 
     def set_name(self, new_name):
