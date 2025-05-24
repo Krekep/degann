@@ -58,6 +58,150 @@ class PhysicsInformedNet(tf.keras.Model):
         """
         self.network.call(inputs=inputs, training=training, mask=mask)
 
+    def train(
+        self,
+        x_data: Union[np.ndarray, tf.Tensor, None] = None,
+        y_data: Union[np.ndarray, tf.Tensor, None] = None,
+        validation_split=0.0,
+        validation_data=None,
+        epochs=10,
+        batch_size=None,
+        callbacks: Optional[List[Callback] | tf.keras.callbacks.CallbackList] = None,
+        verbose="auto",
+    ):
+        """
+        Custom training method that internally uses train_step and test_step
+
+        Args:
+            x_data: Input data
+            y_data: Target data
+            validation_split: Fraction of data to use for validation
+            validation_data: Tuple (x_val, y_val) for validation
+            epochs: Number of training epochs
+            mini_batch_size: Size of mini-batches (None for full batch)
+            callbacks: List of keras callbacks
+            verbose: Verbosity mode ("auto", 0, 1, or 2)
+        """
+        with_data = True
+        if x_data is None or y_data is None:
+            with_data = False
+        # Handle validation data
+        if validation_data is not None:
+            x_val, y_val = validation_data
+        elif validation_split > 0 and with_data:
+            split = int(len(x_data) * (1 - validation_split))
+            x_train, y_train = x_data[:split], y_data[:split]
+            x_val, y_val = x_data[split:], y_data[split:]
+            x_data, y_data = x_train, y_train
+        else:
+            x_val, y_val = None, None
+
+        if with_data:
+            # Convert data to tensors if needed
+            if not isinstance(x_data, tf.Tensor):
+                x_data = tf.convert_to_tensor(x_data)
+            if not isinstance(y_data, tf.Tensor):
+                y_data = tf.convert_to_tensor(y_data)
+            if x_val is not None and not isinstance(x_val, tf.Tensor):
+                x_val = tf.convert_to_tensor(x_val)
+            if y_val is not None and not isinstance(y_val, tf.Tensor):
+                y_val = tf.convert_to_tensor(y_val)
+
+        num_samples = None
+        num_batches = None
+        if with_data:
+            num_samples = len(x_data) if x_data is not None else 0
+            batch_size = batch_size if batch_size is not None else num_samples
+            num_batches = math.ceil(num_samples / batch_size) if num_samples > 0 else 0
+
+        if callbacks is None:
+            callbacks = []
+
+        # Initialize callbacks
+        if not isinstance(callbacks, tf.keras.callbacks.CallbackList):
+            callbacks = tf.keras.callbacks.CallbackList(
+                callbacks,
+                add_history=True,
+                add_progbar=verbose != 0,
+                verbose=verbose,
+                epochs=epochs,
+                steps=num_samples if with_data else 1,
+                model=self.network,
+            )
+
+        # Callback hooks
+        training_logs = {}
+        callbacks.on_train_begin()
+
+        # Epoch loop
+        for epoch in range(epochs):
+            callbacks.on_epoch_begin(epoch)
+            epoch_logs = {}
+
+            self._jax_state_synced = True
+
+            range_end = num_samples
+            range_step = batch_size
+
+            if not with_data:
+                range_end = 1
+                range_step = 1
+
+            # Batch training
+            epoch_losses = []
+            for step in range(0, range_end, range_step):
+                callbacks.on_train_batch_begin(step)
+                x_batch, y_batch = 0, 0
+                if with_data:
+                    batch_end = min(step + batch_size, num_samples)
+                    x_batch = x_data[step:batch_end]
+                    y_batch = y_data[step:batch_end]
+
+                    # Use train_step
+                    train_logs = self.train_step((x_batch, y_batch))
+                else:
+                    train_logs = self.train_step(None)
+                loss = train_logs["loss"]
+                epoch_losses.append(loss.numpy())
+
+                # Callback hooks for batch
+                batch_logs = {
+                    "batch": step // batch_size if batch_size is not None else 0,
+                    "size": len(x_batch) if with_data else 0,
+                    "loss": loss.numpy(),
+                }
+                batch_logs.update(train_logs)
+                callbacks.on_train_batch_end(step, batch_logs)
+
+                if self.network.stop_training:
+                    # Stop training if a callback has set
+                    # this flag in on_(train_)batch_end.
+                    break
+
+            # Epoch metrics
+            epoch_loss = np.mean(epoch_losses)
+            # history["loss"].append(epoch_loss)
+            epoch_logs["loss"] = epoch_loss
+
+            # Validation (using test_step)
+            if x_val is not None and y_val is not None:
+                val_logs = self.test_step((x_val, y_val))
+                val_loss = val_logs["loss"]
+                # history["val_loss"].append(val_loss.numpy())
+                epoch_logs["val_loss"] = val_loss
+
+                # Add other metrics if available
+                for k, v in val_logs.items():
+                    if k not in ["loss", "val_loss"]:
+                        epoch_logs[k] = v
+
+            callbacks.on_epoch_end(epoch, epoch_logs)
+            training_logs = epoch_logs
+            if self.network.stop_training:
+                break
+        callbacks.on_train_end(logs=training_logs)
+        return self.network.history
+
     def train_step(self, data: tuple[tf.Tensor, tf.Tensor] | None):  # type: ignore
         """
         Custom train step with physics and
