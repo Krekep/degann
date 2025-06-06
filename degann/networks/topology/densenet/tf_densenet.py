@@ -162,7 +162,7 @@ class TensorflowDenseNet(tf.keras.Model):
         callbacks: Optional[List[Callback] | tf.keras.callbacks.CallbackList] = None,
         verbose="auto",
     ):
-        temp = self.network.fit(
+        temp = self.fit(
             x_data,
             y_data,
             batch_size=batch_size,

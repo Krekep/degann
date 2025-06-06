@@ -231,7 +231,7 @@ class PhysicsInformedNet(tf.keras.Model):
         """
         res = self.network.to_dict(**kwargs)
         res["net_type"] = "MyPINN"
-        return
+        return res
 
     def from_dict(self, config: dict, **kwargs):
         """
