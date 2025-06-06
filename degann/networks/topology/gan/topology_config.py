@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from degann.networks.topology.base_topology_configs import (
-    BaseTopologyParams,
+    TopologyParams,
 )
 from degann.networks.topology.densenet.topology_config import DenseNetParams
 
@@ -10,7 +10,7 @@ from degann.networks.topology.densenet.topology_config import DenseNetParams
 @dataclass(
     kw_only=True
 )  # kw_only used to bypass the attribute organisation of @dataclass
-class GANTopologyParams(BaseTopologyParams):
+class GANTopologyParams(TopologyParams):
     """
     Parameters for a GAN (Generative Adversarial Network) topology.
 

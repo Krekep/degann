@@ -62,6 +62,7 @@ def grid_search_step(
             Best neural network presented as a dictionary
     """
     best_net = None
+    # TODO: may be float("inf")?
     best_metric_value = 1e6
     best_val_metric_value: Optional[float] = 1e6
     for i in range(repeat):

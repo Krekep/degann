@@ -191,7 +191,7 @@ def generate_all_configurations(config_instance: Any):
         length_boundary = meta.get("length_boundary")
         if length_boundary is None:
             # Generate list with length 1
-            candidate_dict[f.name] = [[val] for val in possible_vals]
+            candidate_dict[f.name] = [val for val in possible_vals]
             continue
 
         # Generate lists with length in provided boundary

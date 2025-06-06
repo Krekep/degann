@@ -10,6 +10,25 @@ class BaseTopologyParams:
     """
     Base class for common neural network topology parameters.
 
+    Attributes:
+        net_type (str): Type identifier for the network (e.g., "DenseNet").
+    """
+
+    metadata: InitVar[dict | None] = None
+    tuning_metadata: Optional[TuningMetadata] = field(default=None, init=False)
+
+    net_type: str = field(default="BASE", init=False)
+
+    def __post_init__(self, metadata: Optional[dict] = None):
+        self.tuning_metadata = TuningMetadata(type(self))
+        self.tuning_metadata.set_metadata(metadata)
+
+
+@dataclass
+class TopologyParams(BaseTopologyParams):
+    """
+    Base class for common neural network topology parameters.
+
     This class holds the core parameters that define the structure of a neural network,
     such as input size, block (hidden layer) sizes, and output size.
 
@@ -22,9 +41,6 @@ class BaseTopologyParams:
         is_debug (bool): Flag to enable debugging mode.
     """
 
-    metadata: InitVar[dict | None] = None
-    tuning_metadata: Optional[TuningMetadata] = field(default=None, init=False)
-
     input_size: int = 1
     block_size: list[int] = field(default_factory=list, metadata={"tunable": True})
     output_size: int = 1
@@ -32,13 +48,9 @@ class BaseTopologyParams:
     net_type: str = field(default="DenseNet", init=False)
     is_debug: bool = False
 
-    def __post_init__(self, metadata: Optional[dict] = None):
-        self.tuning_metadata = TuningMetadata(type(self))
-        self.tuning_metadata.set_metadata(metadata)
-
 
 @dataclass
-class SingleNetworkParams(BaseTopologyParams):
+class SingleNetworkParams(TopologyParams):
     """
     Parameters for a single-network topology.
 

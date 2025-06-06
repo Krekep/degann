@@ -1,6 +1,8 @@
-from typing import Optional, List
+from typing import Optional, List, Union
 
+import numpy as np
 import tensorflow as tf
+from tensorflow.keras.callbacks import Callback
 
 from degann.networks.topology.densenet.tf_densenet import TensorflowDenseNet
 from degann.networks.topology.gan.topology_config import GANTopologyParams
@@ -110,6 +112,29 @@ class GAN(tf.keras.Model):
 
         """
         return self.generator(inputs, **kwargs)
+
+    def train(
+        self,
+        x_data: Union[np.ndarray, tf.Tensor, None] = None,
+        y_data: Union[np.ndarray, tf.Tensor, None] = None,
+        validation_split=0.0,
+        validation_data=None,
+        epochs=10,
+        batch_size=None,
+        callbacks: Optional[List[Callback] | tf.keras.callbacks.CallbackList] = None,
+        verbose="auto",
+    ):
+        temp = self.network.fit(
+            x_data,
+            y_data,
+            batch_size=batch_size,
+            callbacks=callbacks,
+            validation_split=validation_split,
+            validation_data=validation_data,
+            epochs=epochs,
+            verbose=verbose,
+        )
+        return temp
 
     @tf.function
     def train_step(self, data) -> dict[str, tf.Tensor]:

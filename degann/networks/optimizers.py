@@ -31,7 +31,10 @@ def get_optimizer(name: str):
     optimizer_class: tf.keras.losses.Loss
         Result optimizer
     """
-    return _optimizers.get(name)
+    optimizer = _optimizers.get(name)
+    if optimizer is None:
+        raise ValueError(f"Unknown optimizer: {name}")
+    return optimizer
 
 
 def get_all_optimizers() -> dict[str, Callable]:

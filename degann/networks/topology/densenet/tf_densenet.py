@@ -1,7 +1,9 @@
 import os
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 
+import numpy as np
 import tensorflow as tf
+from tensorflow.keras.callbacks import Callback
 
 from degann.networks.config_format import LAYER_DICT_NAMES
 from degann.networks import layer_creator, losses, metrics, cpp_utils
@@ -148,6 +150,29 @@ class TensorflowDenseNet(tf.keras.Model):
         for layer in self.blocks:
             x = layer(x, **kwargs)
         return self.out_layer(x, **kwargs)
+
+    def train(
+        self,
+        x_data: Union[np.ndarray, tf.Tensor, None] = None,
+        y_data: Union[np.ndarray, tf.Tensor, None] = None,
+        validation_split=0.0,
+        validation_data=None,
+        epochs=10,
+        batch_size=None,
+        callbacks: Optional[List[Callback] | tf.keras.callbacks.CallbackList] = None,
+        verbose="auto",
+    ):
+        temp = self.fit(
+            x_data,
+            y_data,
+            batch_size=batch_size,
+            callbacks=callbacks,
+            validation_split=validation_split,
+            validation_data=validation_data,
+            epochs=epochs,
+            verbose=verbose,
+        )
+        return temp
 
     def train_step(self, data) -> dict[str, tf.Tensor]:
         """

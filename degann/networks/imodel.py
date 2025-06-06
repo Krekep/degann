@@ -8,6 +8,7 @@ from tensorflow import keras
 
 from degann.networks.config_format import HEADER_OF_APG_FILE
 from degann.networks.topology.densenet.tf_densenet import TensorflowDenseNet
+from degann.networks.topology.pinn.pinn import PhysicsInformedNet
 from degann.networks.topology.densenet.topology_config import DenseNetParams
 from degann.networks.topology.densenet.compile_config import DenseNetCompileParams
 from degann.networks.topology.gan.gan import GAN
@@ -118,8 +119,8 @@ class IModel(object):
 
     def train(
         self,
-        x_data: np.ndarray | tf.Tensor,
-        y_data: np.ndarray | tf.Tensor,
+        x_data: np.ndarray | tf.Tensor | None,
+        y_data: np.ndarray | tf.Tensor | None,
         validation_split=0.0,
         validation_data=None,
         epochs=10,
@@ -167,7 +168,7 @@ class IModel(object):
                         f"log_{self.get_name}.csv", separator=",", append=False
                     )
                 ]
-        temp = self.network.fit(
+        temp = self.network.train(
             x_data,
             y_data,
             batch_size=mini_batch_size,
@@ -466,3 +467,4 @@ _create_functions: defaultdict[str, Type[tf.keras.Model]] = defaultdict(
 )
 _create_functions["DenseNet"] = TensorflowDenseNet
 _create_functions["GAN"] = GAN
+_create_functions["PINN"] = PhysicsInformedNet
