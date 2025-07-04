@@ -1,2 +1,0 @@
-"[23, 20, 20, 23]","['sigmoid', 'sigmoid', 'sigmoid', 'swish']",f6c6c6f8,213,Adam,MaxAbsoluteDeviation,0.03477931022644043,0.023667965084314346,2.209121799998684
-"[18, 9, 9]","['elu', 'tanh', 'swish']",a01918,317,Adam,MaxAbsoluteDeviation,0.029635760933160782,0.01772575080394745,3.202946500037797

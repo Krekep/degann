@@ -1,6 +1,0 @@
-"[13, 10, 19, 22]","['elu', 'swish', 'swish', 'elu']",5028b8e0,331,Adam,MaxAbsoluteDeviation,0.13774751126766205,0.1084461435675621,1.3525394999887794
-"[13, 10, 19, 22]","['elu', 'sigmoid', 'swish', 'elu']",5026b8e0,331,Adam,MaxAbsoluteDeviation,0.10626079887151718,0.10508385300636292,1.3482274999842048
-"[13, 10, 19, 22]","['elu', 'sigmoid', 'swish', 'elu']",5026b8e0,206,Adam,MaxAbsoluteDeviation,0.21726813912391663,0.178125262260437,1.00453589996323
-"[13, 10, 19, 22, 15]","['elu', 'sigmoid', 'swish', 'elu', 'swish']",5026b8e078,206,Adam,MaxAbsoluteDeviation,0.1266421377658844,0.0767001360654831,1.08951329998672
-"[13, 10, 19, 22, 15, 9]","['elu', 'sigmoid', 'swish', 'elu', 'swish', 'swish']",5026b8e07818,206,Adam,MaxAbsoluteDeviation,0.14432203769683838,0.09067121148109436,1.4764704999979585
-"[13, 10, 19, 22, 8, 9]","['elu', 'sigmoid', 'swish', 'elu', 'swish', 'swish']",5026b8e00818,206,Adam,MaxAbsoluteDeviation,0.06675340980291367,0.08713892102241516,1.1942961000604555

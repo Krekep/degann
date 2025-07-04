@@ -1,3 +1,0 @@
-"[18, 23, 11, 19]","['sigmoid', 'elu', 'sigmoid', 'sigmoid']",a6f036b6,220,Adam,MaxAbsoluteDeviation,0.15044939517974854,0.11599533259868622,1.5972434000577778
-"[8, 23, 11, 19]","['sigmoid', 'elu', 'sigmoid', 'sigmoid']",06f036b6,220,Adam,MaxAbsoluteDeviation,0.1446862369775772,0.09288912266492844,1.5880306999897584
-"[8, 23, 11, 19]","['sigmoid', 'elu', 'sigmoid', 'sigmoid']",06f036b6,700,Adam,MaxAbsoluteDeviation,0.06294763088226318,0.07722819596529007,4.012175400042906

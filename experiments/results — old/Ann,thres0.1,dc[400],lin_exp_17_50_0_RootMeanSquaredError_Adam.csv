@@ -1,4 +1,0 @@
-"[19, 18, 20, 22]","['tanh', 'sigmoid', 'swish', 'tanh']",b9a6c8e9,347,Adam,RootMeanSquaredError,0.14296545088291168,0.21959787607192993,1.4511800999753177
-"[19, 18, 20, 22]","['tanh', 'sigmoid', 'swish', 'tanh']",b9a6c8e9,347,Adam,RootMeanSquaredError,0.21381336450576782,0.1421024054288864,1.4229611000046134
-"[8, 18, 20, 22]","['tanh', 'sigmoid', 'swish', 'tanh']",09a6c8e9,347,Adam,RootMeanSquaredError,0.1302793323993683,0.27513304352760315,1.4426362999947742
-"[8, 18, 20]","['tanh', 'sigmoid', 'swish']",09a6c8,347,Adam,RootMeanSquaredError,0.04699556529521942,0.12907306849956512,1.3073265999555588

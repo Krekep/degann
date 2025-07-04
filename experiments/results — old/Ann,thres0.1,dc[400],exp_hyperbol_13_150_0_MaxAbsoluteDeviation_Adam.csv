@@ -1,2 +1,0 @@
-"[19, 11, 11, 16]","['swish', 'sigmoid', 'sigmoid', 'tanh']",b8363689,257,Adam,MaxAbsoluteDeviation,0.11957266181707382,0.081894151866436,1.6806013999739662
-"[19, 11, 11, 16]","['swish', 'sigmoid', 'sigmoid', 'swish']",b8363688,257,Adam,MaxAbsoluteDeviation,0.06806940585374832,0.060975976288318634,1.7071547000668943

@@ -1,7 +1,0 @@
-"[15, 22, 20, 13]","['sigmoid', 'sigmoid', 'tanh', 'sigmoid']",76e6c956,216,Adam,MaxAbsoluteDeviation,0.33748289942741394,0.4887368679046631,1.1121407999889925
-"[15, 22, 20, 13]","['sigmoid', 'sigmoid', 'tanh', 'sigmoid']",76e6c956,216,Adam,MaxAbsoluteDeviation,0.11943217366933823,0.1254420280456543,1.1166176999686286
-"[15, 22, 20, 13]","['sigmoid', 'sigmoid', 'tanh', 'elu']",76e6c950,216,Adam,MaxAbsoluteDeviation,0.5408997535705566,0.16553640365600586,1.1083460000809282
-"[15, 22, 20]","['sigmoid', 'sigmoid', 'tanh']",76e6c9,216,Adam,MaxAbsoluteDeviation,0.22655850648880005,0.1696760505437851,1.021799899986945
-"[15, 22, 20, 17]","['sigmoid', 'sigmoid', 'tanh', 'sigmoid']",76e6c996,216,Adam,MaxAbsoluteDeviation,0.4605950117111206,0.08746708184480667,1.114254100015387
-"[15, 22, 20, 17]","['sigmoid', 'sigmoid', 'tanh', 'sigmoid']",76e6c996,700,Adam,MaxAbsoluteDeviation,0.1597282439470291,0.21033239364624023,2.6261187000200152
-"[15, 22, 23, 17]","['sigmoid', 'sigmoid', 'tanh', 'sigmoid']",76e6f996,700,Adam,MaxAbsoluteDeviation,0.0817786306142807,0.21416018903255463,3.2855192000279203
