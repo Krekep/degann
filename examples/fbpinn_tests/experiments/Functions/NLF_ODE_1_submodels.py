@@ -14,9 +14,14 @@ class NLF_ODE_1(PhysLoss):
 
     @tf.function
     def phys_loss(
-        self, model: tf.keras.Model, tape: tf.GradientTape, x, block,
+        self,
+        model: tf.keras.Model,
+        tape: tf.GradientTape,
+        x,
+        block,
         prev_model,
-        prev_block, **kwargs
+        prev_block,
+        **kwargs
     ):
         """y' + (y - 2x) / (x + 0.1) = 0"""
         tape.watch(x)
@@ -45,7 +50,7 @@ class NLF_ODE_1(PhysLoss):
 
     @tf.function
     def boundary_loss_1(
-        self, 
+        self,
         model,
         tape: tf.GradientTape,
         x,

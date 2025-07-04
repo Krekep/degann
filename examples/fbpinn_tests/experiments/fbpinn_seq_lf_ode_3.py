@@ -21,7 +21,6 @@ from examples.fbpinn_tests.plot_functions import plot_each_submodel, plot_model
 from Functions.LF_ODE_3_submodels import LF_ODE_3
 
 
-
 ode = LF_ODE_3()
 phys_loss = ode.phys_loss
 which = ode.description
@@ -88,7 +87,7 @@ train_config = {
     "eval_interval": 10,
     "batch_size": 10_000,
     "log_interval": 1000,
-    "mode": "sequence"
+    "mode": "sequence",
 }
 mlflow.log_params(train_config)
 

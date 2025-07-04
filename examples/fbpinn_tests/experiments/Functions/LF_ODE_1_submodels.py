@@ -15,9 +15,14 @@ class LF_ODE_1(PhysLoss):
 
     @tf.function
     def phys_loss(
-        self, model: tf.keras.Model, tape: tf.GradientTape, x, block,
+        self,
+        model: tf.keras.Model,
+        tape: tf.GradientTape,
+        x,
+        block,
         prev_model,
-        prev_block, **kwargs
+        prev_block,
+        **kwargs
     ):
         """du/dx = omega * cos(omega*x)"""
         tape.watch(x)
@@ -36,7 +41,7 @@ class LF_ODE_1(PhysLoss):
             u = windowed * predicted_unnorm + windowed_left * predicted_unnorm_left
         else:
             u = windowed * predicted_unnorm
-        
+
         # u = model(x)
         u_x = tape.gradient(u, x)
         u_model = u_x - self.omega * tf.cos(self.omega * x)
@@ -47,7 +52,7 @@ class LF_ODE_1(PhysLoss):
 
     @tf.function
     def boundary_loss_1(
-        self, 
+        self,
         model,
         tape: tf.GradientTape,
         x,

@@ -17,7 +17,11 @@ from matplotlib import pyplot as plt
 import mlflow
 from degann.geometry import RectangleDomain
 from degann.geometry.decomposition import Block
-from degann.networks.topology.tffbpinn import LayerScheduler, TensorflowFBPINN, LossScheduler
+from degann.networks.topology.tffbpinn import (
+    LayerScheduler,
+    TensorflowFBPINN,
+    LossScheduler,
+)
 from tensorflow.keras.callbacks import EarlyStopping
 from examples.fbpinn_tests.plot_functions import plot_each_submodel, plot_model
 from Functions.LF_ODE_1 import LF_ODE_1
@@ -52,7 +56,7 @@ model_config = {
     "overlap": [0.3],
     "offset": False,
     "points_per_block": 500,
-    "losses_weight": [10, 1]
+    "losses_weight": [10, 1],
 }
 mlflow.log_params(model_config)
 
@@ -91,12 +95,9 @@ layer_scheduler = LayerScheduler(
     left_bound_schedule=20000,
     right_bound_schedule=20000,
     start_left_bound=0,
-    start_right_bound=3
+    start_right_bound=3,
 )
-loss_scheduler = LossScheduler(
-    k=200,
-    boundary_indices=list(range(len(ode.sub_losses)))
-)
+loss_scheduler = LossScheduler(k=200, boundary_indices=list(range(len(ode.sub_losses))))
 train_config = {
     "epochs": 100_000,
     "patience": 500_000,

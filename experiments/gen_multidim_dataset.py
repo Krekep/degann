@@ -8,9 +8,7 @@ import functions
 
 __all__ = ["funcs", "sizes_of_samples", "generate_size"]
 
-funcs = [
-    (functions.multidim, "multidim")
-]
+funcs = [(functions.multidim, "multidim")]
 sizes_of_samples = [50, 150, 400]
 # sizes_of_samples = [400]
 # sizes_of_samples = [400, 50]

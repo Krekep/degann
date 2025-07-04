@@ -17,7 +17,11 @@ from degann.networks.layers.tf_dense import TensorflowDense
 from degann.networks.topology.pinn import PhysicsInformedNet
 from degann.networks.topology.tf_densenet import TensorflowDenseNet
 from degann.geometry import RectangleDomain
-from degann.networks.topology.tffbpinn import LayerScheduler, LossScheduler, TensorflowFBPINN
+from degann.networks.topology.tffbpinn import (
+    LayerScheduler,
+    LossScheduler,
+    TensorflowFBPINN,
+)
 from examples.fbpinn_tests.experiments.Functions.LH_PDE2 import LH_PDE2
 
 
@@ -42,7 +46,7 @@ model_config = {
     "overlap": [0.15, 0.25],
     "offset": True,
     "points_per_block": 2000,
-    "losses_weight": [10, 1, 1, 1]
+    "losses_weight": [10, 1, 1, 1],
 }
 mlflow.log_params(model_config)
 
@@ -53,7 +57,9 @@ loaded_model = TensorflowFBPINN(
     boundary_loss=pde.sub_losses,
     domain=RectangleDomain(lc.copy(), rc.copy()),
 )
-loaded_model.custom_compile(optimizer="AdamW", rate=lr, loss_func="MSE", run_eagerly=False)
+loaded_model.custom_compile(
+    optimizer="AdamW", rate=lr, loss_func="MSE", run_eagerly=False
+)
 loaded_model.build((None, 2))
 loaded_model.load_weights(f"{eq}_{run_id}.weights.h5")
 
@@ -63,7 +69,9 @@ loaded_model_nonpretrained = TensorflowFBPINN(
     boundary_loss=pde.sub_losses,
     domain=RectangleDomain(lc.copy(), rc.copy()),
 )
-loaded_model_nonpretrained.custom_compile(optimizer="AdamW", rate=lr, loss_func="MSE", run_eagerly=False)
+loaded_model_nonpretrained.custom_compile(
+    optimizer="AdamW", rate=lr, loss_func="MSE", run_eagerly=False
+)
 loaded_model_nonpretrained.build((None, 2))
 loaded_model_nonpretrained.load_weights(f"{eq}_{run_id_np}_non_pretrained.weights.h5")
 
@@ -89,7 +97,7 @@ for i, t_py in enumerate([0.0, 0.1, 0.2, 0.3]):
     y = pde.solution(x)
     y_model = loaded_model(x)
     y_model_np = loaded_model_nonpretrained(x)
-    
+
     r = i // 2
     c = i % 2
     axes[r, c].plot(x_plot, y, label="Truth", color="red")

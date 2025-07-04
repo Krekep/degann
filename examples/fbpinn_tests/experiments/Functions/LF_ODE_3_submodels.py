@@ -3,7 +3,7 @@ from examples.fbpinn_tests.phys_losses import PhysLoss
 
 
 class LF_ODE_3(PhysLoss):
-    def __init__(self, description: str = "",**kwargs):
+    def __init__(self, description: str = "", **kwargs):
         description = "y' = 2x, y(0) = 0"
         super().__init__(description)
 
@@ -14,9 +14,14 @@ class LF_ODE_3(PhysLoss):
 
     @tf.function
     def phys_loss(
-        self, model: tf.keras.Model, tape: tf.GradientTape, x, block,
+        self,
+        model: tf.keras.Model,
+        tape: tf.GradientTape,
+        x,
+        block,
         prev_model,
-        prev_block, **kwargs
+        prev_block,
+        **kwargs
     ):
         """y' = 2x"""
         tape.watch(x)
@@ -35,7 +40,7 @@ class LF_ODE_3(PhysLoss):
             u = windowed * predicted_unnorm + windowed_left * predicted_unnorm_left
         else:
             u = windowed * predicted_unnorm
-        
+
         # u = model(x)
         u_x = tape.gradient(u, x)
         u_model = u_x - 2 * x
@@ -46,7 +51,7 @@ class LF_ODE_3(PhysLoss):
 
     @tf.function
     def boundary_loss_1(
-        self, 
+        self,
         model,
         tape: tf.GradientTape,
         x,

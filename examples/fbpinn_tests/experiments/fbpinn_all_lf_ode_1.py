@@ -20,7 +20,6 @@ from examples.fbpinn_tests.plot_functions import plot_each_submodel, plot_model
 from Functions.LF_ODE_1_submodels import LF_ODE_1
 
 
-
 ode = LF_ODE_1()
 phys_loss = ode.phys_loss
 which = ode.description
@@ -32,7 +31,6 @@ mlflow.start_run(run_name=run_name)
 mlflow.set_tag("Training Info", f"FBPINN model for {which}")
 mlflow.set_tag("mlflow.runName", run_name)
 log_dir = f"logs/fit/model{run_id}_{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-
 
 
 lr = 1e-3
@@ -88,7 +86,7 @@ train_config = {
     "eval_interval": 10,
     "batch_size": 10_000,
     "log_interval": 10000,
-    "mode": "all"
+    "mode": "all",
 }
 mlflow.log_params(train_config)
 

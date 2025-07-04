@@ -2,6 +2,7 @@ from datetime import datetime
 import random
 import numpy as np
 import tensorflow as tf
+
 # tf.config.set_visible_devices([], 'GPU')
 
 gpus = tf.config.experimental.list_physical_devices("GPU")
@@ -15,7 +16,11 @@ from matplotlib import pyplot as plt
 
 import mlflow
 from degann.geometry import RectangleDomain
-from degann.networks.topology.tffbpinn import LayerScheduler, LossScheduler, TensorflowFBPINN
+from degann.networks.topology.tffbpinn import (
+    LayerScheduler,
+    LossScheduler,
+    TensorflowFBPINN,
+)
 from examples.fbpinn_tests.plot_functions import plot_each_submodel, plot_model
 from examples.fbpinn_tests.experiments.Functions.LH_PDE1 import LH_PDE1
 
@@ -98,7 +103,7 @@ model_config = {
     "overlap": [0.1, 0.2],
     "offset": True,
     "points_per_block": 1000,
-    "losses_weight": [10000, 10, 10, 10, 1]
+    "losses_weight": [10000, 10, 10, 10, 1],
 }
 mlflow.log_params(model_config)
 
@@ -122,7 +127,9 @@ mlflow.log_param("Number of submodels", len(nn.blocks))
 mlflow.log_param("Blocks per axis", nn.decomposition.blocks_per_axis)
 mlflow.log_param("Blocks per layer", sum(nn.decomposition.blocks_per_axis[1:]))
 
-nn.custom_compile(optimizer="AdamW", rate=lr, loss_func="RelativeL1Loss", run_eagerly=False)
+nn.custom_compile(
+    optimizer="AdamW", rate=lr, loss_func="RelativeL1Loss", run_eagerly=False
+)
 
 x = tf.linspace(
     tf.constant([t_lim / 2, 0], dtype=tf.float32),
@@ -145,8 +152,7 @@ layer_scheduler = LayerScheduler(
     # start_right_bound=len(nn.blocks)
 )
 loss_scheduler = LossScheduler(
-    k=10_000,
-    boundary_indices=list(range(len(pde.sub_losses)))
+    k=10_000, boundary_indices=list(range(len(pde.sub_losses)))
 )
 train_config = {
     "epochs": 150_000,

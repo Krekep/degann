@@ -33,8 +33,8 @@ class LH_PDE1(PhysLoss):
         """d^2u/dt^2 - 4 * d^2u/dx^2 = 0"""
         t, x = x_in[:, 0:1], x_in[:, 1:2]
         # tape.watch(t)
-        # tape.watch(x)        
-        
+        # tape.watch(x)
+
         with tf.GradientTape(persistent=True) as outer_tape:
             outer_tape.watch(t)
             outer_tape.watch(x)
@@ -47,18 +47,18 @@ class LH_PDE1(PhysLoss):
                 u = tf.squeeze(u, axis=-1)
                 du_dt, du_dx = inner_tape.gradient(u, [t, x])  # Форма (n,)
             # du_dx = inner_tape.gradient(u, x)  # Форма (n,)
-        
+
         u_tt = outer_tape.gradient(du_dt, t)  # Форма (n,)
         u_xx = outer_tape.gradient(du_dx, x)  # Форма (n,)
-        
+
         # Добавьте в конец функции перед return:
         # tf.debugging.check_numerics(u_tt, "Invalid u_tt")
         # tf.debugging.check_numerics(u_xx, "Invalid u_xx")
-        
+
         del inner_tape, outer_tape
-        
+
         u_model = u_tt - 4.0 * u_xx
-        
+
         u_true = tf.zeros_like(u_model)
         diff = u_true - u_model
         phys_loss = tf.reduce_mean(tf.square(diff))
@@ -78,11 +78,11 @@ class LH_PDE1(PhysLoss):
         x_wout_t = x_in[:, 1]
         t = tf.zeros_like(x_wout_t)
         x = tf.stack([t, x_wout_t], axis=1)
-        
+
         u_model = model(x, active_models=active_models)
         u_model = tf.squeeze(u_model, axis=-1)
 
-        u_true = tf.sin(math.pi * x_wout_t) + 1/2 * tf.sin(4 * math.pi * x_wout_t)
+        u_true = tf.sin(math.pi * x_wout_t) + 1 / 2 * tf.sin(4 * math.pi * x_wout_t)
         print("Boundary loss 1", u_true.shape, u_model.shape)
         diff = u_true - u_model
         phys_loss = tf.reduce_mean(tf.square(diff))
@@ -110,7 +110,9 @@ class LH_PDE1(PhysLoss):
         with tf.GradientTape() as inner_tape:
             inner_tape.watch(x_wout_t)
             inner_tape.watch(t)
-            u_model = model(tf.stack([t, x_wout_t], axis=1), active_models=active_models)
+            u_model = model(
+                tf.stack([t, x_wout_t], axis=1), active_models=active_models
+            )
             # assert_equal(u_model.shape.rank, 1, "Model() have len(shape) != 1")
             # if u.shape.rank > 1 and u.shape[-1] == 1:
             u_model = tf.squeeze(u_model, axis=-1)
@@ -141,7 +143,7 @@ class LH_PDE1(PhysLoss):
         t_wout_x = x_in[:, 0]
         x_zeros = tf.zeros_like(t_wout_x)
         x = tf.stack([t_wout_x, x_zeros], axis=1)
-        
+
         u_model = model(x, active_models=active_models)
         u_model = tf.squeeze(u_model, axis=-1)
 
@@ -150,7 +152,7 @@ class LH_PDE1(PhysLoss):
         phys_loss = tf.reduce_mean(tf.square(diff))
 
         return phys_loss
-    
+
     @tf.function
     def boundary_loss_4(
         self,
@@ -164,7 +166,7 @@ class LH_PDE1(PhysLoss):
         t_wout_x = x_in[:, 0]
         x_zeros = tf.zeros_like(t_wout_x)
         x = tf.stack([t_wout_x, x_zeros], axis=1)
-        
+
         u_model = model(x, active_models=active_models)
         u_model = tf.squeeze(u_model, axis=-1)
 
@@ -173,12 +175,14 @@ class LH_PDE1(PhysLoss):
         phys_loss = tf.reduce_mean(tf.square(diff))
 
         return phys_loss
-    
+
     @tf.function
     def solution(self, x_in):
         t = x_in[:, 0]
         x = x_in[:, 1]
-        res = tf.sin(math.pi * x) * tf.cos(2 * math.pi * t) + 1/2 * tf.sin(4 * math.pi * x) * tf.cos(8 * math.pi * t)
+        res = tf.sin(math.pi * x) * tf.cos(2 * math.pi * t) + 1 / 2 * tf.sin(
+            4 * math.pi * x
+        ) * tf.cos(8 * math.pi * t)
         res = tf.expand_dims(res, axis=-1)
         return res
 
@@ -197,4 +201,3 @@ class LH_PDE1(PhysLoss):
     @tf.function
     def first_der_t(self, t, x):
         return 2 * t
-    
