@@ -1,0 +1,2 @@
+"[10, 8, 15, 12]","['sigmoid', 'tanh', 'sigmoid', 'sigmoid']",26097646,288,Adam,MaxAbsoluteDeviation,1.3545408248901367,0.40730559825897217,1.2820473000174388
+"[10, 8, 15, 12, 22]","['sigmoid', 'tanh', 'sigmoid', 'sigmoid', 'tanh']",26097646e9,288,Adam,MaxAbsoluteDeviation,0.24143493175506592,0.410125732421875,1.4162878000643104

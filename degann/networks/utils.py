@@ -2,12 +2,9 @@
 Provide some helpful functions
 """
 
-import pickle
 from typing import Tuple
 
 import numpy as np
-
-from degann.networks import imodel
 
 
 def import_csv_table(path: str) -> np.ndarray:

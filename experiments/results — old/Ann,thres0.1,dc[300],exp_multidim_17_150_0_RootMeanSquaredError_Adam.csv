@@ -1,0 +1,2 @@
+"[20, 17, 19, 21]","['tanh', 'elu', 'tanh', 'sigmoid']",c990b9d6,582,Adam,RootMeanSquaredError,0.013345198705792427,0.02828054688870907,3.798642799956724
+"[19, 20, 23, 19]","['swish', 'sigmoid', 'swish', 'swish']",b8c6f8b8,126,Adam,RootMeanSquaredError,0.04232248663902283,0.0461304746568203,1.1475502999965101

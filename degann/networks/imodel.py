@@ -210,8 +210,8 @@ class IModel(object):
                     )
                 ]
         temp = self.network.fit(
-            x_data,
-            y_data,
+            x=x_data,
+            y=y_data,
             batch_size=mini_batch_size,
             callbacks=callbacks,
             validation_split=validation_split,

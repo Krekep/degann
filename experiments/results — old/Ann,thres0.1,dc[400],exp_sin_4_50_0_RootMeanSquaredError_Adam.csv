@@ -1,0 +1,3 @@
+"[19, 22, 15, 14]","['sigmoid', 'sigmoid', 'sigmoid', 'elu']",b6e67660,281,Adam,RootMeanSquaredError,0.5299075841903687,0.685611367225647,1.7484212000272237
+"[19, 8, 15, 14]","['sigmoid', 'sigmoid', 'sigmoid', 'elu']",b6067660,281,Adam,RootMeanSquaredError,0.32917365431785583,0.38348284363746643,1.8537663000170141
+"[19, 8, 15, 14]","['sigmoid', 'sigmoid', 'sigmoid', 'elu']",b6067660,700,Adam,RootMeanSquaredError,0.04008302092552185,0.04451988637447357,3.8278688000282273

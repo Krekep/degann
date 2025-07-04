@@ -1,8 +1,5 @@
-from concurrent.futures import ProcessPoolExecutor
 import datetime
 import math
-import os
-import random
 import time
 from typing import List, Optional, Dict, Callable
 
@@ -12,13 +9,83 @@ from tensorflow import keras
 import mlflow
 
 from degann.geometry import RectangleDomain, Decomposition, Block
-from degann.networks.config_format import LAYER_DICT_NAMES
-from degann.networks import layer_creator, losses, metrics, cpp_utils
-from degann.networks import optimizers
+from degann.networks import losses, metrics, optimizers
 from degann.networks.layers.tf_dense import TensorflowDense
-from degann.networks.topology import TensorflowDenseNet
 from degann.networks.topology.pinn import PhysicsInformedNet
 from examples.fbpinn_tests.plot_functions import plot_each_submodel, plot_model
+
+
+class LayerScheduler:
+    def __init__(
+        self,
+        n: int,
+        left_bound_step: int,
+        right_bound_step: int,
+        left_bound_schedule: int,
+        right_bound_schedule: int,
+        start_left_bound: int,
+        start_right_bound: int,
+    ):
+        self.n = n
+        self.left_bound_step = left_bound_step
+        self.right_bound_step = right_bound_step
+        self.left_bound_schedule = left_bound_schedule
+        self.right_bound_schedule = right_bound_schedule
+        self.current_step = 0
+        self.current_left_bound = start_left_bound
+        self.current_right_bound = start_right_bound
+        self.current_indices = list(range(start_left_bound, start_right_bound))
+        self.is_changes = True
+
+    def on_epoch_start(self) -> list[int]:
+        res = self.current_indices
+
+        if self.is_changes:
+            range_changed = False
+            if self.current_step % self.right_bound_schedule == 0:
+                if self.current_right_bound == self.n:
+                    self.current_left_bound = 0
+                    self.is_changes = False
+                self.current_right_bound = min(
+                    self.n, self.current_right_bound + self.right_bound_step
+                )
+                range_changed = True
+
+            if self.is_changes and self.current_step % self.left_bound_schedule == 0:
+                self.current_left_bound += self.left_bound_step
+                range_changed = True
+            if range_changed:
+                self.current_indices = list(
+                    range(self.current_left_bound, self.current_right_bound)
+                )
+        return res
+
+    def step(self):
+        self.current_step += 1
+
+
+class LossScheduler:
+    """
+    Simple loss scheduler. First k epochs it returns only boundary and initial loss indices, after returns all loss indices
+    """
+
+    def __init__(
+        self,
+        k: int,
+        boundary_indices: list[int],
+    ):
+        self.k = k
+        self.current_step = 0
+        self.boundary_indices = boundary_indices
+        self.all_indices = boundary_indices + [len(boundary_indices)]
+
+    def on_epoch_start(self) -> list[int]:
+        if self.current_step <= self.k:
+            return self.boundary_indices
+        return self.all_indices
+
+    def step(self):
+        self.current_step += 1
 
 
 class TensorflowFBPINN(tf.keras.Model):
@@ -32,8 +99,8 @@ class TensorflowFBPINN(tf.keras.Model):
         is_debug: bool = False,
         models_size=[10],
         domain=RectangleDomain([0], [1]),
-        block_size=0.2,
-        overlap=0.05,
+        block_size=[0.2],
+        overlap=[0.05],
         physic_loss=None,
         boundary_loss: list[tuple[Callable, list[float]]] = None,
         offset=False,
@@ -49,8 +116,8 @@ class TensorflowFBPINN(tf.keras.Model):
         self.networks: list
 
         domain: RectangleDomain = domain
-        block_size: float = block_size
-        overlap: float = overlap
+        block_size: list[float] = block_size
+        overlap: list[float] = overlap
         self.physic_loss: Callable = physic_loss
 
         self.decomposition = Decomposition(
@@ -109,12 +176,12 @@ class TensorflowFBPINN(tf.keras.Model):
                     else:
                         left_down_corner = block.left_down_corner
                         right_up_corner = block.right_up_corner
-                    fl = False
+                    fl = True
                     for lc, var_b, rc in zip(left_down_corner, point, right_up_corner):
                         if var_b is not None:
                             for b in var_b:
-                                if lc <= b and b <= rc:
-                                    fl = True
+                                if lc > b or b > rc:
+                                    fl = False
                                     break
                     if fl:
                         models.append(j)
@@ -182,6 +249,7 @@ class TensorflowFBPINN(tf.keras.Model):
             run_eagerly=run_eagerly,
         )
 
+    # @tf.function
     def call(self, x, active_models: list = None, **kwargs):
         """
         Obtaining a neural network response on the input data vector
@@ -198,14 +266,7 @@ class TensorflowFBPINN(tf.keras.Model):
 
         active_models = active_models if active_models is not None else self.blocks
         for nn, block in active_models:
-            x_norm = block.normalization(x)
-            predicted = nn(x_norm)
-            predicted_unnorm: tf.Tensor = block.unnormalization(predicted)
-            if self.time_input:
-                windowed = block.window_function(x[:, 1:])
-            else:
-                windowed = block.window_function(x)
-            result = windowed * predicted_unnorm
+            result = block.forward(nn, x)
             fbpinn_predict = fbpinn_predict + result
 
         return fbpinn_predict
@@ -263,18 +324,19 @@ class TensorflowFBPINN(tf.keras.Model):
         return [input_data]
 
     def log_weights(self, epoch, model):
-        with self.summary_writer.as_default():
-            for layer in model.layers:
-                if hasattr(layer, "w"):
-                    # Логирование весов (kernel)
-                    tf.summary.histogram(
-                        f"{model.name}/{layer.name}/w", layer.w, step=epoch
-                    )
-                if hasattr(layer, "b"):
-                    # Логирование смещений (bias)
-                    tf.summary.histogram(
-                        f"{model.name}/{layer.name}/b", layer.b, step=epoch
-                    )
+        if self.summary_writer is not None:
+            with self.summary_writer.as_default():
+                for layer in model.layers:
+                    if hasattr(layer, "w"):
+                        # Логирование весов (kernel)
+                        tf.summary.histogram(
+                            f"{model.name}/{layer.name}/w", layer.w, step=epoch
+                        )
+                    if hasattr(layer, "b"):
+                        # Логирование смещений (bias)
+                        tf.summary.histogram(
+                            f"{model.name}/{layer.name}/b", layer.b, step=epoch
+                        )
 
     def evaluate(
         self,
@@ -292,7 +354,7 @@ class TensorflowFBPINN(tf.keras.Model):
         square = tf.math.square(y - y_pred)
         return tf.math.reduce_mean(square)
 
-    @tf.function
+    # @tf.function
     def get_val_score(self, val_input, val_function):
         y_pred = self.call(val_input)
         y_true = val_function(val_input)
@@ -323,6 +385,19 @@ class TensorflowFBPINN(tf.keras.Model):
         mlflow.log_metric("Loss", loss, step=epoch)
         mlflow.log_metric("Learning rate", self.optimizer.learning_rate, step=epoch)
 
+        for i, (nn, block) in enumerate(self.blocks):
+            data = block.get_data()
+            result = block.forward(nn, data)
+            t = ode.solution(data)
+            nn_mae_loss = tf.reduce_mean(tf.abs(result, t))
+            nn_mse_loss = tf.reduce_mean(tf.square(result, t))
+            nn_rel_loss = tf.reduce_mean(tf.abs(t - result)) / tf.reduce_mean(tf.abs(t))
+            mlflow.log_metric(f"Validation MSE loss model{i}", nn_mae_loss, step=epoch)
+            mlflow.log_metric(f"Validation MAE loss model{i}", nn_mse_loss, step=epoch)
+            mlflow.log_metric(
+                f"Validation Relative L1Loss model{i}", nn_rel_loss, step=epoch
+            )
+
     def log_graphics(self, t, val_input, ode, epoch, loss, png_salt):
         if t[0] is not None:
             t_val = tf.fill([5000, 1], t[0])
@@ -340,53 +415,56 @@ class TensorflowFBPINN(tf.keras.Model):
         fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(10, 6))
         plot_each_submodel(x, val_input[:, 1], y_true, self, axes[0])
         plot_model(x, val_input[:, 1], y_true, self, axes[1])
+        # fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(10, 6))
+        # plot_each_submodel(x, val_input, y_true, self, axes[0])
+        # plot_model(x, val_input, y_true, self, axes[1])
         plt.savefig(
             f"FBPINN_{png_salt}_{epoch}_t{t[0]}.png", dpi=300, bbox_inches="tight"
         )
         plt.close(fig)
 
-        for nn, block in self.blocks:
-            self.log_weights(epoch, nn)
+        # for nn, block in self.blocks:
+        #     self.log_weights(epoch, nn)
 
-        with tf.GradientTape() as tape:
-            tape.watch(x)
-            u = self(x)
-            u_x = tape.gradient(u, x)
-            original_dx = ode.first_der("x", val_input[:, 0], val_input[:, 1])
-            original_dt = ode.first_der("t", val_input[:, 0], val_input[:, 1])
-            fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(10, 6))
-            axes[0].plot(
-                val_input[:, 1], original_dx, label="Truth x derivative", color="red"
-            )
-            axes[0].plot(
-                val_input[:, 0], original_dt, label="Truth t derivative", color="black"
-            )
-            axes[0].plot(
-                val_input[:, 1], u_x[:, 1], label="Model x derivative", color="green"
-            )
-            axes[0].plot(
-                val_input[:, 0], u_x[:, 0], label="Model t derivative", color="purple"
-            )
-            axes[1].plot(
-                val_input[:, 1],
-                original_dx - u_x[:, 1],
-                label="Difference x",
-                color="blue",
-            )
-            axes[1].plot(
-                val_input[:, 0],
-                original_dt - u_x[:, 0],
-                label="Difference t",
-                color="orange",
-            )
-            axes[0].grid()
-            axes[1].grid()
-            axes[1].legend()
-            axes[0].legend()
-            plt.savefig(
-                f"FBPINN_{png_salt}_d_{epoch}_t{t[0]}.png", dpi=300, bbox_inches="tight"
-            )
-            plt.close(fig)
+        # with tf.GradientTape() as tape:
+        #     tape.watch(x)
+        #     u = self(x)
+        #     u_x = tape.gradient(u, x)
+        #     original_dx = ode.first_der("x", val_input[:, 0], val_input[:, 1])
+        #     original_dt = ode.first_der("t", val_input[:, 0], val_input[:, 1])
+        #     fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(10, 6))
+        #     axes[0].plot(
+        #         val_input[:, 1], original_dx, label="Truth x derivative", color="red"
+        #     )
+        #     axes[0].plot(
+        #         val_input[:, 0], original_dt, label="Truth t derivative", color="black"
+        #     )
+        #     axes[0].plot(
+        #         val_input[:, 1], u_x[:, 1], label="Model x derivative", color="green"
+        #     )
+        #     axes[0].plot(
+        #         val_input[:, 0], u_x[:, 0], label="Model t derivative", color="purple"
+        #     )
+        #     axes[1].plot(
+        #         val_input[:, 1],
+        #         original_dx - u_x[:, 1],
+        #         label="Difference x",
+        #         color="blue",
+        #     )
+        #     axes[1].plot(
+        #         val_input[:, 0],
+        #         original_dt - u_x[:, 0],
+        #         label="Difference t",
+        #         color="orange",
+        #     )
+        #     axes[0].grid()
+        #     axes[1].grid()
+        #     axes[1].legend()
+        #     axes[0].legend()
+        #     plt.savefig(
+        #         f"FBPINN_{png_salt}_d_{epoch}_t{t[0]}.png", dpi=300, bbox_inches="tight"
+        #     )
+        #     plt.close(fig)
 
         print(
             f"Epoch {epoch}, loss {loss}, val mse loss {val_mse_loss}, mae loss {val_mae_loss}, rel l1loss {val_l1_loss}. {datetime.datetime.now()}"
@@ -406,8 +484,8 @@ class TensorflowFBPINN(tf.keras.Model):
         val_input=None,
         png_salt="",
         noise=None,
-        blocks_per_layer=None,
-        epoch_before_increase=None,
+        layer_scheduler=None,
+        loss_scheduler=None,
     ):
         self.build_data()
         self.build_time_vectors()
@@ -423,20 +501,21 @@ class TensorflowFBPINN(tf.keras.Model):
                 log_interval,
                 eval_interval,
                 batch_size,
+                val_input,
+                png_salt,
             )
-        elif mode == "full":
-            self.full_train(
+        elif mode == "all":
+            self.all_train(
                 epochs,
                 verbose,
-                callbacks=callbacks,
-                ode=ode,
-                patience=patience,
-                log_interval=log_interval,
-                eval_interval=eval_interval,
-                batch_size=batch_size,
-                val_input=val_input,
-                png_salt=png_salt,
-                noise=noise,
+                callbacks,
+                ode,
+                patience,
+                log_interval,
+                eval_interval,
+                batch_size,
+                val_input,
+                png_salt,
             )
         elif mode == "layer":
             self.layer_train(
@@ -450,9 +529,8 @@ class TensorflowFBPINN(tf.keras.Model):
                 batch_size=batch_size,
                 val_input=val_input,
                 png_salt=png_salt,
-                noise=noise,
-                epoch_before_increase=epoch_before_increase,
-                blocks_per_layer=blocks_per_layer,
+                layer_scheduler=layer_scheduler,
+                loss_scheduler=loss_scheduler,
             )
         else:
             raise ValueError("Unsupported train mode")
@@ -469,27 +547,21 @@ class TensorflowFBPINN(tf.keras.Model):
         eval_interval=1,
         batch_size=10,
         png_salt="",
-        epoch_before_increase=2000,
-        noise=0,
-        blocks_per_layer=None,
+        layer_scheduler: LayerScheduler = None,
+        loss_scheduler: LayerScheduler = None,
     ):
         curr_patience = 0
         best_loss = 1e6
-        best_val_loss = 1e6
-        if noise is None:
-            noise = tf.constant(0, shape=self.data.shape, dtype=tf.float32)
 
-        if blocks_per_layer is None:
-            blocks_per_axis = self.decomposition.blocks_per_axis
-            blocks_per_layer = sum(blocks_per_axis[:-1])
-        layer_start = 0
-        layer_end = blocks_per_layer
-        counter = 0
-        print(f"Epoch {0}, layer start {layer_start}, layer end {layer_end}")
         for epoch in range(epochs):
             start_time = time.perf_counter()
+            layer_scheduler.step()
+            loss_scheduler.step()
+            layer_indices = layer_scheduler.on_epoch_start()
+            loss_indices = loss_scheduler.on_epoch_start()
+            # layer_end = min(layer_end, len(self.blocks))
             data = []
-            for i in range(layer_start, layer_end):
+            for i in layer_indices:
                 data.append(self.blocks[i][1].get_data())
             data = tf.concat(data, axis=0)
 
@@ -506,108 +578,42 @@ class TensorflowFBPINN(tf.keras.Model):
                 loss = 0
                 # for batch in batches:
                 if epoch == 0:
-                    metrics = self.train_step(data, noise, 0, len(self.blocks))
+                    _, step_loss, losses = self.train_step(
+                        data,
+                        list(range(0, len(self.blocks))),
+                        list(range(0, len(self.model_per_loss))),
+                    )
                 else:
-                    metrics = self.train_step(data, noise, layer_start, layer_end)
-                loss += metrics["loss"]
-                if loss < best_loss:
-                    best_loss = loss
-                    curr_patience = 0
-                curr_patience += 1
-                if curr_patience > patience:
-                    break
+                    _, step_loss, losses = self.train_step(
+                        data, layer_indices, loss_indices
+                    )
+                loss += step_loss
+
             end_time = time.perf_counter()
-            if epoch == 0:
-                end_time = start_time
             if epoch % eval_interval == 0:
                 self.log_validation_metrics(
                     log_t, val_input, ode, epoch, loss, end_time - start_time
                 )
             if epoch % log_interval == 0:
                 self.log_graphics(log_t, val_input, ode, epoch, loss, png_salt)
+                print(f"Epoch {epoch}, layer indices {layer_indices}")
+                print(f"Epoch {epoch}, loss indices {loss_indices}")
                 print(f"Epoch {epoch}, data length {len(blocks_data)}")
-            if (epoch + 1) % epoch_before_increase == 0:
-                if layer_end < len(self.blocks) - 1:
-                    if counter == 0:
-                        counter += 1
-                    else:
-                        layer_start = layer_start + blocks_per_layer
-                    layer_end = layer_end + blocks_per_layer
-                    print(
-                        f"Epoch {epoch}, layer start {layer_start}, layer end {layer_end}"
-                    )
-                else:
-                    layer_start = 0
-                    print(
-                        f"Epoch {epoch}, layer start {layer_start}, layer end {layer_end}"
-                    )
+                tf.print(losses)
+                self.save_weights(f"fbpinn{png_salt}_{epoch}.weights.h5")
             if loss < best_loss:
                 best_loss = loss
                 curr_patience = 0
             curr_patience += 1
             if curr_patience > patience:
+                print(
+                    f"Too long, Current patience is {curr_patience}, all patience is {patience}, best loss {best_loss}"
+                )
                 break
         self.log_graphics(log_t, val_input, ode, epoch, loss, png_salt)
 
-    def full_train(
-        self,
-        epochs,
-        verbose,
-        val_input,
-        ode,
-        patience=300,
-        callbacks=None,
-        log_interval=100,
-        eval_interval=1,
-        batch_size=10,
-        png_salt="",
-        noise=None,
-        **kwargs,
-    ):
-        curr_patience = 0
-        best_loss = 1e6
-        self.ode = ode
-        if noise is None:
-            noise = tf.constant(0, shape=self.data.shape, dtype=tf.float32)
-
-        for epoch in range(epochs):
-            start_time = time.perf_counter()
-            # blocks_data = []
-            # for nn, block in self.blocks:
-            #     blocks_data.append(block.get_data())
-            # blocks_data = tf.concat(blocks_data, axis=0)
-            blocks_data = self.data
-            for t in self.time_data:
-                log_t = [None]
-                if t is not None:
-                    data = tf.concat([t, blocks_data], axis=1)
-                    log_t = t
-                else:
-                    data = blocks_data
-                batches = self.split_to_batches(data, batch_size)
-                loss = 0
-                for batch in batches:
-                    metrics = self.train_step(batch, noise, 0, len(self.blocks))
-                    loss += metrics["loss"]
-                if loss < best_loss:
-                    best_loss = loss
-                    curr_patience = 0
-                curr_patience += 1
-                if curr_patience > patience:
-                    break
-            end_time = time.perf_counter()
-            if epoch == 0:
-                end_time = start_time
-            if epoch % eval_interval == 0:
-                self.log_validation_metrics(
-                    log_t, val_input, ode, epoch, loss, end_time - start_time
-                )
-            if epoch % log_interval == 0:
-                self.log_graphics(log_t, val_input, ode, epoch, loss, png_salt)
-        self.log_graphics(log_t, val_input, ode, epoch, loss, png_salt)
-
-    # @tf.function
-    def train_step(self, data, noise, layer_start, layer_end):
+    @tf.function
+    def train_step(self, data, layer_indices, loss_indices):
         """
         Custom train step from tensorflow tutorial
 
@@ -623,35 +629,47 @@ class TensorflowFBPINN(tf.keras.Model):
         def get_active_variables(active_models):
             variables = []
             for nn, block in active_models:
+                # temp = nn.trainable_variables
                 variables.extend(nn.trainable_variables)
             # variables.extend(self.trainable_variables)
             return variables
 
+        # adf = self.trainable_variables
         # Unpack the data. Its structure depends on your model and
         # on what you pass to `fit()`.
-        with tf.GradientTape(persistent=True) as tape:
-            with tf.device("/GPU:0"):
-                x = tf.identity(data)
+        all_active_models_idx = set()
+        losses = []
+        with tf.GradientTape() as tape:
+            x = tf.identity(data)
             loss: tf.Tensor = tf.zeros(shape=1)
-            for loss_func, models, loss_weigth in self.model_per_loss:
-                active_models = []
-                for model in models:
-                    if layer_start <= model <= layer_end:
-                        active_models.append(self.blocks[model])
-                if len(active_models) > 0:
-                    loss += (
-                        loss_func(
-                            self, tape, x, noise=noise, active_models=active_models
+            for i, (loss_func, models, loss_weigth) in enumerate(self.model_per_loss):
+                if i in loss_indices:
+                    active_models = [
+                        self.blocks[model] for model in models if model in layer_indices
+                    ]
+                    # for model in models:
+                    #     if layer_start <= model <= layer_end:
+                    #         active_models.append(self.blocks[model])
+                    #         all_active_models_idx.add(model)
+                    all_active_models_idx.update(active_models)
+                    if len(active_models) > 0:
+                        temp_loss = (
+                            loss_func(self, tape, x, active_models=active_models)
+                            * loss_weigth
                         )
-                        * loss_weigth
-                    )
+                        losses.append(temp_loss)
+                        loss += temp_loss
+        # all_active_models = []
+        # for idx in all_active_models_idx:
+        #     all_active_models.append(self.blocks[idx])
 
         # Compute gradients
-        trainable_vars = get_active_variables(active_models)
+        trainable_vars = get_active_variables(all_active_models_idx)
         gradients = tape.gradient(loss, trainable_vars)
         # # Update weights
         # self.optimizer.apply(gradients, trainable_vars)
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
+        del tape
         # Update metrics (includes the metric that tracks the loss)
         for metric in self.metrics:
             if metric.name == "loss":
@@ -659,7 +677,209 @@ class TensorflowFBPINN(tf.keras.Model):
             # elif y is not None:
             #     metric.update_state(y, y_pred)
         # Return a dict mapping metric names to current value
-        return {m.name: m.result() for m in self.metrics}
+        return {m.name: m.result() for m in self.metrics}, loss, losses
+
+    def sequence_train(
+        self,
+        epochs,
+        verbose,
+        callbacks,
+        ode,
+        patience=300,
+        log_interval=100,
+        eval_interval=1,
+        batch_size=50,
+        val_input=None,
+        png_salt="",
+    ):
+        i = 0
+        while i < len(self.blocks):
+            nn, block = self.blocks[i]
+            inputs = block.get_data()
+
+            best_loss = 1e6
+            best_val_loss = 1e6
+            curr_patience = 0
+            for epoch in range(epochs):
+                start_time = time.perf_counter()
+                if i == 0:
+                    loss, losses = nn.custom_train_step(inputs, block, None, None)
+                else:
+                    loss, losses = nn.custom_train_step(
+                        inputs,
+                        block=block,
+                        prev_model=self.blocks[i - 1][0],
+                        prev_block=self.blocks[i - 1][1],
+                    )
+
+                end_time = time.perf_counter()
+                if epoch % eval_interval == 0:
+                    if i == 0:
+                        val_mse_loss, val_mae_loss, val_l1_loss = nn.get_val_score(
+                            inputs, block, None, None, ode.solution
+                        )
+                    else:
+                        val_mse_loss, val_mae_loss, val_l1_loss = nn.get_val_score(
+                            inputs,
+                            block,
+                            self.blocks[i - 1][0],
+                            self.blocks[i - 1][1],
+                            ode.solution,
+                        )
+                    mlflow.log_metric(
+                        f"Validation MSE loss model {i}", val_mse_loss, step=epoch
+                    )
+                    mlflow.log_metric(
+                        f"Validation MAE loss model {i}", val_mae_loss, step=epoch
+                    )
+                    mlflow.log_metric(
+                        f"Validation Relative L1Loss model {i}", val_l1_loss, step=epoch
+                    )
+                    mlflow.log_metric(f"Train loss model {i}", loss, step=epoch)
+                    mlflow.log_metric(
+                        f"Epoch time model {i}", end_time - start_time, step=epoch
+                    )
+                if epoch % log_interval == 0:
+                    print(
+                        f"Model {i}, epoch {epoch}, last loss {loss}, val l1 loss {val_l1_loss}, best val {best_val_loss}"
+                    )
+                    tf.print(losses)
+                    log_t = [None]
+                    self.log_graphics(log_t, val_input, ode, epoch, loss, png_salt)
+                if loss < best_loss:
+                    best_loss = loss
+                    curr_patience = 0
+                curr_patience += 1
+                if curr_patience == patience:
+                    break
+
+            if i == 0:
+                val_mse_loss, val_mae_loss, val_l1_loss = nn.get_val_score(
+                    inputs, block, None, None, ode.solution
+                )
+            else:
+                val_mse_loss, val_mae_loss, val_l1_loss = nn.get_val_score(
+                    inputs,
+                    block,
+                    self.blocks[i - 1][0],
+                    self.blocks[i - 1][1],
+                    ode.solution,
+                )
+            mlflow.log_metric(
+                f"Validation MSE loss model {i}", val_mse_loss, step=epoch
+            )
+            mlflow.log_metric(
+                f"Validation MAE loss model {i}", val_mae_loss, step=epoch
+            )
+            mlflow.log_metric(
+                f"Validation Relative L1Loss model {i}", val_l1_loss, step=epoch
+            )
+            mlflow.log_metric(f"Train loss model {i}", loss, step=epoch)
+
+            print(
+                f"Model {i}, epoch {epoch}, last loss {loss}, val l1 loss {val_l1_loss}, best val {best_val_loss}"
+            )
+            print()
+
+            i += 1
+
+    def all_train(
+        self,
+        epochs,
+        verbose,
+        callbacks,
+        ode,
+        patience=300,
+        log_interval=100,
+        eval_interval=1,
+        batch_size=10,
+        val_input=None,
+        png_salt="",
+    ):
+        curr_patience = 0
+        best_loss = 1e6
+        best_val_loss = 1e6
+        inputs_per_model = []
+        for i, (nn, block) in enumerate(self.blocks):
+            inputs = block.get_data()
+            inputs_per_model.append(inputs)
+
+        for epoch in range(epochs):
+            acc_loss = 0
+            acc_val_mse = 0
+            acc_val_mae = 0
+            acc_val_l1 = 0
+
+            for i, (nn, block) in enumerate(self.blocks):
+                start_time = time.perf_counter()
+                inputs = inputs_per_model[i]
+                if i == 0:
+                    loss, losses = nn.custom_train_step(
+                        inputs,
+                        block,
+                        None,
+                        None,
+                    )
+                else:
+                    loss, losses = nn.custom_train_step(
+                        inputs,
+                        block=block,
+                        prev_model=self.blocks[i - 1][0],
+                        prev_block=self.blocks[i - 1][1],
+                    )
+                end_time = time.perf_counter()
+                if epoch % eval_interval == 0:
+                    if i == 0:
+                        val_mse_loss, val_mae_loss, val_l1_loss = nn.get_val_score(
+                            inputs, block, None, None, ode.solution
+                        )
+                    else:
+                        val_mse_loss, val_mae_loss, val_l1_loss = nn.get_val_score(
+                            inputs,
+                            block,
+                            self.blocks[i - 1][0],
+                            self.blocks[i - 1][1],
+                            ode.solution,
+                        )
+                    mlflow.log_metric(
+                        f"Validation MSE loss model {i}", val_mse_loss, step=epoch
+                    )
+                    mlflow.log_metric(
+                        f"Validation MAE loss model {i}", val_mae_loss, step=epoch
+                    )
+                    mlflow.log_metric(
+                        f"Validation Relative L1Loss model {i}", val_l1_loss, step=epoch
+                    )
+                    mlflow.log_metric(f"Train loss model {i}", loss, step=epoch)
+                    mlflow.log_metric(
+                        f"Epoch time model {i}", end_time - start_time, step=epoch
+                    )
+                    acc_val_mse += val_mse_loss
+                    acc_val_mae += val_mae_loss
+                    acc_val_l1 += val_l1_loss
+                acc_loss += loss
+            acc_val_mse /= len(self.blocks)
+            acc_val_mae /= len(self.blocks)
+            acc_val_l1 /= len(self.blocks)
+            acc_loss /= len(self.blocks)
+            mlflow.log_metric("Validation MSE loss", acc_val_mse, step=epoch)
+            mlflow.log_metric("Validation MAE loss", acc_val_mae, step=epoch)
+            mlflow.log_metric("Validation Relative L1Loss loss", acc_val_l1, step=epoch)
+            mlflow.log_metric("Train loss", acc_loss, step=epoch)
+
+            if epoch % log_interval == 0:
+                print(
+                    f"Model {i}, epoch {epoch}, last loss {loss}, val l1 loss {acc_val_l1}"
+                )
+                tf.print(losses)
+                log_t = [None]
+                self.log_graphics(log_t, val_input, ode, epoch, loss, png_salt)
+            if loss < best_loss:
+                best_loss = loss
+                curr_patience = 0
+            curr_patience += 1
+            if curr_patience == patience:
+                break
 
     def set_name(self, new_name):
         raise NotImplementedError("This method not implemented")
@@ -679,6 +899,18 @@ class TensorflowFBPINN(tf.keras.Model):
         -------
 
         """
+        res = dict()
+        for i, (nn, block) in enumerate(self.blocks):
+            res[f"block_{i}"] = {
+                block.left_down_corner,
+                block.right_up_corner,
+                # TODO: Window function
+            }
+            # TODO: export phus losses or create method for run time adding them
+            # TODO: export models
+            # "discriminator": self.discriminator.to_dict(
+            #     **kwargs.get("discriminator", dict())
+            # ),
         raise NotImplementedError("This method not implemented")
 
     @classmethod

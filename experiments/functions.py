@@ -133,12 +133,12 @@ def ST_S_ODE_3_table(points_array: list, interval: Tuple[float, float] = (0, 40)
     return res
 
 
-exp = LF_ODE_1_solution
-lin = lambda x: x * 2
-log = lambda x: np.log(x + 1)
-sin = LH_ODE_1_solution
+LF_ODE_1 = LF_ODE_1_solution
+LF_ODE_2 = lambda x: x * 2
+LH_ODE_2 = lambda x: np.log(x + 1)
+LH_ODE_1 = LH_ODE_1_solution
 gauss = lambda x: np.float_power(np.e, -((x - 0.5) ** 2) / 0.08)
-hyperbol = lambda x: (np.float_power(x, 2) + 0.5) / (x + 0.1)
-const = LF_ODE_2_solution
+NL_ODE_1 = lambda x: (np.float_power(x, 2) + 0.5) / (x + 0.1)
+LF_ODE_3 = LF_ODE_2_solution
 sig = lambda x: 1 / (1 + np.float_power(np.e, -x))
 multidim = lambda x, y, z: np.sin(5 * x) * np.log2(1 + y) / np.sqrt(1 + z)

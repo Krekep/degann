@@ -172,7 +172,7 @@ class PhysicsInformedNet(keras.Model):
             run_eagerly=run_eagerly,
         )
 
-    @tf.function
+    # @tf.function
     def call(self, inputs, **kwargs):
         """
         Obtaining a neural network response on the input data vector
@@ -214,11 +214,18 @@ class PhysicsInformedNet(keras.Model):
             y_pred_left = left_block.window_function(inputs) * predicted_unnorm_left
             y_pred = block.window_function(inputs) * predicted_unnorm + y_pred_left
         y_true = val_function(inputs)
-        val_loss = self.loss(y_true, y_pred)
-        return val_loss
+        assert y_true.shape == y_pred.shape
+
+        val_mse_loss = tf.reduce_mean(tf.square(y_true - y_pred))
+        val_mae_loss = tf.reduce_mean(tf.abs(y_true - y_pred))
+        val_l1_loss = tf.reduce_mean(tf.abs(y_true - y_pred)) / tf.reduce_mean(
+            tf.abs(y_true)
+        )
+        return val_mse_loss, val_mae_loss, val_l1_loss
 
     @tf.function
     def custom_train_step(self, inputs, block, prev_model, prev_block):
+        losses = []
         with tf.GradientTape(persistent=True) as tape:
             tape.watch(inputs)
             loss = 0.0
@@ -231,6 +238,7 @@ class PhysicsInformedNet(keras.Model):
                     prev_model=prev_model,
                     prev_block=prev_block,
                 )
+                losses.append(temp)
                 loss += temp
 
             # Compute gradients
@@ -240,7 +248,7 @@ class PhysicsInformedNet(keras.Model):
         #     self.log_gradients(gradients, epoch, summary_writer)
         # # Update weights
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
-        return loss
+        return loss, losses
 
     def train_step(self, data):
         """

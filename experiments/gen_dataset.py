@@ -1,58 +1,61 @@
 import csv
+import os
 import random
 from random import randint
 
 import numpy as np
 
+if __name__ == "__main__":
+    import tensorflow as tf
+
+    gpus = tf.config.experimental.list_physical_devices("GPU")
+    if len(gpus) > 0:
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
 import functions
+
 
 __all__ = ["funcs", "sizes_of_samples", "generate_size"]
 
 funcs = [
-    # (functions.lin, "lin"),
-    # (functions.log, "log"),
-    # (functions.sin, "sin"),
-    # (functions.exp, "exp"),
-    # (functions.gauss, "gauss"),
-    # (functions.hyperbol, "hyperbol"),
-    # (functions.const, "const"),
-    # (functions.sig, "sig"),
-    (functions.multidim, "multidim")
+    (functions.LF_ODE_1, "LF_ODE_1"),
+    (functions.LF_ODE_2, "LF_ODE_2"),
+    (functions.LF_ODE_3, "LF_ODE_3"),
+    (functions.LH_ODE_1, "LH_ODE_1"),
+    (functions.LH_ODE_2, "LH_ODE_2"),
+    (functions.NL_ODE_1, "NL_ODE_1"),
+    (functions.gauss, "gauss"),
+    (functions.sig, "sig"),
 ]
-# sizes_of_samples = [50, 150, 400]
+sizes_of_samples = [50, 150, 400]
 # sizes_of_samples = [400]
-sizes_of_samples = [400, 50]
-generate_size = 1_000
+# sizes_of_samples = [400, 50]
+generate_size = 100_000
 
 if __name__ == "__main__":
     for func, func_name in funcs:
         nn_data_x = np.array(
-            [
-                [
-                    random.uniform(1 / generate_size, 1),
-                    random.uniform(1 / generate_size, 1),
-                    random.uniform(1 / generate_size, 1),
-                ]
-                for i in range(1, generate_size + 2)
-            ]
+            [[random.uniform(1 / generate_size, 1)] for i in range(generate_size + 1)]
         )  # X data
+        assert len(nn_data_x.shape) == 2 and nn_data_x.shape == (generate_size + 1, 1)
         nn_data_y = np.array([[func(*x)] for x in nn_data_x])
+        assert len(nn_data_y.shape) == 2 and nn_data_y.shape == (generate_size + 1, 1)
         for size in sizes_of_samples:
             train_idx = [randint(0, generate_size) for _ in range(size)]
             train_idx.sort()
-            val_idx = [randint(0, generate_size) for _ in range(size // 2)]
-            val_idx.sort()
-            val_data_x = nn_data_x[val_idx, :]  # validation X data
-            val_data_y = nn_data_y[val_idx, :]  # validation Y data
+            val_data_x = nn_data_x[:]  # validation X data
+            val_data_y = nn_data_y[:]  # validation Y data
             train_data_x = nn_data_x[train_idx, :]  # X data
             train_data_y = nn_data_y[train_idx, :]  # Y data
 
-            with open(f"data/{func_name}_{size}_train.csv", "w", newline="") as file:
+            with open(f"./data/{func_name}_{size}_train.csv", "w", newline="") as file:
                 csv_writer = csv.writer(file)
                 data = list(zip(*train_data_x.T, *train_data_y.T))
                 csv_writer.writerows(data)
 
-            with open(f"data/{func_name}_{size}_validate.csv", "w", newline="") as file:
+            with open(
+                f"./data/{func_name}_{size}_validate.csv", "w", newline=""
+            ) as file:
                 csv_writer = csv.writer(file)
                 data = list(zip(*val_data_x.T, *val_data_y.T))
                 csv_writer.writerows(data)

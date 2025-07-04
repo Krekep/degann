@@ -40,9 +40,9 @@ def random_search(
     if parameters.nn_alphabet is None:
         parameters.nn_alphabet = default_alphabet
 
-    best_net: dict
+    best_net: dict = {}
     best_metric_value = 1e6
-    best_epoch: int
+    best_epoch: int = -1
 
     assert parameters.iterations > 0, "The number of iterations must be positive."
 

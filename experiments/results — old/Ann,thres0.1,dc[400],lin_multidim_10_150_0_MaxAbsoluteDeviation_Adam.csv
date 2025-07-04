@@ -1,0 +1,5 @@
+"[17, 22, 18]","['sigmoid', 'sigmoid', 'tanh']",96e6a9,102,Adam,MaxAbsoluteDeviation,0.37367916107177734,0.4032212197780609,1.1293186000548303
+"[17, 22, 18]","['sigmoid', 'sigmoid', 'tanh']",96e6a9,700,Adam,MaxAbsoluteDeviation,0.11424636840820312,0.14917851984500885,5.42354129999876
+"[17, 22, 18, 18]","['sigmoid', 'sigmoid', 'tanh', 'sigmoid']",96e6a9a6,700,Adam,MaxAbsoluteDeviation,0.10613518208265305,0.0714116021990776,6.134601900004782
+"[17, 22, 18, 19]","['sigmoid', 'sigmoid', 'tanh', 'sigmoid']",96e6a9b6,700,Adam,MaxAbsoluteDeviation,0.07792388647794724,0.036130331456661224,6.045648899977095
+"[19, 22, 19, 14]","['swish', 'swish', 'sigmoid', 'elu']",b8e8b660,593,Adam,MaxAbsoluteDeviation,0.05002988502383232,0.0683274120092392,3.8820006999885663

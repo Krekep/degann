@@ -1,0 +1,2 @@
+"[19, 16, 19, 13]","['sigmoid', 'sigmoid', 'sigmoid', 'sigmoid']",b686b656,170,Adam,MaxAbsoluteDeviation,0.3836525082588196,0.4490567147731781,1.4242259999737144
+"[19, 16, 19]","['sigmoid', 'sigmoid', 'sigmoid']",b686b6,700,Adam,MaxAbsoluteDeviation,0.07483235001564026,0.19809956848621368,2.867984800017439

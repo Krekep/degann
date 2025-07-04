@@ -1,0 +1,14 @@
+"[15, 9, 20, 8]","['sigmoid', 'elu', 'tanh', 'elu']",7610c900,375,Adam,RootMeanSquaredError,0.11292874813079834,0.026329470798373222,3.2235559999244288
+"[15, 9, 20, 8]","['sigmoid', 'elu', 'tanh', 'elu']",7610c900,700,Adam,RootMeanSquaredError,0.10234089940786362,0.10658305883407593,5.850579399964772
+"[15, 9, 20, 8]","['sigmoid', 'elu', 'tanh', 'elu']",7610c900,217,Adam,RootMeanSquaredError,0.10234089940786362,0.15539729595184326,2.0574709000065923
+"[15, 9, 23, 8]","['sigmoid', 'elu', 'tanh', 'elu']",7610f900,700,Adam,RootMeanSquaredError,0.18628497421741486,0.1284194439649582,5.654383899993263
+"[15, 9, 23, 8]","['sigmoid', 'elu', 'tanh', 'sigmoid']",7610f906,700,Adam,RootMeanSquaredError,0.12099906802177429,0.14040356874465942,6.1398523999378085
+"[15, 9, 23, 8]","['sigmoid', 'elu', 'tanh', 'sigmoid']",7610f906,700,Adam,RootMeanSquaredError,0.12099906802177429,0.10506454855203629,6.030263900058344
+"[15, 9, 23, 8]","['sigmoid', 'elu', 'elu', 'sigmoid']",7610f006,700,Adam,RootMeanSquaredError,0.18402603268623352,0.14935728907585144,5.830604600021616
+"[15, 9, 23, 8, 16]","['sigmoid', 'elu', 'elu', 'sigmoid', 'sigmoid']",7610f00686,700,Adam,RootMeanSquaredError,0.2114180326461792,0.1074371337890625,6.6419926000526175
+"[15, 9, 23, 8, 16]","['tanh', 'elu', 'elu', 'sigmoid', 'sigmoid']",7910f00686,700,Adam,RootMeanSquaredError,0.15623052418231964,0.1470153033733368,6.793929300038144
+"[15, 9, 23, 8]","['tanh', 'elu', 'elu', 'sigmoid']",7910f006,700,Adam,RootMeanSquaredError,0.13289204239845276,0.08892088383436203,5.784610699978657
+"[23, 9, 23, 8]","['tanh', 'elu', 'elu', 'sigmoid']",f910f006,700,Adam,RootMeanSquaredError,0.10836489498615265,0.11362264305353165,5.788922299980186
+"[23, 9, 23, 8, 21]","['tanh', 'elu', 'elu', 'sigmoid', 'sigmoid']",f910f006d6,700,Adam,RootMeanSquaredError,0.18637920916080475,0.22102218866348267,6.626828800071962
+"[23, 9, 23, 8, 21]","['tanh', 'elu', 'elu', 'sigmoid', 'elu']",f910f006d0,700,Adam,RootMeanSquaredError,0.12847773730754852,0.10968800634145737,6.460920099983923
+"[23, 9, 23, 8, 21]","['tanh', 'elu', 'elu', 'sigmoid', 'elu']",f910f006d0,700,Adam,RootMeanSquaredError,0.05994083359837532,0.07854145765304565,6.507480200030841

@@ -13,7 +13,7 @@ def sign(x):
 class RelativeAbsoluteError(tf.keras.losses.Loss, ABC):
     """
     This class provides RAE loss function:
-    $$ RAE = \frac{\Sum^n_{i=1} |y_i - \hat(y)_i|}{\Sum^n_{i=1} |y_i - \bar(y)|}
+    $$ RAE = \frac{\Sum^n_{i=1} |y_i - \hat(y)_i|}{\Sum^n_{i=1} |y_i - \bar(y)|} $$
     """
 
     def __init__(self, reduction=tf.keras.losses.Reduction.NONE, name="rae", **kwargs):
@@ -39,10 +39,28 @@ class RelativeAbsoluteError(tf.keras.losses.Loss, ABC):
         return self(y_true, y_pred)
 
 
+class RelativeL1Loss(tf.keras.losses.Loss, ABC):
+    """
+    This class provides Relative L1 loss function:
+    $$ Loss = \frac{\frac{1}{n} * \Sum^n_{i=1} |y_i - \hat(y)_i|}{\frac{1}{n} * \Sum^n_{i=1} |y_i|}  $$
+    """
+
+    def __init__(
+        self, reduction=tf.keras.losses.Reduction.NONE, name="RelativeL1Loss", **kwargs
+    ):
+        super(RelativeL1Loss, self).__init__(reduction=reduction, name=name, **kwargs)
+
+    def __call__(self, y_true, y_pred, sample_weight=None):
+        return tf.reduce_mean(tf.abs(y_true - y_pred)) / tf.reduce_mean(tf.abs(y_true))
+
+    def call(self, y_true, y_pred):
+        return self(y_true, y_pred)
+
+
 class MaxAbsoluteDeviation(tf.keras.losses.Loss, ABC):
     """
     This class provides Max Absolute Deviation loss function:
-    $$ MAD = \max |y - \hat(y)|
+    $$ MAD = \max |y - \hat(y)| $$
     """
 
     def __init__(
@@ -63,7 +81,7 @@ class MaxAbsoluteDeviation(tf.keras.losses.Loss, ABC):
 class MaxAbsolutePercentageError(tf.keras.losses.Loss, ABC):
     """
     This class provides Max Absolute Percentage Error loss function:
-    $$ MAD = \max |\frac{y - \hat(y)}{y}|
+    $$ MAD = \max |\frac{y - \hat(y)}{y}| $$
     """
 
     def __init__(
@@ -84,7 +102,7 @@ class MaxAbsolutePercentageError(tf.keras.losses.Loss, ABC):
 class RMSE(tf.keras.losses.Loss, ABC):
     """
     This class provides Root Mean squared Error loss function:
-    $$ MAD = \sqrt{MSE}
+    $$ MAD = \sqrt{MSE} $$
     """
 
     def __init__(self, reduction=tf.keras.losses.Reduction.NONE, name="RMSE", **kwargs):
@@ -112,6 +130,7 @@ _losses: dict = {
     "MeanSquaredLogarithmicError": keras.losses.MeanSquaredLogarithmicError(),
     "RelativeAbsoluteError": RelativeAbsoluteError(),
     "MaxAbsoluteDeviation": MaxAbsoluteDeviation(),
+    "RelativeL1Loss": RelativeL1Loss(),
 }
 
 

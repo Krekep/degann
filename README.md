@@ -37,3 +37,13 @@ Use command
 pip install degann
 ```
 Now you can use the `degann` package
+
+
+## FBPINN
+FBPINN is not currently included in the DEGANN package, but you can use it directly from the source code.
+
+### Source code
+The source code for FBPINN includes `degann/geometry` and `degann/networks/topology/tffbpinn.py`
+
+### Usage examples
+Examples (including experiments) are in the `examples/fbpinn_tests` folder
