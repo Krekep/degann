@@ -34,7 +34,9 @@ class LF_ODE_3(PhysLoss):
         if prev_model is not None:
             x_left_norm = prev_block.normalization(x)
             predicted_left = prev_model(x_left_norm)
-            predicted_unnorm_left: tf.Tensor = block.unnormalization(predicted_left)
+            predicted_unnorm_left: tf.Tensor = prev_block.unnormalization(
+                predicted_left
+            )
             windowed_left = prev_block.window_function(x)
 
             u = windowed * predicted_unnorm + windowed_left * predicted_unnorm_left

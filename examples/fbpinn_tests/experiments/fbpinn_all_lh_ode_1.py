@@ -17,16 +17,15 @@ from degann.geometry import RectangleDomain
 from degann.geometry.decomposition import Block
 from degann.networks.topology.tffbpinn import TensorflowFBPINN
 from degann.networks.topology.layer_scheduler import SequenceLayerScheduler
-from tensorflow.keras.callbacks import EarlyStopping
 from examples.fbpinn_tests.plot_functions import plot_each_submodel, plot_model
-from Functions.NLF_ODE_1_submodels import NLF_ODE_1
+from Functions.LH_ODE_1_submodels import LH_ODE_1
 
 
-ode = NLF_ODE_1()
+ode = LH_ODE_1()
 phys_loss = ode.phys_loss
 which = ode.description
 
-mlflow.set_experiment("FBPINN NLF_ODE_1")
+mlflow.set_experiment("FBPINN LH_ODE_1")
 run_id = random.randint(1, 10000)
 run_name = f"FBPINN_All_{run_id}"
 mlflow.start_run(run_name=run_name)
@@ -39,7 +38,7 @@ lr = 1e-3
 mlflow.log_param("Learning rate", lr)
 
 lc = 0
-rc = 1
+rc = np.pi * 2
 mlflow.log_param("left_bound", lc)
 mlflow.log_param("right_bound", rc)
 
@@ -51,7 +50,7 @@ model_config = {
     "models_size": [16, 16],
     "overlap": [0.3],
     "offset": False,
-    "points_per_block": 1000,
+    "points_per_block": 500,
 }
 mlflow.log_params(model_config)
 
@@ -80,12 +79,11 @@ x = tf.reshape(
 )
 y = ode.solution(x)
 
-y_pred_before_train = nn.predict(x)
 loss_before_train = nn.evaluate(x, y, verbose=0)
 
 train_config = {
-    "epochs": 100000,
-    "patience": 200_000,
+    "epochs": 300000,
+    "patience": 2000_000,
     "eval_interval": 100,
     "batch_size": 10_000,
     "log_interval": 10000,
@@ -93,6 +91,7 @@ train_config = {
 }
 mlflow.log_params(train_config)
 
+print(f"Start training {datetime.now()}")
 # nn.full_train(
 nn.train(
     **train_config,
@@ -108,7 +107,7 @@ print("After", loss_after_train)
 mlflow.log_metric("Loss before training", loss_before_train)
 mlflow.log_metric("Loss after training", loss_after_train)
 mlflow.end_run()
-nn.save_weights(f"nlf_ode_1_all_{run_id}.weights.h5")
+nn.save_weights(f"lh_ode_1_all_{run_id}.weights.h5")
 
 fig, axes = plt.subplots(nrows=2, ncols=1)
 plot_each_submodel(x, x, y, nn, axes[0])

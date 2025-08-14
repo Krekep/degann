@@ -17,12 +17,12 @@ from matplotlib import pyplot as plt
 import mlflow
 from degann.geometry import RectangleDomain
 from degann.networks.topology.tffbpinn import (
-    LayerScheduler,
-    LossScheduler,
     TensorflowFBPINN,
 )
+from degann.networks.topology.loss_scheduler import LossScheduler
+from degann.networks.topology.layer_scheduler import SequenceLayerScheduler
 from examples.fbpinn_tests.plot_functions import plot_each_submodel, plot_model
-from examples.fbpinn_tests.PDEs.losses.LH_PDE2 import LH_PDE2
+from examples.fbpinn_tests.experiments.Functions.LH_PDE2 import LH_PDE2
 
 
 # Создаем расписание, зависящее от эпох
@@ -139,7 +139,7 @@ y = pde.solution(x)
 y_pred_before_train = nn.predict(x)
 loss_before_train = nn.evaluate(x, y, verbose=0)
 
-layer_scheduler = LayerScheduler(
+layer_scheduler = SequenceLayerScheduler(
     n=len(nn.blocks),
     left_bound_step=sum(nn.decomposition.blocks_per_axis[1:]),
     right_bound_step=sum(nn.decomposition.blocks_per_axis[1:]),

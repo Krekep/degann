@@ -10,36 +10,40 @@ if len(gpus) > 0:
         tf.config.experimental.set_memory_growth(gpu, True)
 else:
     print("Sorry, no GPU for you...")
+# tf.config.optimizer.set_jit(True)  # Для глобального включения XLA
+# tf.config.optimizer.set_experimental_options({"max_compiled_subgraphs": 5000})
 from matplotlib import pyplot as plt
 
 import mlflow
 from degann.geometry import RectangleDomain
 from degann.geometry.decomposition import Block
-from degann.networks.topology.tffbpinn import TensorflowFBPINN
+from degann.networks.topology.tffbpinn import (
+    TensorflowFBPINN,
+)
+from degann.networks.topology.loss_scheduler import LossScheduler, AdaptiveLossScheduler
 from degann.networks.topology.layer_scheduler import SequenceLayerScheduler
 from tensorflow.keras.callbacks import EarlyStopping
 from examples.fbpinn_tests.plot_functions import plot_each_submodel, plot_model
-from Functions.NLF_ODE_1_submodels import NLF_ODE_1
+from Functions.LH_ODE_1 import LH_ODE_1
 
 
-ode = NLF_ODE_1()
+ode = LH_ODE_1()
 phys_loss = ode.phys_loss
 which = ode.description
 
-mlflow.set_experiment("FBPINN NLF_ODE_1")
+mlflow.set_experiment("FBPINN LH_ODE_1")
 run_id = random.randint(1, 10000)
-run_name = f"FBPINN_All_{run_id}"
+run_name = f"FBPINN_Layer_{run_id}"
 mlflow.start_run(run_name=run_name)
 mlflow.set_tag("Training Info", f"FBPINN model for {which}")
 mlflow.set_tag("mlflow.runName", run_name)
 log_dir = f"logs/fit/model{run_id}_{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
 
-
 lr = 1e-3
 mlflow.log_param("Learning rate", lr)
 
 lc = 0
-rc = 1
+rc = np.pi * 2
 mlflow.log_param("left_bound", lc)
 mlflow.log_param("right_bound", rc)
 
@@ -51,7 +55,7 @@ model_config = {
     "models_size": [16, 16],
     "overlap": [0.3],
     "offset": False,
-    "points_per_block": 1000,
+    "points_per_block": 500,
 }
 mlflow.log_params(model_config)
 
@@ -83,13 +87,37 @@ y = ode.solution(x)
 y_pred_before_train = nn.predict(x)
 loss_before_train = nn.evaluate(x, y, verbose=0)
 
+layer_scheduler_config = {
+    "n": len(nn.blocks),
+    "left_bound_step": 3,
+    "right_bound_step": 3,
+    "left_bound_schedule": 60_000,
+    "right_bound_schedule": 60_000,
+    "start_left_bound": 0,
+    "start_right_bound": 3,
+    # "start_right_bound": len(nn.blocks),
+}
+mlflow.log_params(layer_scheduler_config)
+layer_scheduler = SequenceLayerScheduler(**layer_scheduler_config)
+
+loss_scheduler_config = {
+    "k": 10,
+    "boundary_indices": list(range(len(ode.sub_losses))),
+    "loss_weights": [10, 1],
+    "threshold": 1e-3,
+    "loss_multiplier": 10.0,
+}
+mlflow.log_params(loss_scheduler_config)
+loss_scheduler = AdaptiveLossScheduler(**loss_scheduler_config)
 train_config = {
-    "epochs": 100000,
-    "patience": 200_000,
+    "epochs": 300_000,
+    "patience": 500_000,
     "eval_interval": 100,
     "batch_size": 10_000,
-    "log_interval": 10000,
-    "mode": "all",
+    "log_interval": 10_000,
+    "mode": "layer",
+    "layer_scheduler": layer_scheduler,
+    "loss_scheduler": loss_scheduler,
 }
 mlflow.log_params(train_config)
 
@@ -108,7 +136,7 @@ print("After", loss_after_train)
 mlflow.log_metric("Loss before training", loss_before_train)
 mlflow.log_metric("Loss after training", loss_after_train)
 mlflow.end_run()
-nn.save_weights(f"nlf_ode_1_all_{run_id}.weights.h5")
+nn.save_weights(f"lh_ode_1_layer_{run_id}.weights.h5")
 
 fig, axes = plt.subplots(nrows=2, ncols=1)
 plot_each_submodel(x, x, y, nn, axes[0])

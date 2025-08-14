@@ -17,9 +17,12 @@ from matplotlib import pyplot as plt
 import mlflow
 from degann.geometry import RectangleDomain
 from degann.networks.topology.tffbpinn import (
-    LayerScheduler,
-    LossScheduler,
     TensorflowFBPINN,
+)
+from degann.networks.topology.loss_scheduler import LossScheduler, AdaptiveLossScheduler
+from degann.networks.topology.layer_scheduler import (
+    SequenceLayerScheduler,
+    ReduceEpochsLayerScheduler,
 )
 from examples.fbpinn_tests.plot_functions import plot_each_submodel, plot_model
 from examples.fbpinn_tests.experiments.Functions.LH_PDE1 import LH_PDE1
@@ -74,22 +77,22 @@ mlflow.set_tag("Training Info", f"FBPINN model for {which}")
 mlflow.set_tag("Class", pde.equation_class)
 
 
-warmup_start = 0
-warmup_len = 100
-initial_rate = 1e-3
-last_rate = 1e-5
-steps = 60000
-mlflow.log_param("warmup learning rate start", warmup_start)
-mlflow.log_param("warmup steps", warmup_len)
-mlflow.log_param("initial learning rate", initial_rate)
-mlflow.log_param("initial learning rate", initial_rate)
-mlflow.log_param("last learning rate", last_rate)
-mlflow.log_param("scheduler steps", steps)
-lr = EpochBasedScheduler(warmup_start, warmup_len, initial_rate, last_rate, steps, 1)
-# lr = tf.keras.optimizers.schedules.ExponentialDecay(
-#     1e-3, 5000, 0.9, staircase=True
-# )
-# lr = 1e-3
+# warmup_start = 0
+# warmup_len = 100
+# initial_rate = 1e-3
+# last_rate = 1e-5
+# steps = 60000
+# mlflow.log_param("warmup learning rate start", warmup_start)
+# mlflow.log_param("warmup steps", warmup_len)
+# mlflow.log_param("initial learning rate", initial_rate)
+# mlflow.log_param("initial learning rate", initial_rate)
+# mlflow.log_param("last learning rate", last_rate)
+# mlflow.log_param("scheduler steps", steps)
+# lr = EpochBasedScheduler(warmup_start, warmup_len, initial_rate, last_rate, steps, 1)
+# # lr = tf.keras.optimizers.schedules.ExponentialDecay(
+# #     1e-3, 5000, 0.9, staircase=True
+# # )
+lr = 1e-3
 
 mlflow.log_param("left_bound", lc)
 mlflow.log_param("right_bound", rc)
@@ -103,7 +106,6 @@ model_config = {
     "overlap": [0.1, 0.2],
     "offset": True,
     "points_per_block": 1000,
-    "losses_weight": [10000, 10, 10, 10, 1],
 }
 mlflow.log_params(model_config)
 
@@ -141,28 +143,55 @@ y = pde.solution(x)
 y_pred_before_train = nn.predict(x)
 loss_before_train = nn.evaluate(x, y, verbose=0)
 
-layer_scheduler = LayerScheduler(
-    n=len(nn.blocks),
-    left_bound_step=sum(nn.decomposition.blocks_per_axis[1:]),
-    right_bound_step=sum(nn.decomposition.blocks_per_axis[1:]),
-    left_bound_schedule=30_000,
-    right_bound_schedule=30_000,
-    start_left_bound=0,
-    start_right_bound=sum(nn.decomposition.blocks_per_axis[1:]) * 2
-    # start_right_bound=len(nn.blocks)
-)
-loss_scheduler = LossScheduler(
-    k=10_000, boundary_indices=list(range(len(pde.sub_losses)))
-)
+# layer_scheduler_config = {
+#     "n": len(nn.blocks),
+#     "left_bound_step": sum(nn.decomposition.blocks_per_axis[1:]),
+#     "right_bound_step": sum(nn.decomposition.blocks_per_axis[1:]),
+#     "left_bound_schedule": 100_000,
+#     "right_bound_schedule": 100_000,
+#     "start_left_bound": 0,
+#     "start_right_bound": sum(nn.decomposition.blocks_per_axis[1:]),
+#     "reduce_count": 1,
+#     "reduce_step": 60_000,
+#     "reduce_schedule": 10_000
+#     # "start_right_bound": len(nn.blocks),
+# }
+# mlflow.log_params(layer_scheduler_config)
+# layer_scheduler = ReduceEpochsLayerScheduler(**layer_scheduler_config)
+
+layer_scheduler_config = {
+    "n": len(nn.blocks),
+    "left_bound_step": sum(nn.decomposition.blocks_per_axis[1:]),
+    "right_bound_step": sum(nn.decomposition.blocks_per_axis[1:]),
+    "left_bound_schedule": 180_000,
+    "right_bound_schedule": 180_000,
+    "start_left_bound": 0,
+    "start_right_bound": sum(nn.decomposition.blocks_per_axis[1:]),
+    # "start_right_bound": len(nn.blocks),
+}
+mlflow.log_param("Layer scheduler", "SequenceLayerScheduler")
+mlflow.log_params(layer_scheduler_config)
+layer_scheduler = SequenceLayerScheduler(**layer_scheduler_config)
+
+loss_scheduler_config = {
+    "k": 5_000,
+    "boundary_indices": list(range(len(pde.sub_losses))),
+    "loss_weights": [10000, 100, 10, 10, 1],
+    "threshold": 1e-3,
+    "loss_multiplier": 10.0,
+}
+mlflow.log_params(loss_scheduler_config)
+loss_scheduler = AdaptiveLossScheduler(**loss_scheduler_config)
 train_config = {
-    "epochs": 150_000,
-    "patience": 500_000,
-    "eval_interval": 1000,
+    "epochs": 1_080_000,
+    "patience": 4_000_000,
+    "eval_interval": 2000,
     "batch_size": 10_000,
-    "log_interval": 10000,
+    "log_interval": 30000,
     "mode": "layer",
     "layer_scheduler": layer_scheduler,
     "loss_scheduler": loss_scheduler,
+    "need_export_weights": True,
 }
 mlflow.log_params(train_config)
 

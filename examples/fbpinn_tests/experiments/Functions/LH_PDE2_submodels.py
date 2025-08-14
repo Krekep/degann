@@ -27,7 +27,9 @@ class LH_PDE2(PhysLoss):
         model: tf.keras.Model,
         tape: tf.GradientTape,
         x_in,
-        active_models,
+        block,
+        prev_model,
+        prev_block,
         **kwargs
     ):
         """du/dt = a * d^2u/dx^2"""
@@ -41,7 +43,26 @@ class LH_PDE2(PhysLoss):
             with tf.GradientTape() as inner_tape:
                 inner_tape.watch(t)
                 inner_tape.watch(x)
-                u = model(tf.concat([t, x], axis=1), active_models=active_models)
+                x_ = tf.concat([t, x], axis=1)
+                x_norm = block.normalization(x_)
+                predicted = model(x_norm)
+                predicted_unnorm: tf.Tensor = block.unnormalization(predicted)
+
+                windowed = block.window_function(x_)
+                if prev_model is not None:
+                    x_left_norm = prev_block.normalization(x_)
+                    predicted_left = prev_model(x_left_norm)
+                    predicted_unnorm_left: tf.Tensor = prev_block.unnormalization(
+                        predicted_left
+                    )
+                    windowed_left = prev_block.window_function(x_)
+
+                    u = (
+                        windowed * predicted_unnorm
+                        + windowed_left * predicted_unnorm_left
+                    )
+                else:
+                    u = windowed * predicted_unnorm
                 # assert_equal(u.shape.rank, 1, "Model() have len(shape) != 1")
                 # if u.shape.rank > 1 and u.shape[-1] == 1:
                 u = tf.squeeze(u, axis=-1)
@@ -69,7 +90,9 @@ class LH_PDE2(PhysLoss):
         model: tf.keras.Model,
         tape: tf.GradientTape,
         x_in,
-        active_models,
+        block,
+        prev_model,
+        prev_block,
         **kwargs
     ):
         """u(0, x) = sin(pi * x)"""
@@ -77,7 +100,24 @@ class LH_PDE2(PhysLoss):
         t = tf.zeros_like(x_wout_t)
         x = tf.stack([t, x_wout_t], axis=1)
 
-        u_model = model(x, active_models=active_models)
+        x_norm = block.normalization(x)
+        predicted = model(x_norm)
+        predicted_unnorm: tf.Tensor = block.unnormalization(predicted)
+
+        windowed = block.window_function(x)
+        if prev_model is not None:
+            x_left_norm = prev_block.normalization(x)
+            predicted_left = prev_model(x_left_norm)
+            predicted_unnorm_left: tf.Tensor = prev_block.unnormalization(
+                predicted_left
+            )
+            windowed_left = prev_block.window_function(x)
+
+            u_model = (
+                windowed * predicted_unnorm + windowed_left * predicted_unnorm_left
+            )
+        else:
+            u_model = windowed * predicted_unnorm
         u_model = tf.squeeze(u_model, axis=-1)
 
         u_true = tf.sin(math.pi * x_wout_t)
@@ -92,7 +132,9 @@ class LH_PDE2(PhysLoss):
         model: tf.keras.Model,
         tape: tf.GradientTape,
         x_in,
-        active_models,
+        block,
+        prev_model,
+        prev_block,
         **kwargs
     ):
         """u(t, 0) = 0"""
@@ -100,7 +142,24 @@ class LH_PDE2(PhysLoss):
         x_zeros = tf.zeros_like(t_wout_x)
         x = tf.stack([t_wout_x, x_zeros], axis=1)
 
-        u_model = model(x, active_models=active_models)
+        x_norm = block.normalization(x)
+        predicted = model(x_norm)
+        predicted_unnorm: tf.Tensor = block.unnormalization(predicted)
+
+        windowed = block.window_function(x)
+        if prev_model is not None:
+            x_left_norm = prev_block.normalization(x)
+            predicted_left = prev_model(x_left_norm)
+            predicted_unnorm_left: tf.Tensor = prev_block.unnormalization(
+                predicted_left
+            )
+            windowed_left = prev_block.window_function(x)
+
+            u_model = (
+                windowed * predicted_unnorm + windowed_left * predicted_unnorm_left
+            )
+        else:
+            u_model = windowed * predicted_unnorm
         u_model = tf.squeeze(u_model, axis=-1)
 
         u_true = tf.constant([0.0], shape=u_model.shape, dtype=tf.float32)
@@ -115,7 +174,9 @@ class LH_PDE2(PhysLoss):
         model: tf.keras.Model,
         tape: tf.GradientTape,
         x_in,
-        active_models,
+        block,
+        prev_model,
+        prev_block,
         **kwargs
     ):
         """u(t, 1) = 0"""
@@ -123,7 +184,24 @@ class LH_PDE2(PhysLoss):
         x_zeros = tf.ones_like(t_wout_x)
         x = tf.stack([t_wout_x, x_zeros], axis=1)
 
-        u_model = model(x, active_models=active_models)
+        x_norm = block.normalization(x)
+        predicted = model(x_norm)
+        predicted_unnorm: tf.Tensor = block.unnormalization(predicted)
+
+        windowed = block.window_function(x)
+        if prev_model is not None:
+            x_left_norm = prev_block.normalization(x)
+            predicted_left = prev_model(x_left_norm)
+            predicted_unnorm_left: tf.Tensor = prev_block.unnormalization(
+                predicted_left
+            )
+            windowed_left = prev_block.window_function(x)
+
+            u_model = (
+                windowed * predicted_unnorm + windowed_left * predicted_unnorm_left
+            )
+        else:
+            u_model = windowed * predicted_unnorm
         u_model = tf.squeeze(u_model, axis=-1)
 
         u_true = tf.constant([0.0], shape=u_model.shape, dtype=tf.float32)

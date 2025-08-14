@@ -17,12 +17,12 @@ from matplotlib import pyplot as plt
 import mlflow
 from degann.geometry import RectangleDomain
 from degann.networks.topology.tffbpinn import (
-    LayerScheduler,
-    LossScheduler,
     TensorflowFBPINN,
 )
+from degann.networks.topology.loss_scheduler import LossScheduler, AdaptiveLossScheduler
+from degann.networks.topology.layer_scheduler import SequenceLayerScheduler
 from examples.fbpinn_tests.plot_functions import plot_each_submodel, plot_model
-from examples.fbpinn_tests.PDEs.losses.LH_PDE2 import LH_PDE2
+from examples.fbpinn_tests.experiments.Functions.LH_PDE2 import LH_PDE2
 
 
 # Создаем расписание, зависящее от эпох
@@ -71,7 +71,6 @@ run_id = random.randint(1, 10000)
 run_name = f"FBPINN_{run_id}"
 mlflow.start_run(run_name=run_name)
 mlflow.set_tag("Training Info", f"FBPINN model for {which}")
-mlflow.set_tag("mlflow.runName", f"model{run_id}")
 mlflow.set_tag("Class", pde.equation_class)
 
 
@@ -124,6 +123,9 @@ fb.data = tf.linspace(
 print("Number of submodels", len(nn.blocks))
 print("Blocks per axis", nn.decomposition.blocks_per_axis)
 print("Blocks per layer", sum(nn.decomposition.blocks_per_axis[1:]))
+mlflow.log_param("Number of submodels", len(nn.blocks))
+mlflow.log_param("Blocks per axis", nn.decomposition.blocks_per_axis)
+mlflow.log_param("Blocks per layer", sum(nn.decomposition.blocks_per_axis[1:]))
 
 nn.custom_compile(
     optimizer="AdamW", rate=lr, loss_func="RelativeL1Loss", run_eagerly=False
@@ -141,20 +143,30 @@ y_pred_before_train = nn.predict(x)
 y_pred_before_train = nn.predict(x)
 loss_before_train = nn.evaluate(x, y, verbose=0)
 
-layer_scheduler = LayerScheduler(
-    n=len(nn.blocks),
-    left_bound_step=sum(nn.decomposition.blocks_per_axis[1:]),
-    right_bound_step=sum(nn.decomposition.blocks_per_axis[1:]),
-    left_bound_schedule=25000,
-    right_bound_schedule=10000,
-    start_left_bound=0,
-    start_right_bound=sum(nn.decomposition.blocks_per_axis[1:]),
-)
-loss_scheduler = LossScheduler(
-    k=len(pde.sub_losses) + 1, boundary_indices=list(range(len(pde.sub_losses)))
-)
+layer_scheduler_config = {
+    "n": len(nn.blocks),
+    "left_bound_step": sum(nn.decomposition.blocks_per_axis[1:]),
+    "right_bound_step": sum(nn.decomposition.blocks_per_axis[1:]),
+    "left_bound_schedule": 50_000,
+    "right_bound_schedule": 50_000,
+    "start_left_bound": 0,
+    "start_right_bound": sum(nn.decomposition.blocks_per_axis[1:]),
+    # "start_right_bound": len(nn.blocks),
+}
+mlflow.log_params(layer_scheduler_config)
+layer_scheduler = SequenceLayerScheduler(**layer_scheduler_config)
+
+loss_scheduler_config = {
+    "k": 4_000,
+    "boundary_indices": list(range(len(pde.sub_losses))),
+    "loss_weights": [1000, 10, 10, 1],
+    "threshold": 1e-3,
+    "loss_multiplier": 10.0,
+}
+mlflow.log_params(loss_scheduler_config)
+loss_scheduler = AdaptiveLossScheduler(**loss_scheduler_config)
 train_config = {
-    "epochs": 20,
+    "epochs": 150_000,
     "patience": 500_000,
     "eval_interval": 400,
     "batch_size": 10_000,
@@ -179,7 +191,7 @@ print("After", loss_after_train)
 mlflow.log_metric("Loss before training", loss_before_train)
 mlflow.log_metric("Loss after training", loss_after_train)
 mlflow.end_run()
-nn.save_weights(f"fbpinn{run_id}.weights.h5")
+nn.save_weights(f"lh_pde_2_layer_{run_id}.weights.h5")
 
 x_plot = tf.linspace(
     tf.constant(lc[1], dtype=tf.float32),

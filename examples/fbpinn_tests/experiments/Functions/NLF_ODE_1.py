@@ -13,12 +13,14 @@ class NLF_ODE_1(PhysLoss):
         ]
 
     @tf.function
-    def phys_loss(self, model: tf.keras.Model, tape: tf.GradientTape, x, **kwargs):
+    def phys_loss(
+        self, model: tf.keras.Model, tape: tf.GradientTape, x, active_models, **kwargs
+    ):
         """y' + (y - 2x) / (x + 0.1) = 0"""
         with tf.GradientTape() as inner_tape:
             inner_tape.watch(x)
 
-            u = model(x)
+            u = model(x, active_models=active_models)
             u_x = inner_tape.gradient(u, x)
             u_model = u_x + (u - 2 * x) / (x + 0.1)
             u_true = tf.zeros_like(u_model)
@@ -28,13 +30,13 @@ class NLF_ODE_1(PhysLoss):
 
     @tf.function
     def boundary_loss_1(
-        self, model: tf.keras.Model, tape: tf.GradientTape, x, **kwargs
+        self, model: tf.keras.Model, tape: tf.GradientTape, x, active_models, **kwargs
     ):
         """y(0) = 2"""
         x = tf.constant([[0.0]])
         tape.watch(x)
 
-        u_model = model(x)
+        u_model = model(x, active_models=active_models)
 
         u_true = tf.constant(2, dtype=tf.float32, shape=u_model.shape)
         phys_loss = tf.reduce_mean(tf.square(u_true - u_model))

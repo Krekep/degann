@@ -18,9 +18,12 @@ import mlflow
 from degann.geometry import RectangleDomain
 from degann.geometry.decomposition import Block
 from degann.networks.topology.tffbpinn import (
-    LayerScheduler,
     TensorflowFBPINN,
-    LossScheduler,
+)
+from degann.networks.topology.loss_scheduler import LossScheduler, AdaptiveLossScheduler
+from degann.networks.topology.layer_scheduler import (
+    SequenceLayerScheduler,
+    BaseLayerScheduler,
 )
 from tensorflow.keras.callbacks import EarlyStopping
 from examples.fbpinn_tests.plot_functions import plot_each_submodel, plot_model
@@ -56,7 +59,6 @@ model_config = {
     "overlap": [0.3],
     "offset": False,
     "points_per_block": 500,
-    "losses_weight": [10, 1],
 }
 mlflow.log_params(model_config)
 
@@ -88,16 +90,23 @@ y = ode.solution(x)
 y_pred_before_train = nn.predict(x)
 loss_before_train = nn.evaluate(x, y, verbose=0)
 
-layer_scheduler = LayerScheduler(
-    n=len(nn.blocks),
-    left_bound_step=3,
-    right_bound_step=3,
-    left_bound_schedule=20000,
-    right_bound_schedule=20000,
-    start_left_bound=0,
-    start_right_bound=len(nn.blocks),
-)
-loss_scheduler = LossScheduler(k=200, boundary_indices=list(range(len(ode.sub_losses))))
+layer_scheduler_config = {
+    "n": len(nn.blocks),
+    # "start_right_bound": len(nn.blocks),
+}
+mlflow.log_param("Layer scheduler", "BaseLayerScheduler")
+mlflow.log_params(layer_scheduler_config)
+layer_scheduler = BaseLayerScheduler(**layer_scheduler_config)
+
+loss_scheduler_config = {
+    "k": 300,
+    "boundary_indices": list(range(len(ode.sub_losses))),
+    "loss_weights": [10, 1],
+    "threshold": 1e-3,
+    "loss_multiplier": 10.0,
+}
+mlflow.log_params(loss_scheduler_config)
+loss_scheduler = AdaptiveLossScheduler(**loss_scheduler_config)
 train_config = {
     "epochs": 100_000,
     "patience": 500_000,

@@ -15,7 +15,8 @@ from matplotlib import pyplot as plt
 import mlflow
 from degann.geometry import RectangleDomain
 from degann.geometry.decomposition import Block
-from degann.networks.topology.tffbpinn import LayerScheduler, TensorflowFBPINN
+from degann.networks.topology.tffbpinn import TensorflowFBPINN
+from degann.networks.topology.layer_scheduler import SequenceLayerScheduler
 from tensorflow.keras.callbacks import EarlyStopping
 from examples.fbpinn_tests.plot_functions import plot_each_submodel, plot_model
 from Functions.LF_ODE_1_submodels import LF_ODE_1
@@ -85,7 +86,7 @@ loss_before_train = nn.evaluate(x, y, verbose=0)
 train_config = {
     "epochs": 100000,
     "patience": 2000_000,
-    "eval_interval": 10,
+    "eval_interval": 100,
     "batch_size": 10_000,
     "log_interval": 10000,
     "mode": "sequence",
