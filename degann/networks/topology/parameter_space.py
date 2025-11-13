@@ -1,3 +1,4 @@
+import random
 from abc import ABC, abstractmethod
 from typing import Dict, Any
 from itertools import product
@@ -13,7 +14,7 @@ class ParameterSpace(ABC):
     """
 
     @abstractmethod
-    def _create_parameter_space(self) -> Dict[Any]:
+    def _create_parameter_space(self) -> list:
         """
         Abstract method for creating parameter space dict.
         """
@@ -73,12 +74,15 @@ class DenseNetParameterSpace(ParameterSpace):
                             configs.append(config)
         return configs
 
+    def get_random_config(self) -> dict[str: Any]:
+        return random.choice(self.configs)
+
     def get_configs(self) -> list:
         return self.configs
 
     @staticmethod
     def train(
-            config: Dict[Any],
+            config: Dict[str, Any],
             input_size: int,
             output_size: int,
             data: tuple,

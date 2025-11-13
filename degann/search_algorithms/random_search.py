@@ -1,33 +1,125 @@
-from typing import Optional, Tuple
+from itertools import product
+from typing import Tuple
 
-from .nn_code import decode, default_alphabet
+from .nn_code import alph_n_full, alphabet_activations, decode
 from degann.networks import imodel
 from degann.search_algorithms.generate import random_generate
-from .search_algorithms_parameters import (
-    RandomEarlyStoppingSearchParameters,
-    RandomSearchParameters,
-)
-from .utils import update_random_generator, log_search_step
+from .utils import update_random_generator, log_to_file
+from degann.networks.topology.parameter_space import DenseNetParameterSpace
 
+
+def random_search_new(
+        input_size: int,
+        output_size: int,
+        data: tuple,
+        params: DenseNetParameterSpace,
+        iterations: int,
+        val_data: tuple = None,
+        logging=False,
+        file_name: str = "",
+        callbacks: list = None,
+        update_gen_cycle: int = 0,
+) -> Tuple[float, int, str, str, dict]:
+    best_net = None
+    best_loss = 1e6
+    best_epoch = None
+    loss = None
+    opt = None
+    for i in range(iterations):
+        update_random_generator(i, cycle_size=update_gen_cycle)
+        config = params.get_random_config()
+
+        curr_loss, curr_val_loss, curr_nn = params.train(
+            config=config,
+            input_size=input_size,
+            output_size=output_size,
+            data=data,
+            val_data=val_data,
+            logging=logging,
+            file_name=file_name,
+            callbacks=callbacks,
+        )
+
+        if curr_loss < best_loss:
+            best_epoch = config["num_epoch"]
+            best_net = curr_nn
+            best_loss = curr_loss
+            loss = config["loss_func"]
+            opt = config["optimizer"]
+    return best_loss, best_epoch, loss, opt, best_net
 
 def random_search(
-    parameters: RandomSearchParameters,
+    input_size: int,
+    output_size: int,
+    data: tuple,
+    opt: str,
+    loss: str,
+    iterations: int,
+    min_epoch: int = 100,
+    max_epoch: int = 700,
+    val_data: tuple = None,
+    callbacks: list = None,
+    nn_min_length: int = 1,
+    nn_max_length: int = 6,
+    nn_alphabet: list[str] = [
+        "".join(elem) for elem in product(alph_n_full, alphabet_activations)
+    ],
+    alphabet_block_size: int = 1,
+    alphabet_offset: int = 8,
+    update_gen_cycle: int = 0,
+    logging: bool = False,
+    file_name: str = "",
 ) -> Tuple[float, int, str, str, dict]:
     """
     Algorithm for random search in the space of parameters of neural networks
 
     Parameters
     ----------
-    parameters: RandomSearchParameters
-        Search algorithm parameters
+    input_size: int
+       Size of input data
+    output_size: int
+        Size of output data
+    data: tuple
+        dataset
+    opt: str
+        Name of optimizer
+    loss: str
+        Name of loss function
+    iterations: int
+        The number of iterations that will be carried out within the algorithm before completion
+        (specifically, the number of trained neural networks)
+    min_epoch: int
+        Lower bound of epochs
+    max_epoch: int
+        Upper bound of epochs
+    val_data: tuple
+        Validation dataset
+    callbacks: list
+        Callbacks for neural networks training
+    nn_min_length: int
+        Starting number of hidden layers of neural networks
+    nn_max_length: int
+        Final number of hidden layers of neural networks
+    nn_alphabet: list
+        List of possible sizes of hidden layers with activations for them
+    alphabet_block_size: int
+        Number of literals in each `alphabet` symbol that indicate the size of hidden layer
+    alphabet_offset: int
+        Indicate the minimal number of neurons in hidden layer
+    update_gen_cycle: int
+        Refresh tensorflow random generator per update_gen_cycle
+    logging: bool
+        Logging search process to file
+    file_name: str
+        Path to file for logging
 
     Returns
     -------
     search_results: tuple[float, int, str, str, dict]
         Results of the algorithm are described by these parameters
 
-        best_metric_value: float
-            The value of the metric during training of the best neural network
+        best_loss: float
+            The value of the loss function during training of the best neural network
         best_epoch: int
             Number of training epochs for the best neural network
         best_loss_func: str
@@ -37,105 +129,124 @@ def random_search(
         best_net: dict
             Best neural network presented as a dictionary
     """
-    if parameters.nn_alphabet is None:
-        parameters.nn_alphabet = default_alphabet
-
-    best_net: dict
-    best_metric_value = 1e6
-    best_epoch: int
-
-    assert parameters.iterations > 0, "The number of iterations must be positive."
-
-    for i in range(parameters.iterations):
+    best_net = None
+    best_loss = 1e6
+    best_epoch = None
+    for i in range(iterations):
+        history = dict()
+        update_random_generator(i, cycle_size=update_gen_cycle)
         gen = random_generate(
-            min_epoch=parameters.min_epoch,
-            max_epoch=parameters.max_epoch,
-            min_length=parameters.nn_min_length,
-            max_length=parameters.nn_max_length,
-            alphabet=parameters.nn_alphabet,
-            block_size=parameters.nn_alphabet_block_size,
+            min_epoch=min_epoch,
+            max_epoch=max_epoch,
+            min_length=nn_min_length,
+            max_length=nn_max_length,
+            alphabet=nn_alphabet,
         )
 
         b, a = decode(
-            gen[0].value(),
-            block_size=parameters.nn_alphabet_block_size,
-            offset=parameters.nn_alphabet_offset,
+            gen[0].value(), block_size=alphabet_block_size, offset=alphabet_offset
         )
-        cfg = imodel.DenseNetParams(
-            input_size=parameters.input_size,
-            block_size=b,
-            output_size=parameters.output_size,
-            activation_func=a + ["linear"],
-        )
-        curr_best = imodel.IModel(cfg)
-        compile_cfg = imodel.DenseNetCompileParams(
-            optimizer=parameters.optimizer,
-            loss_func=parameters.loss_function,
-            metric_funcs=[parameters.eval_metric] + parameters.metrics,
-        )
-        curr_best.compile(compile_cfg)
+        curr_best = imodel.IModel(input_size, b, output_size, a + ["linear"])
+        curr_best.compile(optimizer=opt, loss_func=loss)
         curr_epoch = gen[1].value()
         hist = curr_best.train(
-            parameters.data[0],
-            parameters.data[1],
-            epochs=curr_epoch,
-            verbose=0,
-            callbacks=parameters.callbacks,
+            data[0], data[1], epochs=curr_epoch, verbose=0, callbacks=callbacks
         )
         curr_loss = hist.history["loss"][-1]
-        curr_metric_value = hist.history[parameters.eval_metric][-1]
-        if parameters.val_data is not None:
-            val_metrics = curr_best.evaluate(
-                parameters.val_data[0],
-                parameters.val_data[1],
-                verbose=0,
-                return_dict=True,
-            )
-            curr_val_loss = val_metrics["loss"]
-            curr_val_metric_value = val_metrics[parameters.eval_metric]
-        else:
-            curr_val_loss = None
-            curr_val_metric_value = None
+        curr_val_loss = (
+            curr_best.evaluate(val_data[0], val_data[1], verbose=0, return_dict=True)[
+                "loss"
+            ]
+            if val_data is not None
+            else None
+        )
 
-        if parameters.logging:
-            fn = f"{parameters.file_name}_{len(parameters.data[0])}_0_{parameters.loss_function}_{parameters.optimizer}"
-            log_search_step(
-                model=curr_best,
-                activations=a,
-                code=gen[0].value(),
-                epoch=gen[1].value(),
-                optimizer=parameters.optimizer,
-                loss_function=parameters.loss_function,
-                loss=curr_loss,
-                validation_loss=curr_val_loss,
-                metric_value=curr_metric_value,
-                validation_metric_value=curr_val_metric_value,
-                file_name=fn,
-            )
+        history["shapes"] = [curr_best.get_shape]
+        history["activations"] = [a]
+        history["code"] = [gen[0].value()]
+        history["epoch"] = [gen[1].value()]
+        history["optimizer"] = [opt]
+        history["loss function"] = [loss]
+        history["loss"] = [curr_loss]
+        history["validation loss"] = [curr_val_loss]
+        history["train_time"] = [curr_best.network.trained_time["train_time"]]
+        if logging:
+            fn = f"{file_name}_{len(data[0])}_0_{loss}_{opt}"
+            log_to_file(history, fn)
 
-        if curr_metric_value < best_metric_value:
+        if curr_loss < best_loss:
             best_epoch = curr_epoch
             best_net = curr_best.to_dict()
-            best_metric_value = curr_metric_value
-    return (
-        best_metric_value,
-        best_epoch,
-        parameters.loss_function,
-        parameters.optimizer,
-        best_net,
-    )
+            best_loss = curr_loss
+    return best_loss, best_epoch, loss, opt, best_net
 
 
 def random_search_endless(
-    parameters: RandomEarlyStoppingSearchParameters, verbose: bool = False
+    input_size: int,
+    output_size: int,
+    data: tuple,
+    opt: str,
+    loss: str,
+    threshold: float,
+    max_iter: int = -1,
+    min_epoch: int = 100,
+    max_epoch: int = 700,
+    val_data: tuple = None,
+    callbacks: list = None,
+    nn_min_length: int = 1,
+    nn_max_length: int = 6,
+    nn_alphabet: list[str] = [
+        "".join(elem) for elem in product(alph_n_full, alphabet_activations)
+    ],
+    alphabet_block_size: int = 1,
+    alphabet_offset: int = 8,
+    logging: bool = False,
+    file_name: str = "",
+    verbose: bool = False,
 ) -> Tuple[float, int, str, str, dict, int]:
     """
     Algorithm for random search in the space of parameters of neural networks
 
     Parameters
     ----------
-    parameters: RandomEarlyStoppingSearchParameters
-        Search algorithm parameters
+    input_size: int
+       Size of input data
+    output_size: int
+        Size of output data
+    data: tuple
+        dataset
+    opt: str
+        Name of optimizer
+    loss: str
+        Name of loss function
+    threshold: float
+        Training will stop when the value of the loss function is less than this threshold
+    max_iter: int
+        Training will stop when the number of iterations of the algorithm exceeds this parameter
+    min_epoch: int
+        Lower bound of epochs
+    max_epoch: int
+        Upper bound of epochs
+    val_data: tuple
+        Validation dataset
+    callbacks: list
+        Callbacks for neural networks training
+    logging: bool
+        Logging search process to file
+    nn_min_length: int
+        Starting number of hidden layers of neural networks
+    nn_max_length: int
+        Final number of hidden layers of neural networks
+    nn_alphabet: list
+        List of possible sizes of hidden layers with activations for them
+    alphabet_block_size: int
+        Number of literals in each `alphabet` symbol that indicate the size of hidden layer
+    alphabet_offset: int
+        Indicate the minimal number of neurons in hidden layer
+    logging: bool
+        Logging search process to file
+    file_name: str
+        Path to file for logging
     verbose: bool
         If True, it will show additional information when searching
 
@@ -144,8 +255,8 @@ def random_search_endless(
     search_results: tuple[float, int, str, str, dict, int]
         Results of the algorithm are described by these parameters
 
-        best_metric_value: float
-            The value of the metric during training of the best neural network
+        best_loss: float
+            The value of the loss function during training of the best neural network
         best_epoch: int
             Number of training epochs for the best neural network
         best_loss_func: str
@@ -157,32 +268,56 @@ def random_search_endless(
         last_iter: int
             Count of iterations in search algorithm
     """
-    if parameters.nn_alphabet is None:
-        parameters.nn_alphabet = default_alphabet
-
-    nn_metric_value, nn_epoch, loss_f, opt_n, net = random_search(parameters)
+    nn_loss, nn_epoch, loss_f, opt_n, net = random_search(
+        input_size,
+        output_size,
+        data,
+        opt,
+        loss,
+        1,
+        min_epoch=min_epoch,
+        max_epoch=max_epoch,
+        val_data=val_data,
+        nn_min_length=nn_min_length,
+        nn_max_length=nn_max_length,
+        nn_alphabet=nn_alphabet,
+        alphabet_block_size=alphabet_block_size,
+        alphabet_offset=alphabet_offset,
+        callbacks=callbacks,
+        logging=logging,
+        file_name=file_name,
+    )
     i = 1
     best_net = net
-    best_metric_value = nn_metric_value
+    best_loss = nn_loss
     best_epoch = nn_epoch
-    while (
-        nn_metric_value > parameters.metric_threshold and i != parameters.max_launches
-    ):
+    while nn_loss > threshold and i != max_iter:
         if verbose:
             print(
-                f"Random search until less than threshold. Last loss = {nn_metric_value}. Iterations = {i}"
+                f"Random search until less than threshold. Last loss = {nn_loss}. Iterations = {i}"
             )
-        nn_metric_value, nn_epoch, loss_f, opt_n, net = random_search(parameters)
+        nn_loss, nn_epoch, loss_f, opt_n, net = random_search(
+            input_size,
+            output_size,
+            data,
+            opt,
+            loss,
+            1,
+            min_epoch=min_epoch,
+            max_epoch=max_epoch,
+            val_data=val_data,
+            nn_min_length=nn_min_length,
+            nn_max_length=nn_max_length,
+            nn_alphabet=nn_alphabet,
+            alphabet_block_size=alphabet_block_size,
+            alphabet_offset=alphabet_offset,
+            callbacks=callbacks,
+            logging=logging,
+            file_name=file_name,
+        )
         i += 1
-        if nn_metric_value < best_metric_value:
+        if nn_loss < best_loss:
             best_net = net
-            best_metric_value = nn_metric_value
+            best_loss = nn_loss
             best_epoch = nn_epoch
-    return (
-        best_metric_value,
-        best_epoch,
-        parameters.loss_function,
-        parameters.optimizer,
-        best_net,
-        i,
-    )
+    return best_loss, best_epoch, loss, opt, best_net, i
