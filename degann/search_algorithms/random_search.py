@@ -5,14 +5,14 @@ from .nn_code import alph_n_full, alphabet_activations, decode
 from degann.networks import imodel
 from degann.search_algorithms.generate import random_generate
 from .utils import update_random_generator, log_to_file
-from degann.networks.topology.parameter_space import DenseNetParameterSpace
+from degann.networks.topology.parameter_space import ParameterSpace
 
 
 def random_search_new(
         input_size: int,
         output_size: int,
         data: tuple,
-        params: DenseNetParameterSpace,
+        params: ParameterSpace,
         iterations: int,
         val_data: tuple = None,
         logging=False,
@@ -47,6 +47,7 @@ def random_search_new(
             loss = config["loss_func"]
             opt = config["optimizer"]
     return best_loss, best_epoch, loss, opt, best_net
+
 
 def random_search(
     input_size: int,

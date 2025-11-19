@@ -20,6 +20,13 @@ class ParameterSpace(ABC):
         """
         pass
 
+    @abstractmethod
+    def train(config: Dict[str, Any], *args, **kwargs) -> tuple[float, float, dict]:
+        """
+        Abstract method for training and evaluating model.
+        """
+        pass
+
 
 class DenseNetParameterSpace(ParameterSpace):
     """
@@ -80,7 +87,6 @@ class DenseNetParameterSpace(ParameterSpace):
     def get_configs(self) -> list:
         return self.configs
 
-    @staticmethod
     def train(
             config: Dict[str, Any],
             input_size: int,

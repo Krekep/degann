@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Tuple
 from degann.networks.callbacks import MeasureTrainTime
-from degann.networks.topology.parameter_space import DenseNetParameterSpace
+from degann.networks.topology.parameter_space import ParameterSpace
 from datetime import datetime
 from itertools import product
 from typing import List, Tuple
@@ -16,7 +16,7 @@ def grid_search_new(
         input_size: int,
         output_size: int,
         data: tuple,
-        params: DenseNetParameterSpace,
+        params: ParameterSpace,
         val_data: tuple = None,
         logging=False,
         file_name: str = "",
