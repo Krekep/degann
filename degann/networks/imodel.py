@@ -1,18 +1,13 @@
 import json
 from collections import defaultdict
-from typing import List, Optional, Dict, Union, Type
+from typing import List, Optional, Dict, Union
 
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
 from degann.networks.config_format import HEADER_OF_APG_FILE
-from degann.networks.topology.densenet.tf_densenet import TensorflowDenseNet
-from degann.networks.topology.densenet.topology_config import DenseNetParams
-from degann.networks.topology.densenet.compile_config import DenseNetCompileParams
-from degann.networks.topology.gan.gan import GAN
-from degann.networks.topology.base_topology_configs import BaseTopologyParams
-from degann.networks.topology.base_compile_configs import BaseCompileParams
+from degann.networks.topology.tf_densenet import TensorflowDenseNet
 
 
 def _get_act_and_init(
@@ -53,30 +48,74 @@ class IModel(object):
     Interface class for working with neural topology
     """
 
-    def __init__(self, config: BaseTopologyParams = DenseNetParams(), **kwargs):
-        self.network = _create_functions[config.net_type](config, **kwargs)
-        self._input_size = config.input_size
-        self._shape = config.block_size
-        self._output_size = config.output_size
-        self._name = config.name
-        self._is_debug = config.is_debug
-        self.set_name(config.name)
+    def __init__(
+        self,
+        config: dict,
+        input_size: int,
+        output_size: int,
+        weight_init=tf.random_uniform_initializer(minval=-1, maxval=1),
+        bias_init=tf.random_uniform_initializer(minval=-1, maxval=1),
+        name="net",
+        net_type="DenseNet",
+        is_debug=False,
+        **kwargs,
+    ):
+        self.network = _create_functions[net_type](
+            config,
+            input_size,
+            weight=weight_init,
+            biases=bias_init,
+            output_size=output_size,
+            is_debug=is_debug,
+            **kwargs,
+        )
+        self._input_size = input_size
+        self._output_size = output_size
+        self._name = name
+        self._is_debug = is_debug
+        self.set_name(name)
 
-    def compile(self, config: BaseCompileParams = DenseNetCompileParams()) -> None:
+    def compile(
+        self,
+        rate=1e-2,
+        optimizer="SGD",
+        loss_func="MeanSquaredError",
+        metrics=None,
+        run_eagerly=False,
+    ) -> None:
         """
         Configures the model for training
 
         Parameters
         ----------
-        config: BaseCompileParams
-            Subclass of `BaseCompileParams` containing compilation parameters
-            for a particular topology
+        rate: float
+            learning rate for optimizer
+        optimizer: str
+            name of optimizer
+        loss_func: str
+            name of loss function
+        metrics: list[str]
+            list with metric function names
+        run_eagerly: bool
 
         Returns
         -------
 
         """
-        self.network.custom_compile(config)
+        if metrics is None:
+            metrics = [
+                "MeanSquaredError",
+                "MeanAbsoluteError",
+                "MeanSquaredLogarithmicError",
+            ]
+
+        self.network.custom_compile(
+            optimizer=optimizer,
+            rate=rate,
+            loss_func=loss_func,
+            metric_funcs=metrics,
+            run_eagerly=run_eagerly,
+        )
 
     def feedforward(self, inputs: np.ndarray) -> tf.Tensor:
         """
@@ -95,9 +134,7 @@ class IModel(object):
 
         return self.network(inputs, training=False)
 
-    def predict(
-        self, inputs: np.ndarray, callbacks: Optional[List] = None
-    ) -> np.ndarray:
+    def predict(self, inputs: np.ndarray, callbacks: List = None) -> np.ndarray:
         """
         Return network answer for passed input by network predict()
 
@@ -118,13 +155,13 @@ class IModel(object):
 
     def train(
         self,
-        x_data: np.ndarray | tf.Tensor,
-        y_data: np.ndarray | tf.Tensor,
+        x_data: np.ndarray,
+        y_data: np.ndarray,
         validation_split=0.0,
         validation_data=None,
         epochs=10,
         mini_batch_size=None,
-        callbacks: Optional[List] = None,
+        callbacks: List = None,
         verbose="auto",
     ) -> keras.callbacks.History:
         """
@@ -181,13 +218,13 @@ class IModel(object):
 
     def evaluate(
         self,
-        x_data: np.ndarray | tf.Tensor,
-        y_data: np.ndarray | tf.Tensor,
+        x_data: np.ndarray,
+        y_data: np.ndarray,
         batch_size=None,
-        callbacks: Optional[List] = None,
+        callbacks: List = None,
         verbose="auto",
         **kwargs,
-    ) -> dict[str, float]:
+    ) -> Union[float, List[float]]:
         """
         Evaluate network on passed dataset and return evaluate history
 
@@ -202,12 +239,14 @@ class IModel(object):
         callbacks: list
             List of tensorflow callbacks for evaluate function
         verbose: int
-            Output accompanying evaluating
+            Output accompanying evaualing
 
         Returns
         -------
-        history: dict[str, float]
-            Scalar validation loss
+        history: Union[float, List[float]]
+            Scalar test loss (if the model has a single output and no metrics)
+            or list of scalars (if the model has multiple outputs
+            and/or metrics).
         """
         if self._is_debug:
             if callbacks is not None:
@@ -222,8 +261,7 @@ class IModel(object):
                         f"log_{self.get_name}.csv", separator=",", append=False
                     )
                 ]
-        # In debug evaluate returns the dictionary of metric (and loss) values on validation data
-        self._evaluate_history: dict[str, float] = self.network.evaluate(  # type: ignore
+        self._evaluate_history = self.network.evaluate(
             x_data,
             y_data,
             batch_size=batch_size,
@@ -241,7 +279,8 @@ class IModel(object):
         self,
         path: str,
         array_type: str = "[]",
-        path_to_compiler: Optional[str] = None,
+        path_to_compiler: str = None,
+        vectorized_level: str = "none",
         **kwargs,
     ) -> None:
         """
@@ -255,13 +294,23 @@ class IModel(object):
             c-style or cpp-style ("[]" or "vector")
         path_to_compiler: str
             path to c/c++ compiler, if `None` then the resulting code will not be compiled
+        vectorized_level: str
+            Level of code vectorization
+            Available levels: none, auto (the program will choose the latest level by itself),
+            sse, avx, avx512f
         kwargs
 
         Returns
         -------
 
         """
-        self.network.export_to_cpp(path, array_type, path_to_compiler)
+        self.network.export_to_cpp(
+            path,
+            array_type,
+            path_to_compiler,
+            vectorized_level=vectorized_level,
+            **kwargs,
+        )
 
     def to_dict(self, **kwargs):
         """
@@ -443,17 +492,13 @@ class IModel(object):
             tf.random_normal_initializer(),
         )
 
-        neuron_cfg = DenseNetParams(
+        res = cls(
             input_size=input_size,
             block_size=shape,
             output_size=output_size,
             activation_func=activation,
-            biases=biases,
-            weight=weight,
-        )
-
-        res = cls(
-            neuron_cfg,
+            bias_init=biases,
+            weight_init=weight,
             decorator_params=decorator_params,
             **kwargs,
         )
@@ -461,8 +506,5 @@ class IModel(object):
         return res
 
 
-_create_functions: defaultdict[str, Type[tf.keras.Model]] = defaultdict(
-    lambda: TensorflowDenseNet
-)
+_create_functions = defaultdict(lambda: TensorflowDenseNet)
 _create_functions["DenseNet"] = TensorflowDenseNet
-_create_functions["GAN"] = GAN

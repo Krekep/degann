@@ -14,7 +14,7 @@ class ParameterSpace(ABC):
     """
 
     @abstractmethod
-    def _create_parameter_space(self) -> list:
+    def create_parameter_space(self) -> list:
         """
         Abstract method for creating parameter space dict.
         """
@@ -59,9 +59,7 @@ class DenseNetParameterSpace(ParameterSpace):
         self.alphabet_block_size = alphabet_block_size
         self.alphabet_offset = alphabet_offset
 
-        self.configs = self._create_parameter_space()
-
-    def _create_parameter_space(self) -> list:
+    def create_parameter_space(self) -> list:
         configs = []
         for i in range(self.nn_min_length, self.nn_max_length + 1):
             codes = product(self.nn_alphabet, repeat=i)
@@ -82,10 +80,24 @@ class DenseNetParameterSpace(ParameterSpace):
         return configs
 
     def get_random_config(self) -> dict[str: Any]:
-        return random.choice(self.configs)
+        block = random.randint(self.nn_min_length, self.nn_max_length)
+        code = ""
 
-    def get_configs(self) -> list:
-        return self.configs
+        for i in range(block):
+            code += self.nn_alphabet[random.randint(0, len(self.nn_alphabet) - 1)]
+        epoch = random.randint(self.min_epoch, self.max_epoch)
+        b, a = decode(code, block_size=self.alphabet_block_size, offset=self.alphabet_offset)
+        opt = random.choice(self.optimizers)
+        loss_func = random.choice(self.loss)
+        config = {
+            "block_size": b,
+            "activation_func": a,
+            "optimizer": opt,
+            "loss_func": loss_func,
+            "num_epoch": epoch
+        }
+        return config
+
 
     def train(
             config: Dict[str, Any],
@@ -106,10 +118,10 @@ class DenseNetParameterSpace(ParameterSpace):
             update_random_generator(i, cycle_size=update_gen_cycle)
             history = dict()
             nn = IModel(
+                config=config,
                 input_size=input_size,
-                block_size=config["block_size"],
                 output_size=output_size,
-                activation_func=config["activation_func"],
+                net_type="DenseNet"
             )
             nn.compile(optimizer=config["optimizer"], loss_func=config["loss_func"])
             temp_his = nn.train(

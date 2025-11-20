@@ -1,34 +1,217 @@
 import math
 import random
-from typing import Optional, Tuple
+from itertools import product
+from typing import Callable, Tuple
 
-from .nn_code import decode, default_alphabet
+from .nn_code import alph_n_full, alphabet_activations, decode
 from degann.networks import imodel
 from degann.search_algorithms.generate import (
+    generate_neighbor,
     random_generate,
     choose_neighbor,
 )
-from .search_algorithms_parameters import SimulatedAnnealingSearchParameters
-from .utils import update_random_generator, log_search_step
+from .utils import log_to_file, update_random_generator
+
+from degann.networks.topology.parameter_space import ParameterSpace
+
+def temperature_lin(k: int, k_max: int, **kwargs) -> float:
+    """
+    Calculate new temperature for simulated annealing as *1 - (k + 1) / k_max*
+
+    Parameters
+    ----------
+    k: float
+        Current iteration
+    k_max: float
+        Amount of all iterations
+
+    Returns
+    -------
+    new_t: float
+        New temperature
+    """
+    return 1 - (k + 1) / k_max
+
+
+def distance_const(d: float) -> Callable:
+    """
+    Calculate distance to neighbour for simulated annealing as constant
+
+    Parameters
+    ----------
+    d: float
+        Constant distance
+
+    Returns
+    -------
+    d_c: Callable
+        Function returning a constant distance
+    """
+
+    def d_c(**kwargs) -> float:
+        return d
+
+    return d_c
+
+
+def temperature_exp(alpha: float) -> Callable[[float], float]:
+    """
+    Calculate new temperature for simulated annealing as *t * alpha*
+
+    Parameters
+    ----------
+    alpha: float
+        Exponential exponent
+
+    Returns
+    -------
+    t_e: Callable[[float], float]
+        Temperature function
+    """
+
+    def t_e(t: float, **kwargs) -> float:
+        """
+        Parameters
+        ----------
+        t: float
+            Current temperature
+
+        Returns
+        -------
+        new_t: float
+            New temperature
+        """
+        return t * alpha
+
+    return t_e
+
+
+def distance_lin(offset, multiplier):
+    """
+    Calculate distance to neighbour for simulated annealing as *offset + temperature * multiplier*
+
+    Parameters
+    ----------
+    offset: float
+    multiplier: float
+
+    Returns
+    -------
+    d_l: Callable
+        Function returning a new distance depending on current temperature
+    """
+
+    def d_l(temperature, **kwargs):
+        return offset + temperature * multiplier
+
+    return d_l
+
+def simulated_annealing_new(
+        params: ParameterSpace,
+        input_size: int,
+        output_size: int,
+        data: tuple,
+        val_data: tuple = None,
+        max_iter: int = 100,
+        threshold: float = -1,
+        start_net: dict = None,
+        method_for_generate_next_nn: Callable = generate_neighbor,
+        temperature_method: Callable = temperature_lin,
+        distance_method: Callable = distance_const(150),
+
+        alphabet_offset: int = 8,
+        update_gen_cycle: int = 0,
+        callbacks: list = None,
+        file_name: str = "",
+        logging: bool = False,
+):
 
 
 def simulated_annealing(
-    parameters: SimulatedAnnealingSearchParameters,
+    input_size: int,
+    output_size: int,
+    data: tuple,
+    val_data: tuple = None,
+    max_iter: int = 100,
+    threshold: float = -1,
+    start_net: dict = None,
+    method_for_generate_next_nn: Callable = generate_neighbor,
+    temperature_method: Callable = temperature_lin,
+    distance_method: Callable = distance_const(150),
+    min_epoch: int = 100,
+    max_epoch: int = 700,
+    opt: str = "Adam",
+    loss: str = "Huber",
+    nn_min_length: int = 1,
+    nn_max_length: int = 6,
+    nn_alphabet: list[str] = [
+        "".join(elem) for elem in product(alph_n_full, alphabet_activations)
+    ],
+    alphabet_block_size: int = 1,
+    alphabet_offset: int = 8,
+    update_gen_cycle: int = 0,
+    callbacks: list = None,
+    file_name: str = "",
+    logging: bool = False,
 ) -> Tuple[float, int, str, str, dict, int]:
     """
     Method of simulated annealing in the parameter space of neural networks
 
     Parameters
     ----------
-    parameters: SimulatedAnnealingSearchParameters
-        Search algorithm parameters
+    input_size: int
+       Size of input data
+    output_size: int
+        Size of output data
+    data: tuple
+        dataset
+    val_data: tuple
+        Validation dataset
+    max_iter: int
+        Training will stop when the number of iterations of the algorithm exceeds this parameter
+    threshold: float
+        Training will stop when the value of the loss function is less than this threshold
+    start_net: dict
+        Start point in parameter space of neural networks, if None it will be random generated
+    method_for_generate_next_nn: Callable
+        Method for obtaining the next point in parameter space of neural networks
+    temperature_method: Callable
+        Temperature decreasing method in SAM
+    distance_method: Callable
+        Method that sets the boundaries of the neighborhood around the current point
+    min_epoch: int
+        Lower bound of epochs
+    max_epoch: int
+        Upper bound of epochs
+    opt: str
+        Name of optimizer
+    loss: str
+        Name of loss function
+    nn_min_length: int
+        Starting number of hidden layers of neural networks
+    nn_max_length: int
+        Final number of hidden layers of neural networks
+    nn_alphabet: list
+        List of possible sizes of hidden layers with activations for them
+    alphabet_block_size: int
+        Number of literals in each `alphabet` symbol that indicate the size of hidden layer
+    alphabet_offset: int
+        Indicate the minimal number of neurons in hidden layer
+    update_gen_cycle: int
+        Refresh tensorflow random generator per update_gen_cycle
+    callbacks: list
+        Callbacks for neural networks training
+    file_name: str
+        Path to file for logging
+    logging: bool
+        Logging search process to file
 
     Returns
     -------
     search_results: tuple[float, int, str, str, dict]
         Results of the algorithm are described by these parameters
 
-        best_metric_value: float
+        best_loss: float
             The value of the loss function during training of the best neural network
         best_epoch: int
             Number of training epochs for the best neural network
@@ -38,191 +221,126 @@ def simulated_annealing(
             Name of the optimizer of the best neural network
         best_net: dict
             Best neural network presented as a dictionary
-        iterations: int
-            The number of iterations performed during the search.
     """
-    if parameters.nn_alphabet is None:
-        parameters.nn_alphabet = default_alphabet
-
     gen = random_generate(
-        min_epoch=parameters.min_epoch,
-        max_epoch=parameters.max_epoch,
-        min_length=parameters.nn_min_length,
-        max_length=parameters.nn_max_length,
-        alphabet=parameters.nn_alphabet,
-        block_size=parameters.nn_alphabet_block_size,
+        min_epoch=min_epoch,
+        max_epoch=max_epoch,
+        min_length=nn_min_length,
+        max_length=nn_max_length,
+        alphabet=nn_alphabet,
     )
-    if parameters.start_net is None:
+    if start_net is None:
         b, a = decode(
-            gen[0].value(),
-            block_size=parameters.nn_alphabet_block_size,
-            offset=parameters.nn_alphabet_offset,
+            gen[0].value(), block_size=alphabet_block_size, offset=alphabet_offset
         )
-        cfg = imodel.DenseNetParams(
-            input_size=parameters.input_size,
-            block_size=b,
-            output_size=parameters.output_size,
-            activation_func=a + ["linear"],
-        )
-        curr_best = imodel.IModel(cfg)
+        curr_best = imodel.IModel(input_size, b, output_size, a + ["linear"])
+        curr_best.compile(optimizer=opt, loss_func=loss)
     else:
-        cfg = imodel.DenseNetParams(
-            input_size=parameters.input_size,
-            block_size=[],
-            output_size=parameters.output_size,
-            activation_func=["linear"],
-        )
-        curr_best = imodel.IModel(cfg)
-        curr_best = curr_best.from_dict(parameters.start_net)
-
-    compile_cfg = imodel.DenseNetCompileParams(
-        optimizer=parameters.optimizer,
-        loss_func=parameters.loss_function,
-        metric_funcs=[parameters.eval_metric] + parameters.metrics,
-    )
-    curr_best.compile(compile_cfg)
-
+        curr_best = imodel.IModel(input_size, [], output_size, ["linear"])
+        curr_best = curr_best.from_dict(start_net)
     curr_epoch = gen[1].value()
     hist = curr_best.train(
-        parameters.data[0],
-        parameters.data[1],
-        epochs=curr_epoch,
-        verbose=0,
-        callbacks=parameters.callbacks,
+        data[0], data[1], epochs=curr_epoch, verbose=0, callbacks=callbacks
     )
     curr_loss = hist.history["loss"][-1]
-    curr_metric_value = hist.history[parameters.eval_metric][-1]
-    if parameters.val_data is not None:
-        val_metrics = curr_best.evaluate(
-            parameters.val_data[0], parameters.val_data[1], verbose=0, return_dict=True
-        )
-        best_val_loss = val_metrics["loss"]
-        best_val_metric_value = val_metrics[parameters.eval_metric]
-    else:
-        best_val_loss = None
-        best_val_metric_value = None
+    best_val_loss = (
+        curr_best.evaluate(val_data[0], val_data[1], verbose=0, return_dict=True)[
+            "loss"
+        ]
+        if val_data is not None
+        else None
+    )
     best_epoch = curr_epoch
     best_nn = curr_best.to_dict()
     best_gen = gen
     best_a = curr_best.get_activations
-    best_metric_value = curr_metric_value
+    best_loss = curr_loss
 
-    if parameters.logging:
-        fn = f"{parameters.file_name}_{len(parameters.data[0])}_0_{parameters.loss_function}_{parameters.optimizer}"
-        log_search_step(
-            model=curr_best,
-            activations=best_a,
-            code=best_gen[0].value(),
-            epoch=best_gen[1].value(),
-            optimizer=parameters.optimizer,
-            loss_function=parameters.loss_function,
-            loss=curr_loss,
-            validation_loss=best_val_loss,
-            metric_value=best_metric_value,
-            validation_metric_value=best_val_metric_value,
-            file_name=fn,
-        )
+    history = dict()
+    history["shapes"] = [curr_best.get_shape]
+    history["activations"] = [best_a]
+    history["code"] = [best_gen[0].value()]
+    history["epoch"] = [best_gen[1].value()]
+    history["optimizer"] = [opt]
+    history["loss function"] = [loss]
+    history["loss"] = [curr_loss]
+    history["validation loss"] = [best_val_loss]
+    history["train_time"] = [curr_best.network.trained_time["train_time"]]
+    if logging:
+        fn = f"{file_name}_{len(data[0])}_0_{loss}_{opt}"
+        log_to_file(history, fn)
 
     k = 0
     t = 1
-    while (
-        k < parameters.max_launches - 1
-        and curr_metric_value > parameters.metric_threshold
-    ):
-        t = parameters.temperature_method(k=k, k_max=parameters.max_launches, t=t)
-        print(parameters.distance_method)
-        distance = parameters.distance_method(temperature=t)
+    while k < max_iter - 1 and curr_loss > threshold:
+        history = dict()
+
+        update_random_generator(k, cycle_size=update_gen_cycle)
+        t = temperature_method(k=k, k_max=max_iter, t=t)
+        distance = distance_method(temperature=t)
 
         gen_neighbor = choose_neighbor(
-            parameters.method_for_generate_next_nn,
-            alphabet=parameters.nn_alphabet,
-            block_size=parameters.nn_alphabet_block_size,
+            method_for_generate_next_nn,
+            alphabet=nn_alphabet,
             parameters=(gen[0].value(), gen[1].value()),
             distance=distance,
-            min_epoch=parameters.min_epoch,
-            max_epoch=parameters.max_epoch,
-            min_length=parameters.nn_min_length,
-            max_length=parameters.nn_max_length,
+            min_epoch=min_epoch,
+            max_epoch=max_epoch,
+            min_length=nn_min_length,
+            max_length=nn_max_length,
         )
         b, a = decode(
             gen_neighbor[0].value(),
-            block_size=parameters.nn_alphabet_block_size,
-            offset=parameters.nn_alphabet_offset,
+            block_size=alphabet_block_size,
+            offset=alphabet_offset,
         )
-        neighbor_cfg = imodel.DenseNetParams(
-            input_size=parameters.input_size,
-            block_size=b,
-            output_size=parameters.output_size,
-            activation_func=a + ["linear"],
-        )
-        neighbor = imodel.IModel(neighbor_cfg)
-        neighbor_compile_cfg = imodel.DenseNetCompileParams(
-            optimizer=parameters.optimizer,
-            loss_func=parameters.loss_function,
-            metric_funcs=[parameters.eval_metric] + parameters.metrics,
-        )
-        neighbor.compile(neighbor_compile_cfg)
+        neighbor = imodel.IModel(input_size, b, output_size, a + ["linear"])
+        neighbor.compile(optimizer=opt, loss_func=loss)
         neighbor_hist = neighbor.train(
-            parameters.data[0],
-            parameters.data[1],
+            data[0],
+            data[1],
             epochs=gen_neighbor[1].value(),
             verbose=0,
-            callbacks=parameters.callbacks,
+            callbacks=callbacks,
         )
-        if parameters.val_data is not None:
-            val_metrics = neighbor.evaluate(
-                parameters.val_data[0],
-                parameters.val_data[1],
-                verbose=0,
-                return_dict=True,
-            )
-            neighbor_val_loss = val_metrics[parameters.eval_metric]
-            neighbor_val_metric_value = val_metrics["loss"]
-        else:
-            neighbor_val_loss = None
-            neighbor_val_metric_value = None
+        neighbor_val_loss = (
+            neighbor.evaluate(val_data[0], val_data[1], verbose=0, return_dict=True)[
+                "loss"
+            ]
+            if val_data is not None
+            else None
+        )
         neighbor_loss = neighbor_hist.history["loss"][-1]
-        neighbor_metric_value = neighbor_hist.history[parameters.eval_metric][-1]
 
         if (
-            neighbor_metric_value < curr_metric_value
-            or math.e ** ((curr_metric_value - neighbor_metric_value) / t)
-            > random.random()
+            neighbor_loss < curr_loss
+            or math.e ** ((curr_loss - neighbor_loss) / t) > random.random()
         ):
             curr_best = neighbor
             gen = gen_neighbor
             curr_epoch = gen_neighbor[1].value()
-            curr_metric_value = neighbor_metric_value
-            curr_val_metric_value = neighbor_val_metric_value
+            curr_loss = neighbor_loss
+            curr_val_loss = neighbor_val_loss
 
-            if curr_metric_value < best_metric_value:
-                best_metric_value = curr_metric_value
+            if curr_loss < best_loss:
+                best_loss = curr_loss
                 best_epoch = curr_epoch
                 best_nn = curr_best.to_dict()
-                best_val_metric_value = curr_val_metric_value
+                best_gen = gen
+                best_a = a.copy()
+                best_val_loss = curr_val_loss
         k += 1
 
-        if parameters.logging:
-            fn = f"{parameters.file_name}_{len(parameters.data[0])}_0_{parameters.loss_function}_{parameters.optimizer}"
-            log_search_step(
-                model=neighbor,
-                activations=a,
-                code=gen_neighbor[0].value(),
-                epoch=gen_neighbor[1].value(),
-                optimizer=parameters.optimizer,
-                loss_function=parameters.loss_function,
-                loss=neighbor_loss,
-                validation_loss=neighbor_val_loss,
-                metric_value=neighbor_metric_value,
-                validation_metric_value=neighbor_val_metric_value,
-                file_name=fn,
-            )
-
-    return (
-        best_metric_value,
-        best_epoch,
-        parameters.loss_function,
-        parameters.optimizer,
-        best_nn,
-        k,
-    )
+        history["shapes"] = [neighbor.get_shape]
+        history["activations"] = [a]
+        history["code"] = [gen_neighbor[0].value()]
+        history["epoch"] = [gen_neighbor[1].value()]
+        history["optimizer"] = [opt]
+        history["loss function"] = [loss]
+        history["loss"] = [neighbor_loss]
+        history["validation loss"] = [neighbor_val_loss]
+        history["train_time"] = [neighbor.network.trained_time["train_time"]]
+        if logging:
+            fn = f"{file_name}_{len(data[0])}_0_{loss}_{opt}"
+            log_to_file(history, fn)
+    return best_loss, best_epoch, loss, opt, best_nn, k

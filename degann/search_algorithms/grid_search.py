@@ -28,7 +28,7 @@ def grid_search_new(
     best_loss_func: str = ""
     best_opt: str = ""
     time_viewer = MeasureTrainTime()
-    configs = params.get_configs()
+    configs = params.create_parameter_space()
     for config in configs:
         if verbose:
             print(len(config["block_size"]), datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
