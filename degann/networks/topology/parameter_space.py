@@ -4,7 +4,6 @@ from typing import Dict, Any
 from itertools import product
 from degann.search_algorithms.nn_code import alph_n_full, alphabet_activations, decode, encode
 from degann.search_algorithms.utils import update_random_generator, log_to_file
-# from .tf_densenet import TensorflowDenseNet
 from degann.networks.imodel import IModel
 
 
@@ -17,6 +16,13 @@ class ParameterSpace(ABC):
     def create_parameter_space(self) -> list:
         """
         Abstract method for creating parameter space dict.
+        """
+        pass
+
+    @abstractmethod
+    def get_random_config(self) -> Dict[str, Any]:
+        """
+        Abstract method that creates and returns a random config.
         """
         pass
 
@@ -71,7 +77,7 @@ class DenseNetParameterSpace(ParameterSpace):
                             b, a = decode(code, block_size=self.alphabet_block_size, offset=self.alphabet_offset)
                             config = {
                                 "block_size": b,
-                                "activation_func": a,
+                                "activation_func": a + ["linear"],
                                 "optimizer": opt,
                                 "loss_func": loss_func,
                                 "num_epoch": epoch
@@ -98,12 +104,12 @@ class DenseNetParameterSpace(ParameterSpace):
         }
         return config
 
-
+    @staticmethod
     def train(
-            config: Dict[str, Any],
-            input_size: int,
-            output_size: int,
-            data: tuple,
+            config: Dict[str, Any] = None,
+            input_size: int = 1,
+            output_size: int = 1,
+            data: tuple = None,
             repeat: int = 1,
             update_gen_cycle: int = 0,
             val_data: tuple = None,

@@ -71,6 +71,7 @@ class IModel(object):
         )
         self._input_size = input_size
         self._output_size = output_size
+        self._shape = config["block_size"]
         self._name = name
         self._is_debug = is_debug
         self.set_name(name)
