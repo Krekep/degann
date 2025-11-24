@@ -53,7 +53,7 @@ class DenseNetParameterSpace(ParameterSpace):
             loss: list[str],
             min_epoch: int = 100,
             max_epoch: int = 700,
-            epoch_step: int = 50,
+            epoch_step: int = 1,
             nn_min_length: int = 1,
             nn_max_length: int = 6,
             nn_alphabet: list[str] = [
