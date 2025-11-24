@@ -25,11 +25,10 @@ class CodeParameter(MetaParameter):
     block_size = 1
     exp_size = 10
 
-    def __init__(self, s: Union[str, "CodeParameter"], block_size: int):
+    def __init__(self, s: Union[str, "CodeParameter"]):
         if isinstance(s, CodeParameter):
             s = s.value()
         self.code = s
-        self.block_size = block_size
         self.blocks = [
             self.code[i : i + self.block_size + 1]
             for i in range(0, len(self.code), self.block_size + 1)
@@ -50,24 +49,20 @@ class CodeParameter(MetaParameter):
             distance between topologies
         """
         if isinstance(other, str):
-            other = CodeParameter(other, self.block_size)
+            other = CodeParameter(other)
         val_a = 0
-        act_a: list[str] = []
+        act_a = []
         for block in self.blocks:
             dec = decode(block, block_size=self.block_size, offset=8)
             val_a += sum(dec[0])
-            act_a.append(
-                dec[1][0]
-            )  # decode only one block per time, so activations is list with len = 1
+            act_a.append(*dec[1])
 
         val_b = 0
-        act_b: list[str] = []
+        act_b = []
         for block in other.blocks:
             dec = decode(block, block_size=self.block_size, offset=8)
             val_b += sum(dec[0])
-            act_b.append(
-                dec[1][0]
-            )  # decode only one block per time, so activations is list with len = 1
+            act_b.append(*dec[1])
 
         diff = 0
         for i in range(min(len(act_a), len(act_b))):
@@ -133,7 +128,7 @@ class EpochParameter(MetaParameter):
         return self.epoch
 
 
-def choose_neighbor(method: Callable, **kwargs):
+def choose_neighbour(method: Callable, **kwargs):
     """
     Wrapper that returns a method with kwargs applied to it
 
@@ -151,66 +146,22 @@ def choose_neighbor(method: Callable, **kwargs):
     return method(**kwargs)
 
 
-def random_generate(
+def generate_neighbour(
     alphabet: list[str],
-    block_size: int,
-    min_epoch: int = 100,
-    max_epoch: int = 700,
-    min_length: int = 1,
-    max_length: int = 6,
-) -> tuple[CodeParameter, EpochParameter]:
-    """
-    Random point generator in the parameter space of neural networks
-
-    Parameters
-    ----------
-    alphabet: list[str]
-        Alphabet defining possible layers of a neural network
-    block_size: int
-        Number of letters allocated to encode the size of one layer
-    min_epoch: int
-        Minimum number of training epochs
-    max_epoch: int
-        Maximum number of training epochs
-    min_length: int
-        Minimum count of hidden layers in neural network
-    max_length: int
-        Maximum count of hidden layers in neural network
-
-    Returns
-    -------
-    point: tuple[CodeParameter, EpochParameter]
-        random generated point
-    """
-    block = random.randint(min_length, max_length)
-    code = ""
-
-    for i in range(block):
-        code += alphabet[random.randint(0, len(alphabet) - 1)]
-    epoch = random.randint(min_epoch, max_epoch)
-
-    return CodeParameter(code, block_size), EpochParameter(epoch)
-
-
-def generate_neighbor(
-    alphabet: list[str],
-    block_size: int,
     parameters: tuple[str, int],
-    distance: float = 150,
+    distance: int = 150,
     min_epoch: int = 100,
     max_epoch: int = 700,
     min_length: int = 1,
     max_length: int = 6,
 ):
     """
-    Generator of a point in the neighborhood of the current one in the parameter space of neural networks
+    Generator of a point in the neighbourhood of the current one in the parameter space of neural networks
 
     Parameters
     ----------
     alphabet: list[str]
         Alphabet defining possible layers of a neural network
-    block_size: int
-        Number of letters allocated to encode the size of one layer
     parameters: tuple[str, int]
         Start point
     distance: int
@@ -227,17 +178,17 @@ def generate_neighbor(
     Returns
     -------
     point: tuple[CodeParameter, EpochParameter]
-        neighbor of start point
+        neighbour of start point
     """
     code = parameters[0]
     epoch = parameters[1]
     is_stop = 0
     new_epoch = EpochParameter(epoch)
-    new_code = CodeParameter(code, block_size)
+    new_code = CodeParameter(code)
 
     while distance > 0 and is_stop == 0:
         branch = random.random()
-        curr_code = CodeParameter(new_code.value(), block_size)
+        curr_code = CodeParameter(new_code.value())
         if branch < 0.33:  # change epoch
             sign = random.random()
             if sign < 0.66:  # new epoch more than previous
@@ -271,9 +222,7 @@ def generate_neighbor(
                 case 1:  # add block
                     if len(curr_code.blocks) < max_length:
                         new_block = alphabet[random.randint(0, len(alphabet) - 1)]
-                        curr_code = CodeParameter(
-                            "".join(curr_code.blocks) + new_block, block_size
-                        )
+                        curr_code = CodeParameter("".join(curr_code.blocks) + new_block)
                 case 2:  # increase block size
                     current_block_size = int(curr_code.blocks[chosen_block][:-1], 16)
                     max_block_size = 15**CodeParameter.block_size
@@ -312,7 +261,7 @@ def generate_neighbor(
                         curr_code.blocks[chosen_block] = new_block
                 case 4:  # remove last block
                     if len(curr_code.blocks) > min_length:
-                        temp = CodeParameter(curr_code.value(), block_size)
+                        temp = CodeParameter(curr_code.value())
                         temp.blocks.pop()
                         if abs(temp.distance(curr_code)) < distance:
                             curr_code.blocks.pop()
@@ -344,3 +293,4 @@ def generate_neighbor(
             new_code = curr_code
         is_stop = random.randint(0, 3)
     return new_code, new_epoch
+

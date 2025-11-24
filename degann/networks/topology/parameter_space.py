@@ -5,6 +5,7 @@ from itertools import product
 from degann.search_algorithms.nn_code import alph_n_full, alphabet_activations, decode, encode
 from degann.search_algorithms.utils import update_random_generator, log_to_file
 from degann.networks.imodel import IModel
+from degann.search_algorithms.generate import generate_neighbour
 
 
 class ParameterSpace(ABC):
@@ -23,6 +24,13 @@ class ParameterSpace(ABC):
     def get_random_config(self) -> Dict[str, Any]:
         """
         Abstract method that creates and returns a random config.
+        """
+        pass
+
+    @abstractmethod
+    def generate_neighbour_config(self, config: Dict[str, Any], distance: float) -> Dict[str, Any]:
+        """
+        Abstract method that generates neighbour config.
         """
         pass
 
@@ -76,6 +84,7 @@ class DenseNetParameterSpace(ParameterSpace):
                         for loss_func in self.loss:
                             b, a = decode(code, block_size=self.alphabet_block_size, offset=self.alphabet_offset)
                             config = {
+                                "code": code,
                                 "block_size": b,
                                 "activation_func": a + ["linear"],
                                 "optimizer": opt,
@@ -96,13 +105,46 @@ class DenseNetParameterSpace(ParameterSpace):
         opt = random.choice(self.optimizers)
         loss_func = random.choice(self.loss)
         config = {
+            "code": code,
             "block_size": b,
-            "activation_func": a,
+            "activation_func": a + ["linear"],
             "optimizer": opt,
             "loss_func": loss_func,
             "num_epoch": epoch
         }
         return config
+
+    def generate_neighbour_config(self, config: dict, distance: float) -> dict:
+        code = config["code"]
+        epoch = config["num_epoch"]
+        parameters = (code, epoch)
+
+        new_code_param, new_epoch_param = generate_neighbour(
+            alphabet=self.nn_alphabet,
+            parameters=parameters,
+            distance=int(distance),
+            min_epoch=self.min_epoch,
+            max_epoch=self.max_epoch,
+            min_length=self.nn_min_length,
+            max_length=self.nn_max_length,
+        )
+
+        new_code = new_code_param.value()
+        b, a = decode(
+            new_code,
+            block_size=self.alphabet_block_size,
+            offset=self.alphabet_offset
+        )
+
+        neighbour_config = {
+            "code": new_code,
+            "block_size": b,
+            "activation_func": a + ["linear"],
+            "optimizer": config["optimizer"],
+            "loss_func": config["loss_func"],
+            "num_epoch": new_epoch_param.value()
+        }
+        return neighbour_config
 
     @staticmethod
     def train(
