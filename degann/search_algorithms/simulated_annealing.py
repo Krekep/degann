@@ -113,7 +113,6 @@ def simulated_annealing(
     logging: bool = False,
     file_name: str = "",
     callbacks: list = None,
-    verbose: bool = False,
 ) -> Tuple[float, int, str, str, dict, int]:
 
     if temperature_method is None:
@@ -170,7 +169,7 @@ def simulated_annealing(
 
         if (
             neighbour_loss < curr_loss
-            or math.exp((curr_loss - neighbour_loss) / t) > random.random()
+            or math.exp((curr_loss - neighbour_loss) / max(t, 1e-8)) > random.random()
         ):
             curr_config = neighbour_config
             curr_loss = neighbour_loss
@@ -181,11 +180,6 @@ def simulated_annealing(
                 best_loss_func = neighbour_config["loss_func"]
                 best_opt = neighbour_config["optimizer"]
                 best_net = neighbour_net
-
-        if verbose:
-            print(
-                f"Iter {k+1}/{max_iter}: loss={curr_loss:.5f}, best={best_loss:.5f}, temp={t:.3f}"
-            )
 
         k += 1
 
