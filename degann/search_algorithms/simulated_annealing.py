@@ -114,6 +114,55 @@ def simulated_annealing(
     file_name: str = "",
     callbacks: list = None,
 ) -> Tuple[float, int, str, str, dict, int]:
+    """
+    Performs a simulated annealing algorithm to find the best neural network configuration.
+
+    Parameters
+    ----------
+    input_size: int
+        Size of input layer.
+    output_size: int
+        Size of output layer.
+    data: Tuple[Any, Any]
+        Training data.
+    params: ParameterSpace
+        Parameter space for neural network configurations.
+    val_data: Tuple[Any, Any]
+        Validation data.
+    max_iter: int
+        Maximum number of iterations.
+    threshold: float
+        Loss threshold for early stopping.
+    start_config: Dict[str, Any]
+        Starting configuration for the algorithm.
+    temperature_method: Callable
+        Function for temperature calculation.
+    distance_method: Callable
+        Function for distance calculation.
+    update_gen_cycle: int
+        Cycle size for random generator update.
+    logging: bool
+        Flag to enable logging.
+    file_name: str
+        Name for log files.
+    callbacks: List[Any]
+        List of training callbacks.
+
+    Returns
+    -------
+    best_loss: float
+        Best training loss achieved.
+    best_epoch: int
+        Number of epochs for best configuration.
+    best_loss_func: str
+        Loss function name for best configuration.
+    best_opt: str
+        Optimizer name for best configuration.
+    best_net: dict
+        Dictionary representation of the best network.
+    k: int
+        Number of iterations performed.
+    """
 
     if temperature_method is None:
         temperature_method = temperature_lin

@@ -14,6 +14,42 @@ def grid_search(
         file_name: str = "",
         verbose=False,
 ) -> Tuple[float, int, str, str, dict]:
+    """
+    Perform grid search algorithm to find the best neural network configuration.
+
+    Parameters
+    ----------
+    input_size: int
+        Size of input layer.
+    output_size: int
+        Size of output layer.
+    data: Tuple[Any, Any]
+        Training data.
+    params: ParameterSpace
+        Parameter space for neural network configurations.
+    val_data: Tuple[Any, Any]
+        Validation data.
+    logging: bool
+        Flag to enable logging.
+    file_name: str
+        Name for log files.
+    verbose: bool
+        Flag to enable verbose output.
+
+    Returns
+    -------
+    best_loss: float
+        Best training loss achieved.
+    best_epoch: int
+        Number of epochs for best configuration.
+    best_loss_func: str
+        Loss function name for best configuration.
+    best_opt: str
+        Optimizer name for best configuration.
+    best_net: dict
+        Dictionary representation of the best network.
+    """
+
     best_net: dict = dict()
     best_loss: float = 1e6
     best_epoch: int = 0

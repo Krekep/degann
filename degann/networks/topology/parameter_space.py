@@ -1,6 +1,6 @@
 import random
 from abc import ABC, abstractmethod
-from typing import Dict, Any
+from typing import Dict, Any, List, Tuple
 from itertools import product
 from degann.search_algorithms.nn_code import alph_n_full, alphabet_activations, decode, encode
 from degann.search_algorithms.utils import update_random_generator, log_to_file
@@ -14,7 +14,7 @@ class ParameterSpace(ABC):
     """
 
     @abstractmethod
-    def create_parameter_space(self) -> list:
+    def create_parameter_space(self) -> List[Dict[str, Any]]:
         """
         Abstract method for creating parameter space dict.
         """
@@ -35,7 +35,7 @@ class ParameterSpace(ABC):
         pass
 
     @abstractmethod
-    def train(config: Dict[str, Any], *args, **kwargs) -> tuple[float, float, dict]:
+    def train(config: Dict[str, Any], *args, **kwargs) -> Tuple[float, float, dict]:
         """
         Abstract method for training and evaluating model.
         """
@@ -73,7 +73,16 @@ class DenseNetParameterSpace(ParameterSpace):
         self.alphabet_block_size = alphabet_block_size
         self.alphabet_offset = alphabet_offset
 
-    def create_parameter_space(self) -> list:
+    def create_parameter_space(self) -> List[Dict[str, Any]]:
+        """
+        Creates parameter space with all possible configurations.
+
+        Returns
+        -------
+        configs: List[Dict[str, Any]]
+            List of all possible configurations in the parameter space.
+        """
+
         configs = []
         for i in range(self.nn_min_length, self.nn_max_length + 1):
             codes = product(self.nn_alphabet, repeat=i)
@@ -94,7 +103,16 @@ class DenseNetParameterSpace(ParameterSpace):
                             configs.append(config)
         return configs
 
-    def get_random_config(self) -> dict[str: Any]:
+    def get_random_config(self) -> Dict[str: Any]:
+        """
+        Creates random configuration.
+
+        Returns
+        -------
+        config: Dict[str, Any]
+            Random configuration.
+        """
+
         block = random.randint(self.nn_min_length, self.nn_max_length)
         code = ""
 
@@ -114,7 +132,23 @@ class DenseNetParameterSpace(ParameterSpace):
         }
         return config
 
-    def generate_neighbour_config(self, config: dict, distance: float) -> dict:
+    def generate_neighbour_config(self, config: Dict[str, Any], distance: float) -> Dict[str, Any]:
+        """
+        Generate neighbour configuration based on distance value.
+
+        Parameters
+        ----------
+        config: Dict[str, Any]
+            Original configuration.
+        distance: float
+            Distance for generating neighbour configuration.
+
+        Returns
+        -------
+        neighbour_config: Dict[str, Any]
+            Neighbour configuration.
+        """
+
         code = config["code"]
         epoch = config["num_epoch"]
         parameters = (code, epoch)
@@ -159,6 +193,42 @@ class DenseNetParameterSpace(ParameterSpace):
             file_name: str = "",
             callbacks: list = None,
     ) -> tuple[float, float, dict]:
+        """
+        Train and evaluate model with given configuration.
+
+        Parameters
+        ----------
+        config: Dict[str, Any]
+            Configuration for training the model.
+        input_size: int
+            Size of input layer.
+        output_size: int
+            Size of output layer.
+        data: Tuple[Any, Any]
+            Training data.
+        repeat: int
+            Number of training repetitions.
+        update_gen_cycle: int
+            Cycle size for random generator update.
+        val_data: Tuple[Any, Any]
+            Validation data.
+        logging: bool
+            Flag to enable logging.
+        file_name: str
+            Name for log files.
+        callbacks: List[Any]
+            List of training callbacks.
+
+        Returns
+        -------
+        best_loss: float
+            Best training loss achieved.
+        best_val_loss: float
+            Best validation loss achieved.
+        best_net: dict
+            Dictionary representation of the best network.
+        """
+
         best_net = None
         best_loss = 1e6
         best_val_loss = 1e6

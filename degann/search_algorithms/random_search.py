@@ -18,6 +18,52 @@ def random_search(
         verbose: bool = False,
         update_gen_cycle: int = 0,
 ) -> Tuple[float, int, str, str, dict]:
+    """
+    Perform random search algorithm to find the best neural network configuration.
+
+    Parameters
+    ----------
+    input_size: int
+        Size of input layer.
+    output_size: int
+        Size of output layer.
+    data: Tuple[Any, Any]
+        Training data.
+    params: ParameterSpace
+        Parameter space for neural network configurations.
+    iterations: int
+        Number of iterations for fixed search, -1 for threshold-based search.
+    threshold: float
+        Loss threshold for early stopping in threshold-based search.
+    max_iter: int
+        Maximum number of iterations for threshold-based search.
+    val_data: Tuple[Any, Any]
+        Validation data.
+    logging: bool
+        Flag to enable logging.
+    file_name: str
+        Name for log files.
+    callbacks: List[Any]
+        List of training callbacks.
+    verbose: bool
+        Flag to enable verbose output.
+    update_gen_cycle: int
+        Cycle size for random generator update.
+
+    Returns
+    -------
+    best_loss: float
+        Best training loss achieved.
+    best_epoch: int
+        Number of epochs for best configuration.
+    loss: str
+        Loss function name for best configuration.
+    opt: str
+        Optimizer name for best configuration.
+    best_net: dict
+        Dictionary representation of the best network.
+    """
+
     best_net = None
     best_loss = 1e6
     best_epoch = None
