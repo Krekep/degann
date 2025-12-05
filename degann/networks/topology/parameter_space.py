@@ -1,11 +1,12 @@
 import random
 from abc import ABC, abstractmethod
-from typing import Dict, Any, List, Tuple
+from typing import List, Tuple, Optional
 from itertools import product
 from degann.search_algorithms.nn_code import alph_n_full, alphabet_activations, decode, encode
 from degann.search_algorithms.utils import update_random_generator, log_to_file
 from degann.networks.imodel import IModel
 from degann.search_algorithms.generate import generate_neighbour
+from degann.networks.topology.configs import DenseNetConfig
 
 
 class ParameterSpace(ABC):
@@ -14,28 +15,28 @@ class ParameterSpace(ABC):
     """
 
     @abstractmethod
-    def create_parameter_space(self) -> List[Dict[str, Any]]:
+    def create_parameter_space(self) -> List[DenseNetConfig]:
         """
         Abstract method for creating parameter space dict.
         """
         pass
 
     @abstractmethod
-    def get_random_config(self) -> Dict[str, Any]:
+    def get_random_config(self) -> DenseNetConfig:
         """
         Abstract method that creates and returns a random config.
         """
         pass
 
     @abstractmethod
-    def generate_neighbour_config(self, config: Dict[str, Any], distance: float) -> Dict[str, Any]:
+    def generate_neighbour_config(self, config: DenseNetConfig, distance: float) -> DenseNetConfig:
         """
         Abstract method that generates neighbour config.
         """
         pass
 
     @abstractmethod
-    def train(config: Dict[str, Any], *args, **kwargs) -> Tuple[float, float, dict]:
+    def train(self, config: DenseNetConfig, *args, **kwargs) -> Tuple[float, float, dict]:
         """
         Abstract method for training and evaluating model.
         """
@@ -49,6 +50,8 @@ class DenseNetParameterSpace(ParameterSpace):
 
     def __init__(
             self,
+            input_size: int,
+            output_size: int,
             optimizers: list[str],
             loss: list[str],
             min_epoch: int = 100,
@@ -62,6 +65,8 @@ class DenseNetParameterSpace(ParameterSpace):
             alphabet_block_size: int = 1,
             alphabet_offset: int = 8,
     ):
+        self.input_size = input_size
+        self.output_size = output_size
         self.optimizers = optimizers
         self.loss = loss
         self.min_epoch = min_epoch
@@ -73,13 +78,13 @@ class DenseNetParameterSpace(ParameterSpace):
         self.alphabet_block_size = alphabet_block_size
         self.alphabet_offset = alphabet_offset
 
-    def create_parameter_space(self) -> List[Dict[str, Any]]:
+    def create_parameter_space(self) -> List[DenseNetConfig]:
         """
         Creates parameter space with all possible configurations.
 
         Returns
         -------
-        configs: List[Dict[str, Any]]
+        configs: List[DenseNetConfig]
             List of all possible configurations in the parameter space.
         """
 
@@ -92,24 +97,26 @@ class DenseNetParameterSpace(ParameterSpace):
                     for opt in self.optimizers:
                         for loss_func in self.loss:
                             b, a = decode(code, block_size=self.alphabet_block_size, offset=self.alphabet_offset)
-                            config = {
-                                "code": code,
-                                "block_size": b,
-                                "activation_func": a + ["linear"],
-                                "optimizer": opt,
-                                "loss_func": loss_func,
-                                "num_epoch": epoch
-                            }
+                            config = DenseNetConfig(
+                                block_size=b,
+                                activation_func=a + ["linear"],
+                                optimizer=opt,
+                                loss_func=loss_func,
+                                num_epoch=epoch,
+                                code=code,
+                                input_size=self.input_size,
+                                output_size=self.output_size
+                            )
                             configs.append(config)
         return configs
 
-    def get_random_config(self) -> Dict[str: Any]:
+    def get_random_config(self) -> DenseNetConfig:
         """
         Creates random configuration.
 
         Returns
         -------
-        config: Dict[str, Any]
+        config: DenseNetConfig
             Random configuration.
         """
 
@@ -122,35 +129,37 @@ class DenseNetParameterSpace(ParameterSpace):
         b, a = decode(code, block_size=self.alphabet_block_size, offset=self.alphabet_offset)
         opt = random.choice(self.optimizers)
         loss_func = random.choice(self.loss)
-        config = {
-            "code": code,
-            "block_size": b,
-            "activation_func": a + ["linear"],
-            "optimizer": opt,
-            "loss_func": loss_func,
-            "num_epoch": epoch
-        }
+        config = DenseNetConfig(
+            block_size=b,
+            activation_func=a + ["linear"],
+            optimizer=opt,
+            loss_func=loss_func,
+            num_epoch=epoch,
+            code=code,
+            input_size=self.input_size,
+            output_size=self.output_size
+        )
         return config
 
-    def generate_neighbour_config(self, config: Dict[str, Any], distance: float) -> Dict[str, Any]:
+    def generate_neighbour_config(self, config: DenseNetConfig, distance: float) -> DenseNetConfig:
         """
         Generate neighbour configuration based on distance value.
 
         Parameters
         ----------
-        config: Dict[str, Any]
+        config: DenseNetConfig
             Original configuration.
         distance: float
             Distance for generating neighbour configuration.
 
         Returns
         -------
-        neighbour_config: Dict[str, Any]
+        neighbour_config: DenseNetConfig
             Neighbour configuration.
         """
 
-        code = config["code"]
-        epoch = config["num_epoch"]
+        code = config.code
+        epoch = config.num_epoch
         parameters = (code, epoch)
 
         new_code_param, new_epoch_param = generate_neighbour(
@@ -170,21 +179,21 @@ class DenseNetParameterSpace(ParameterSpace):
             offset=self.alphabet_offset
         )
 
-        neighbour_config = {
-            "code": new_code,
-            "block_size": b,
-            "activation_func": a + ["linear"],
-            "optimizer": config["optimizer"],
-            "loss_func": config["loss_func"],
-            "num_epoch": new_epoch_param.value()
-        }
+        neighbour_config = DenseNetConfig(
+            block_size=b,
+            activation_func=a + ["linear"],
+            optimizer=config.optimizer,
+            loss_func=config.loss_func,
+            num_epoch=new_epoch_param.value(),
+            code=new_code,
+            input_size=config.input_size,
+            output_size=config.output_size
+        )
         return neighbour_config
 
-    @staticmethod
     def train(
-            config: Dict[str, Any] = None,
-            input_size: int = 1,
-            output_size: int = 1,
+            self,
+            config: DenseNetConfig = None,
             data: tuple = None,
             repeat: int = 1,
             update_gen_cycle: int = 0,
@@ -198,12 +207,8 @@ class DenseNetParameterSpace(ParameterSpace):
 
         Parameters
         ----------
-        config: Dict[str, Any]
+        config: DenseNetConfig
             Configuration for training the model.
-        input_size: int
-            Size of input layer.
-        output_size: int
-            Size of output layer.
         data: Tuple[Any, Any]
             Training data.
         repeat: int
@@ -237,21 +242,20 @@ class DenseNetParameterSpace(ParameterSpace):
             history = dict()
             nn = IModel(
                 config=config,
-                input_size=input_size,
-                output_size=output_size,
+                name="net",
                 net_type="DenseNet"
             )
-            nn.compile(optimizer=config["optimizer"], loss_func=config["loss_func"])
+            nn.compile(optimizer=config.optimizer, loss_func=config.loss_func)
             temp_his = nn.train(
-                data[0], data[1], epochs=config["num_epoch"], verbose=0, callbacks=callbacks
+                data[0], data[1], epochs=config.num_epoch, verbose=0, callbacks=callbacks
             )
 
             history["shapes"] = [nn.get_shape]
-            history["activations"] = [config["activation_func"]]
+            history["activations"] = [config.activation_func]
             history["code"] = [encode(nn)]
-            history["epoch"] = [config["num_epoch"]]
-            history["optimizer"] = [config["optimizer"]]
-            history["loss function"] = [config["loss_func"]]
+            history["epoch"] = [config.num_epoch]
+            history["optimizer"] = [config.optimizer]
+            history["loss function"] = [config.loss_func]
             history["loss"] = [temp_his.history["loss"][-1]]
             history["validation loss"] = (
                 [nn.evaluate(val_data[0], val_data[1], verbose=0, return_dict=True)["loss"]]
@@ -261,7 +265,7 @@ class DenseNetParameterSpace(ParameterSpace):
             history["train_time"] = [nn.network.trained_time["train_time"]]
 
             if logging:
-                fn = f"{file_name}_{len(data[0])}_{config['num_epoch']}_{config['loss_func']}_{config['optimizer']}"
+                fn = f"{file_name}_{len(data[0])}_{config.num_epoch}_{config.loss_func}_{config.optimizer}"
                 log_to_file(history, fn)
             if history["loss"][0] < best_loss:
                 best_loss = history["loss"][0]

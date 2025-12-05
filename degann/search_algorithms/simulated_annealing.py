@@ -1,8 +1,10 @@
 import math
 import random
+import copy
 from typing import Callable, Tuple, Dict, Any
 from .utils import update_random_generator
 from degann.networks.topology.parameter_space import ParameterSpace
+from degann.networks.topology.configs import DenseNetConfig
 
 
 def temperature_lin(k: int, k_max: int, **kwargs) -> float:
@@ -99,14 +101,12 @@ def distance_lin(offset, multiplier):
 
 
 def simulated_annealing(
-    input_size: int,
-    output_size: int,
     data: tuple,
     params: ParameterSpace,
     val_data: tuple = None,
     max_iter: int = 100,
     threshold: float = -1,
-    start_config: Dict[str, Any] = None,
+    start_config: DenseNetConfig = None,
     temperature_method: Callable = None,
     distance_method: Callable = None,
     update_gen_cycle: int = 0,
@@ -119,10 +119,6 @@ def simulated_annealing(
 
     Parameters
     ----------
-    input_size: int
-        Size of input layer.
-    output_size: int
-        Size of output layer.
     data: Tuple[Any, Any]
         Training data.
     params: ParameterSpace
@@ -133,7 +129,7 @@ def simulated_annealing(
         Maximum number of iterations.
     threshold: float
         Loss threshold for early stopping.
-    start_config: Dict[str, Any]
+    start_config: DenseNetConfig
         Starting configuration for the algorithm.
     temperature_method: Callable
         Function for temperature calculation.
@@ -173,12 +169,10 @@ def simulated_annealing(
     if start_config is None:
         curr_config = params.get_random_config()
     else:
-        curr_config = start_config.copy()
+        curr_config = copy.deepcopy(start_config)
 
     curr_loss, curr_val_loss, curr_net = params.train(
         config=curr_config,
-        input_size=input_size,
-        output_size=output_size,
         data=data,
         val_data=val_data,
         logging=logging,
@@ -188,9 +182,9 @@ def simulated_annealing(
     )
 
     best_loss = curr_loss
-    best_epoch = curr_config["num_epoch"]
-    best_loss_func = curr_config["loss_func"]
-    best_opt = curr_config["optimizer"]
+    best_epoch = curr_config.num_epoch
+    best_loss_func = curr_config.loss_func
+    best_opt = curr_config.optimizer
     best_net = curr_net
 
     k = 0
@@ -206,8 +200,6 @@ def simulated_annealing(
 
         neighbour_loss, neighbour_val_loss, neighbour_net = params.train(
             config=neighbour_config,
-            input_size=input_size,
-            output_size=output_size,
             data=data,
             val_data=val_data,
             logging=logging,
@@ -225,9 +217,9 @@ def simulated_annealing(
             curr_val_loss = neighbour_val_loss
             if curr_loss < best_loss:
                 best_loss = curr_loss
-                best_epoch = neighbour_config["num_epoch"]
-                best_loss_func = neighbour_config["loss_func"]
-                best_opt = neighbour_config["optimizer"]
+                best_epoch = neighbour_config.num_epoch
+                best_loss_func = neighbour_config.loss_func
+                best_opt = neighbour_config.optimizer
                 best_net = neighbour_net
 
         k += 1

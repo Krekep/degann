@@ -8,6 +8,7 @@ from tensorflow import keras
 
 from degann.networks.config_format import HEADER_OF_APG_FILE
 from degann.networks.topology.tf_densenet import TensorflowDenseNet
+from degann.networks.topology.configs import DenseNetConfig
 
 
 def _get_act_and_init(
@@ -50,9 +51,7 @@ class IModel(object):
 
     def __init__(
         self,
-        config: dict,
-        input_size: int,
-        output_size: int,
+        config: DenseNetConfig,
         weight_init=tf.random_uniform_initializer(minval=-1, maxval=1),
         bias_init=tf.random_uniform_initializer(minval=-1, maxval=1),
         name="net",
@@ -62,16 +61,14 @@ class IModel(object):
     ):
         self.network = _create_functions[net_type](
             config,
-            input_size,
             weight=weight_init,
             biases=bias_init,
-            output_size=output_size,
             is_debug=is_debug,
             **kwargs,
         )
-        self._input_size = input_size
-        self._output_size = output_size
-        self._shape = config["block_size"]
+        self._input_size = config.input_size
+        self._output_size = config.output_size
+        self._shape = config.block_size
         self._name = name
         self._is_debug = is_debug
         self.set_name(name)
@@ -493,11 +490,15 @@ class IModel(object):
             tf.random_normal_initializer(),
         )
 
-        res = cls(
-            input_size=input_size,
+        config = DenseNetConfig(
             block_size=shape,
-            output_size=output_size,
-            activation_func=activation,
+            activation_func=[activation] * len(shape) + ["linear"],
+            input_size=input_size,
+            output_size=output_size
+        )
+
+        res = cls(
+            config=config,
             bias_init=biases,
             weight_init=weight,
             decorator_params=decorator_params,

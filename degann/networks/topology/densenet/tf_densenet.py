@@ -8,21 +8,23 @@ from degann.networks.config_format import LAYER_DICT_NAMES
 from degann.networks import layer_creator, losses, metrics, cpp_utils
 from degann.networks import optimizers
 from degann.networks.layers.tf_dense import TensorflowDense
+from degann.networks.topology.configs import DenseNetConfig
 
 
 class TensorflowDenseNet(tf.keras.Model):
     def __init__(
         self,
-        config: dict,
-        input_size: int = 2,
-        output_size: int = 10,
+        config: DenseNetConfig,
         weight=keras.initializers.RandomUniform(minval=-1, maxval=1),
         biases=keras.initializers.RandomUniform(minval=-1, maxval=1),
         is_debug: bool = False,
         **kwargs,
     ):
-        block_size = config["block_size"]
-        activation_func = config["activation_func"]
+        block_size = config.block_size
+        activation_func = config.activation_func
+        input_size = config.input_size
+        output_size = config.output_size
+
         decorator_params: List[Optional[Dict]] = [None]
         if "decorator_params" in kwargs.keys():
             decorator_params = kwargs.get("decorator_params")

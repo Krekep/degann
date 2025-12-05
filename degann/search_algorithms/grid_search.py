@@ -5,8 +5,6 @@ from degann.networks.callbacks import MeasureTrainTime
 
 
 def grid_search(
-        input_size: int,
-        output_size: int,
         data: tuple,
         params: ParameterSpace,
         val_data: tuple = None,
@@ -19,10 +17,6 @@ def grid_search(
 
     Parameters
     ----------
-    input_size: int
-        Size of input layer.
-    output_size: int
-        Size of output layer.
     data: Tuple[Any, Any]
         Training data.
     params: ParameterSpace
@@ -59,11 +53,9 @@ def grid_search(
     configs = params.create_parameter_space()
     for config in configs:
         if verbose:
-            print(len(config["block_size"]), datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
+            print(len(config.block_size), datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
         curr_loss, curr_val_loss, curr_nn = params.train(
             config=config,
-            input_size=input_size,
-            output_size=output_size,
             data=data,
             val_data=val_data,
             logging=logging,
@@ -74,7 +66,7 @@ def grid_search(
         if best_loss > curr_loss:
             best_net = curr_nn
             best_loss = curr_loss
-            best_epoch = config["num_epoch"]
-            best_loss_func = config["loss_func"]
-            best_opt = config["optimizer"]
+            best_epoch = config.num_epoch
+            best_loss_func = config.loss_func
+            best_opt = config.optimizer
     return best_loss, best_epoch, best_loss_func, best_opt, best_net
