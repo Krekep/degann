@@ -7,7 +7,7 @@ def random_search(
         data: tuple,
         params: ParameterSpace,
         iterations: int,
-        threshold: float,
+        threshold: float = 1,
         max_iter: int = 1,
         val_data: tuple = None,
         logging=False,
