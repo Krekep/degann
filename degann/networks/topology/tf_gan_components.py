@@ -88,6 +88,16 @@ class TensorflowGenerator(tf.keras.Model):
         outer_act = self.out_layer.get_activation
         return inner_acts + [outer_act]
 
+    def __str__(self) -> str:
+        res = f"Generator {self.name}\n"
+        res += f"  Input size: {self.input_size}\n"
+        res += f"  Output size: {self.output_size}\n"
+        res += f"  Block sizes: {self.block_sizes}\n"
+        res += f"  Activation funcs: {self.activation_funcs}\n"
+        res += f"  Output activation: {self.out_layer.get_activation}\n"
+        res += f"  Number of internal layers: {len(self.blocks)}\n"
+        return res
+
 
 class TensorflowDiscriminator(tf.keras.Model):
     def __init__(
@@ -171,3 +181,13 @@ class TensorflowDiscriminator(tf.keras.Model):
         inner_acts = [layer.get_activation for layer in self.blocks]
         outer_act = self.out_layer.get_activation
         return inner_acts + [outer_act]
+
+    def __str__(self) -> str:
+        res = f"Discriminator {self.name}\n"
+        res += f"  Input size: {self.input_size}\n"
+        res += f"  Output size: {self.output_size}\n"
+        res += f"  Block sizes: {self.block_sizes}\n"
+        res += f"  Activation funcs: {self.activation_funcs}\n"
+        res += f"  Output activation: {self.out_layer.get_activation}\n"
+        res += f"  Number of internal layers: {len(self.blocks)}\n"
+        return res

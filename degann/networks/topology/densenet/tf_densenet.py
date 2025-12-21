@@ -20,6 +20,7 @@ class TensorflowDenseNet(tf.keras.Model):
         is_debug: bool = False,
         **kwargs,
     ):
+        self.config = config
         block_size = config.block_size
         activation_func = config.activation_func
         input_size = config.input_size

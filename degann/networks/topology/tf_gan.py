@@ -56,19 +56,19 @@ class TensorflowGAN(tf.keras.Model):
 
     def custom_compile(
             self,
-            gen_optimizer: Optional[str] = None,
-            disc_optimizer: Optional[str] = None,
-            gen_learning_rate: Optional[float] = None,
-            disc_learning_rate: Optional[float] = None,
-            gen_loss: Optional[str] = None,
-            disc_loss: Optional[str] = None,
+            gen_optimizer: str = "Adam",
+            disc_optimizer: str = "Adam",
+            gen_learning_rate: float = 1e-4,
+            disc_learning_rate: float = 1e-4,
+            gen_loss: str = "MeanSquaredError",
+            disc_loss: str = "MeanSquaredError",
     ):
         self.gen_optimizer = keras.optimizers.get(gen_optimizer)
         self.gen_optimizer.learning_rate = gen_learning_rate
         self.disc_optimizer = keras.optimizers.get(disc_optimizer)
         self.disc_optimizer.learning_rate = disc_learning_rate
-        self.gen_loss = losses.get_loss(gen_loss)()
-        self.disc_loss = losses.get_loss(disc_loss)()
+        self.gen_loss = losses.get_loss(gen_loss)
+        self.disc_loss = losses.get_loss(disc_loss)
 
     def call(self, inputs, **kwargs):
         return self.generator(inputs, **kwargs)
@@ -110,3 +110,32 @@ class TensorflowGAN(tf.keras.Model):
             "real_score": self.metric_real.result(),
             "fake_score": self.metric_fake.result(),
         }
+
+    def to_dict(self, **kwargs):
+        res = {
+            "net_type": "TFGAN",
+            "name": self.name,
+            "config": self.config.to_dict(),
+            "generator": self.generator.to_dict(),
+            "discriminator": self.discriminator.to_dict(),
+        }
+        return res
+
+    @classmethod
+    def from_dict(cls, config_dict: Dict, **kwargs):
+        config = GANConfig.from_dict(config_dict["config"])
+        model = cls(config=config, **kwargs)
+        model.generator.from_dict(config_dict["generator"])
+        model.discriminator.from_dict(config_dict["discriminator"])
+        return model
+
+    @property
+    def get_activations(self) -> tuple[list, list]:
+        gen_activations = self.generator.get_activations
+        disc_activations = self.discriminator.get_activations
+        return gen_activations, disc_activations
+
+    def __str__(self) -> str:
+        gen_str = str(self.generator)
+        disc_str = str(self.discriminator)
+        return f"GAN Model:\nGenerator:\n{gen_str}\nDiscriminator:\n{disc_str}"

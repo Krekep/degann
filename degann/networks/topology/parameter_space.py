@@ -1,6 +1,6 @@
 import random
 from abc import ABC, abstractmethod
-from typing import List, Tuple, Optional
+from typing import List, Tuple
 from itertools import product
 from degann.search_algorithms.nn_code import alph_n_full, alphabet_activations, decode, encode
 from degann.search_algorithms.utils import update_random_generator, log_to_file

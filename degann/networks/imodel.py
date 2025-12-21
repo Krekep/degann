@@ -1,6 +1,6 @@
 import json
 from collections import defaultdict
-from typing import List, Optional, Dict, Union
+from typing import List, Optional, Dict, Union, Tuple
 
 import numpy as np
 import tensorflow as tf
@@ -8,7 +8,8 @@ from tensorflow import keras
 
 from degann.networks.config_format import HEADER_OF_APG_FILE
 from degann.networks.topology.tf_densenet import TensorflowDenseNet
-from degann.networks.topology.configs import DenseNetConfig
+from degann.networks.topology.tf_gan import TensorflowGAN
+from degann.networks.topology.configs import DenseNetConfig, GANConfig
 
 
 def _get_act_and_init(
@@ -51,9 +52,7 @@ class IModel(object):
 
     def __init__(
         self,
-        config: DenseNetConfig,
-        weight_init=tf.random_uniform_initializer(minval=-1, maxval=1),
-        bias_init=tf.random_uniform_initializer(minval=-1, maxval=1),
+        config,
         name="net",
         net_type="DenseNet",
         is_debug=False,
@@ -61,59 +60,26 @@ class IModel(object):
     ):
         self.network = _create_functions[net_type](
             config,
-            weight=weight_init,
-            biases=bias_init,
             is_debug=is_debug,
             **kwargs,
         )
-        self._input_size = config.input_size
-        self._output_size = config.output_size
-        self._shape = config.block_size
+
+        self._input_size = config.get_input_size
+        self._output_size = config.get_output_size
+        self._shape = config.get_shape
+
         self._name = name
         self._is_debug = is_debug
         self.set_name(name)
 
     def compile(
         self,
-        rate=1e-2,
-        optimizer="SGD",
-        loss_func="MeanSquaredError",
-        metrics=None,
-        run_eagerly=False,
+        **kwargs
     ) -> None:
         """
         Configures the model for training
-
-        Parameters
-        ----------
-        rate: float
-            learning rate for optimizer
-        optimizer: str
-            name of optimizer
-        loss_func: str
-            name of loss function
-        metrics: list[str]
-            list with metric function names
-        run_eagerly: bool
-
-        Returns
-        -------
-
         """
-        if metrics is None:
-            metrics = [
-                "MeanSquaredError",
-                "MeanAbsoluteError",
-                "MeanSquaredLogarithmicError",
-            ]
-
-        self.network.custom_compile(
-            optimizer=optimizer,
-            rate=rate,
-            loss_func=loss_func,
-            metric_funcs=metrics,
-            run_eagerly=run_eagerly,
-        )
+        self.network.custom_compile(**kwargs)
 
     def feedforward(self, inputs: np.ndarray) -> tf.Tensor:
         """
@@ -131,25 +97,6 @@ class IModel(object):
         """
 
         return self.network(inputs, training=False)
-
-    def predict(self, inputs: np.ndarray, callbacks: List = None) -> np.ndarray:
-        """
-        Return network answer for passed input by network predict()
-
-        Parameters
-        ----------
-        inputs: np.ndarray
-            Input activation vector
-        callbacks: list
-            List of tensorflow callbacks for predict function
-
-        Returns
-        -------
-        outputs: np.ndarray
-            Network answer
-        """
-
-        return self.network.predict(inputs, verbose=0, callbacks=callbacks)
 
     def train(
         self,
@@ -355,8 +302,8 @@ class IModel(object):
         -------
 
         """
-        self._shape = config["block_size"]
         self.network.from_dict(config, **kwargs)
+        self._shape = self.network.config.get_shape
 
     def from_file(self, path: str, **kwargs):
         """
@@ -402,7 +349,7 @@ class IModel(object):
         return self._name
 
     @property
-    def get_shape(self) -> List[int]:
+    def get_shape(self):
         """
         Get shape for current network
 
@@ -415,7 +362,7 @@ class IModel(object):
         return self._shape
 
     @property
-    def get_input_size(self) -> int:
+    def get_input_size(self):
         """
         Get input vector size for current network
 
@@ -428,7 +375,7 @@ class IModel(object):
         return self._input_size
 
     @property
-    def get_output_size(self) -> int:
+    def get_output_size(self):
         """
         Get output vector size for current network
 
@@ -510,3 +457,4 @@ class IModel(object):
 
 _create_functions = defaultdict(lambda: TensorflowDenseNet)
 _create_functions["DenseNet"] = TensorflowDenseNet
+_create_functions["GAN"] = TensorflowGAN
