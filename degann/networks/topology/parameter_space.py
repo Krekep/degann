@@ -6,7 +6,7 @@ from degann.search_algorithms.nn_code import alph_n_full, alphabet_activations, 
 from degann.search_algorithms.utils import update_random_generator, log_to_file
 from degann.networks.imodel import IModel
 from degann.search_algorithms.generate import generate_neighbour
-from degann.networks.topology.configs import DenseNetConfig
+from degann.networks.topology.configs import DenseNetConfig, GANConfig
 
 
 class ParameterSpace(ABC):
@@ -15,28 +15,28 @@ class ParameterSpace(ABC):
     """
 
     @abstractmethod
-    def create_parameter_space(self) -> List[DenseNetConfig]:
+    def create_parameter_space(self) -> List:
         """
         Abstract method for creating parameter space dict.
         """
         pass
 
     @abstractmethod
-    def get_random_config(self) -> DenseNetConfig:
+    def get_random_config(self):
         """
         Abstract method that creates and returns a random config.
         """
         pass
 
     @abstractmethod
-    def generate_neighbour_config(self, config: DenseNetConfig, distance: float) -> DenseNetConfig:
+    def generate_neighbour_config(self, config, distance: float):
         """
         Abstract method that generates neighbour config.
         """
         pass
 
     @abstractmethod
-    def train(self, config: DenseNetConfig, *args, **kwargs) -> Tuple[float, float, dict]:
+    def train(self, config, *args, **kwargs) -> Tuple[float, float, dict]:
         """
         Abstract method for training and evaluating model.
         """
@@ -272,3 +272,145 @@ class DenseNetParameterSpace(ParameterSpace):
                 best_val_loss = history["validation loss"][0]
                 best_net = nn.to_dict()
         return best_loss, best_val_loss, best_net
+
+
+class GANParameterSpace(ParameterSpace):
+    def __init__(
+        self,
+        gen_input_size: int,
+        gen_output_size: int,
+        gen_layer_sizes: List[int],
+        gen_min_depth: int,
+        gen_max_depth: int,
+        gen_activation_funcs: List[str],
+        gen_out_activation: str,
+
+        disc_input_size: int,
+        disc_output_size: int,
+        disc_layer_sizes: List[int],
+        disc_min_depth: int,
+        disc_max_depth: int,
+        disc_activation_funcs: List[str],
+        disc_out_activation: str,
+
+        gen_optimizers: List[str],
+        disc_optimizers: List[str],
+        gen_loss_funcs: List[str],
+        disc_loss_funcs: List[str],
+
+        epochs: List[int],
+    ):
+        self.gen_input_size = gen_input_size
+        self.gen_output_size = gen_output_size
+        self.gen_layer_sizes = gen_layer_sizes
+        self.gen_min_depth = gen_min_depth
+        self.gen_max_depth = gen_max_depth
+        self.gen_activation_funcs = gen_activation_funcs
+        self.gen_out_activation = gen_out_activation
+
+        self.disc_input_size = disc_input_size
+        self.disc_output_size = disc_output_size
+        self.disc_layer_sizes = disc_layer_sizes
+        self.disc_min_depth = disc_min_depth
+        self.disc_max_depth = disc_max_depth
+        self.disc_activation_funcs = disc_activation_funcs
+        self.disc_out_activation = disc_out_activation
+
+        self.gen_optimizers = gen_optimizers
+        self.disc_optimizers = disc_optimizers
+        self.gen_loss_funcs = gen_loss_funcs
+        self.disc_loss_funcs = disc_loss_funcs
+
+        self.epochs = epochs
+
+    def create_parameter_space(self) -> List[GANConfig]:
+        configs = []
+        gen_block_size_options = []
+        for depth in range(self.gen_min_depth, self.gen_max_depth + 1):
+            for sizes in product(self.gen_layer_sizes, repeat=depth):
+                gen_block_size_options.append(list(sizes))
+
+        disc_block_size_options = []
+        for depth in range(self.disc_min_depth, self.disc_max_depth + 1):
+            for sizes in product(self.disc_layer_sizes, repeat=depth):
+                disc_block_size_options.append(list(sizes))
+
+        other_params = [
+            self.gen_optimizers,
+            self.disc_optimizers,
+            self.gen_loss_funcs,
+            self.disc_loss_funcs,
+        ]
+
+        for gen_bs in gen_block_size_options:
+            for disc_bs in disc_block_size_options:
+                for params in product(*other_params):
+                    gen_opt, disc_opt, gen_lf, disc_lf = params
+
+                    gen_hidden_depth = len(gen_bs)
+                    disc_hidden_depth = len(disc_bs)
+
+                    gen_af_options = list(product(self.gen_activation_funcs, repeat=gen_hidden_depth))
+                    disc_af_options = list(product(self.disc_activation_funcs, repeat=disc_hidden_depth))
+
+                    for gen_af_tuple in gen_af_options:
+                        for disc_af_tuple in disc_af_options:
+                            gen_activation_funcs = list(gen_af_tuple) + [self.gen_out_activation]
+                            disc_activation_funcs = list(disc_af_tuple) + [self.disc_out_activation]
+
+                            for epoch in self.epochs:
+                                config = GANConfig(
+                                    gen_input_size=self.gen_input_size,
+                                    gen_output_size=self.gen_output_size,
+                                    gen_block_sizes=gen_bs,
+                                    gen_activation_funcs=gen_activation_funcs,
+                                    gen_out_activation=self.gen_out_activation,
+                                    disc_input_size=self.disc_input_size,
+                                    disc_output_size=self.disc_output_size,
+                                    disc_block_sizes=disc_bs,
+                                    disc_activation_funcs=disc_activation_funcs,
+                                    disc_out_activation=self.disc_out_activation,
+                                    gen_optimizer=gen_opt,
+                                    disc_optimizer=disc_opt,
+                                    gen_loss_func=gen_lf,
+                                    disc_loss_func=disc_lf,
+                                    num_epoch=epoch,
+                                )
+                                configs.append(config)
+        return configs
+
+    def get_random_config(self):
+        gen_depth = random.randint(self.gen_min_depth, self.gen_max_depth)
+        disc_depth = random.randint(self.disc_min_depth, self.disc_max_depth)
+
+        gen_block_sizes = [random.choice(self.gen_layer_sizes) for _ in range(gen_depth)]
+        disc_block_sizes = [random.choice(self.disc_layer_sizes) for _ in range(disc_depth)]
+
+        gen_activation_funcs = [random.choice(self.gen_activation_funcs) for _ in range(gen_depth)] + [self.gen_out_activation]
+        disc_activation_funcs = [random.choice(self.disc_activation_funcs) for _ in range(disc_depth)] + [self.disc_out_activation]
+
+        epoch = random.choice(self.epochs)
+
+        config = GANConfig(
+            gen_input_size=self.gen_input_size,
+            gen_output_size=self.gen_output_size,
+            gen_block_sizes=gen_block_sizes,
+            gen_activation_funcs=gen_activation_funcs,
+            gen_out_activation=self.gen_out_activation,
+            disc_input_size=self.disc_input_size,
+            disc_output_size=self.disc_output_size,
+            disc_block_sizes=disc_block_sizes,
+            disc_activation_funcs=disc_activation_funcs,
+            disc_out_activation=self.disc_out_activation,
+            gen_optimizer=random.choice(self.gen_optimizers),
+            disc_optimizer=random.choice(self.disc_optimizers),
+            gen_loss_func=random.choice(self.gen_loss_funcs),
+            disc_loss_func=random.choice(self.disc_loss_funcs),
+            num_epoch=epoch,
+        )
+        return config
+
+    def generate_neighbour_config(self, config, distance: float):
+        pass
+
+

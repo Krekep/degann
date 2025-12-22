@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict, Callable
+from typing import Optional, Dict, Callable
 import tensorflow as tf
 from tensorflow import keras
 

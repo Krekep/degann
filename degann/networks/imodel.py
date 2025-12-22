@@ -1,6 +1,6 @@
 import json
 from collections import defaultdict
-from typing import List, Optional, Dict, Union, Tuple
+from typing import List, Optional, Dict, Union
 
 import numpy as np
 import tensorflow as tf
@@ -9,7 +9,7 @@ from tensorflow import keras
 from degann.networks.config_format import HEADER_OF_APG_FILE
 from degann.networks.topology.tf_densenet import TensorflowDenseNet
 from degann.networks.topology.tf_gan import TensorflowGAN
-from degann.networks.topology.configs import DenseNetConfig, GANConfig
+from degann.networks.topology.configs import DenseNetConfig
 
 
 def _get_act_and_init(
