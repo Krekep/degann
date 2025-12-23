@@ -106,7 +106,6 @@ class TensorflowDiscriminator(tf.keras.Model):
         output_size: int,
         block_sizes: List[int],
         activation_funcs: List[str],
-        out_activation: str,
         weight_init,
         bias_init,
         is_debug: bool = False,
@@ -138,7 +137,7 @@ class TensorflowDiscriminator(tf.keras.Model):
         self.out_layer = layer_creator.create_dense(
             inp_size=prev_size,
             shape=output_size,
-            activation=out_activation,
+            activation="linear",
             weight=weight_init,
             bias=bias_init,
             is_debug=is_debug,
@@ -160,7 +159,7 @@ class TensorflowDiscriminator(tf.keras.Model):
             "block_sizes": self.block_sizes,
             "output_size": self.output_size,
             "activation_funcs": self.activation_funcs,
-            "out_activation": self.out_layer.get_activation,
+            "out_activation": "linear",
             "layer": [],
             "out_layer": self.out_layer.to_dict(),
         }

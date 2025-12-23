@@ -51,9 +51,9 @@ def grid_search(
     best_opt: str = ""
     time_viewer = MeasureTrainTime()
     configs = params.create_parameter_space()
-    for config in configs:
+    for i, config in enumerate(configs):
         if verbose:
-            print(len(config.block_size), datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
+            print(f"{i + 1}/{len(configs)}", datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
         curr_loss, curr_val_loss, curr_nn = params.train(
             config=config,
             data=data,
@@ -67,6 +67,6 @@ def grid_search(
             best_net = curr_nn
             best_loss = curr_loss
             best_epoch = config.num_epoch
-            best_loss_func = config.loss_func
-            best_opt = config.optimizer
+            best_loss_func = config.get_loss_func
+            best_opt = config.get_optimizer
     return best_loss, best_epoch, best_loss_func, best_opt, best_net

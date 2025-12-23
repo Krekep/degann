@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Tuple
 from .utils import update_random_generator
 from degann.networks.topology.parameter_space import ParameterSpace
@@ -96,11 +97,14 @@ def random_search(
                 best_epoch = config.num_epoch
                 best_net = curr_nn
                 best_loss = curr_loss
-                loss = config.loss_func
-                opt = config.optimizer
+                loss = config.get_loss_func
+                opt = config.get_optimizer
     else:
         for i in range(iterations):
             update_random_generator(i, cycle_size=update_gen_cycle)
+            if verbose:
+                print(f"{i + 1}/{iterations}", datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
+
             config = params.get_random_config()
 
             curr_loss, curr_val_loss, curr_nn = params.train(
@@ -116,6 +120,6 @@ def random_search(
                 best_epoch = config.num_epoch
                 best_net = curr_nn
                 best_loss = curr_loss
-                loss = config.loss_func
-                opt = config.optimizer
+                loss = config.get_loss_func
+                opt = config.get_optimizer
     return best_loss, best_epoch, loss, opt, best_net

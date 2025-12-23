@@ -285,13 +285,10 @@ class GANParameterSpace(ParameterSpace):
         gen_activation_funcs: List[str],
         gen_out_activation: str,
 
-        disc_input_size: int,
-        disc_output_size: int,
         disc_layer_sizes: List[int],
         disc_min_depth: int,
         disc_max_depth: int,
         disc_activation_funcs: List[str],
-        disc_out_activation: str,
 
         gen_optimizers: List[str],
         disc_optimizers: List[str],
@@ -308,13 +305,10 @@ class GANParameterSpace(ParameterSpace):
         self.gen_activation_funcs = gen_activation_funcs
         self.gen_out_activation = gen_out_activation
 
-        self.disc_input_size = disc_input_size
-        self.disc_output_size = disc_output_size
         self.disc_layer_sizes = disc_layer_sizes
         self.disc_min_depth = disc_min_depth
         self.disc_max_depth = disc_max_depth
         self.disc_activation_funcs = disc_activation_funcs
-        self.disc_out_activation = disc_out_activation
 
         self.gen_optimizers = gen_optimizers
         self.disc_optimizers = disc_optimizers
@@ -356,7 +350,7 @@ class GANParameterSpace(ParameterSpace):
                     for gen_af_tuple in gen_af_options:
                         for disc_af_tuple in disc_af_options:
                             gen_activation_funcs = list(gen_af_tuple) + [self.gen_out_activation]
-                            disc_activation_funcs = list(disc_af_tuple) + [self.disc_out_activation]
+                            disc_activation_funcs = list(disc_af_tuple) + ["linear"]
 
                             for epoch in self.epochs:
                                 config = GANConfig(
@@ -365,11 +359,8 @@ class GANParameterSpace(ParameterSpace):
                                     gen_block_sizes=gen_bs,
                                     gen_activation_funcs=gen_activation_funcs,
                                     gen_out_activation=self.gen_out_activation,
-                                    disc_input_size=self.disc_input_size,
-                                    disc_output_size=self.disc_output_size,
                                     disc_block_sizes=disc_bs,
                                     disc_activation_funcs=disc_activation_funcs,
-                                    disc_out_activation=self.disc_out_activation,
                                     gen_optimizer=gen_opt,
                                     disc_optimizer=disc_opt,
                                     gen_loss_func=gen_lf,
@@ -387,7 +378,7 @@ class GANParameterSpace(ParameterSpace):
         disc_block_sizes = [random.choice(self.disc_layer_sizes) for _ in range(disc_depth)]
 
         gen_activation_funcs = [random.choice(self.gen_activation_funcs) for _ in range(gen_depth)] + [self.gen_out_activation]
-        disc_activation_funcs = [random.choice(self.disc_activation_funcs) for _ in range(disc_depth)] + [self.disc_out_activation]
+        disc_activation_funcs = [random.choice(self.disc_activation_funcs) for _ in range(disc_depth)] + ["linear"]
 
         epoch = random.choice(self.epochs)
 
@@ -397,11 +388,8 @@ class GANParameterSpace(ParameterSpace):
             gen_block_sizes=gen_block_sizes,
             gen_activation_funcs=gen_activation_funcs,
             gen_out_activation=self.gen_out_activation,
-            disc_input_size=self.disc_input_size,
-            disc_output_size=self.disc_output_size,
             disc_block_sizes=disc_block_sizes,
             disc_activation_funcs=disc_activation_funcs,
-            disc_out_activation=self.disc_out_activation,
             gen_optimizer=random.choice(self.gen_optimizers),
             disc_optimizer=random.choice(self.disc_optimizers),
             gen_loss_func=random.choice(self.gen_loss_funcs),
@@ -413,4 +401,56 @@ class GANParameterSpace(ParameterSpace):
     def generate_neighbour_config(self, config, distance: float):
         pass
 
+    def train(
+            self,
+            config: GANConfig = None,
+            data: tuple = None,
+            repeat: int = 1,
+            val_data: tuple = None,
+            logging: bool = False,
+            file_name: str = "",
+            callbacks: list = None,
+            verbose: int = 0,
+            mini_batch_size: int = 32,
+    ) -> tuple[float, float, dict]:
+        best_net = None
+        best_loss = float('inf')
+        best_val_loss = float('inf')
 
+        for i in range(repeat):
+            nn = IModel(config=config, net_type="GAN")
+            nn.compile(
+                gen_optimizer=config.gen_optimizer,
+                disc_optimizer=config.disc_optimizer,
+                gen_loss_func=config.gen_loss_func,
+                disc_loss_func=config.disc_loss_func,
+            )
+
+            history = nn.train(
+                x_data=data[0],
+                y_data=data[1],
+                validation_data=val_data,
+                epochs=config.num_epoch,
+                mini_batch_size=mini_batch_size,
+                callbacks=callbacks,
+                verbose=verbose
+            )
+
+            last_gen_loss = history.history['gen_loss'][-1]
+            last_disc_loss = history.history['disc_loss'][-1]
+            current_loss = (last_disc_loss + last_gen_loss) / 2.0
+
+            current_val_loss = current_loss
+            if val_data is not None:
+                pass
+
+            if logging:
+                fn = f"{file_name}_gan_{len(data[0])}_{config.num_epoch}_{config.gen_loss_func}_{config.disc_loss_func}_{config.gen_optimizer}_{config.disc_optimizer}"
+                log_to_file(history, fn)
+
+            if current_loss < best_loss:
+                best_loss = current_loss
+                best_val_loss = current_val_loss
+                best_net = nn.to_dict()
+
+        return best_loss, best_val_loss, best_net

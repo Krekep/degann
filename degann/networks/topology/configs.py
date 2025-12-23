@@ -32,17 +32,23 @@ class DenseNetConfig:
     def get_output_size(self) -> int:
         return self.output_size
 
+    @property
+    def get_loss_func(self) -> str:
+        return self.loss_func
+
+    @property
+    def get_optimizer(self) -> str:
+        return self.optimizer
+
 
 @dataclass
 class GANConfig:
-    gen_input_size: int = 2
+    gen_input_size: int = 1
     gen_output_size: int = 1
     gen_block_sizes: Optional[List[int]] = None
     gen_activation_funcs: Optional[List[str]] = None
     gen_out_activation: str = "linear"
 
-    disc_input_size: int = 2
-    disc_output_size: int = 1
     disc_block_sizes: Optional[List[int]] = None
     disc_activation_funcs: Optional[List[str]] = None
     disc_out_activation: str = "linear"
@@ -68,8 +74,16 @@ class GANConfig:
 
     @property
     def get_input_size(self) -> tuple[int, int]:
-        return self.gen_input_size, self.disc_input_size
+        return self.gen_input_size, self.gen_input_size + self.gen_output_size
 
     @property
     def get_output_size(self) -> tuple[int, int]:
-        return self.gen_output_size, self.disc_output_size
+        return self.gen_output_size, 1
+
+    @property
+    def get_loss_func(self) -> tuple[str, str]:
+        return self.gen_loss_func, self.disc_loss_func
+
+    @property
+    def get_optimizer(self) -> tuple[str, str]:
+        return self.gen_optimizer, self.disc_optimizer

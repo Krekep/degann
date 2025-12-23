@@ -53,8 +53,8 @@ class IModel(object):
     def __init__(
         self,
         config,
+        net_type,
         name="net",
-        net_type="DenseNet",
         is_debug=False,
         **kwargs,
     ):
@@ -79,7 +79,10 @@ class IModel(object):
         """
         Configures the model for training
         """
-        self.network.custom_compile(**kwargs)
+        if hasattr(self.network, "custom_compile"):
+            self.network.custom_compile(**kwargs)
+        else:
+            self.network.compile(**kwargs)
 
     def feedforward(self, inputs: np.ndarray) -> tf.Tensor:
         """
