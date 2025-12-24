@@ -1,10 +1,10 @@
 import math
 import random
 import copy
+from datetime import datetime
 from typing import Callable, Tuple, Dict, Any
 from .utils import update_random_generator
 from degann.networks.topology.parameter_space import ParameterSpace
-from degann.networks.topology.configs import DenseNetConfig
 
 
 def temperature_lin(k: int, k_max: int, **kwargs) -> float:
@@ -101,22 +101,22 @@ def distance_lin(offset, multiplier):
 
 
 def simulated_annealing(
-    data: tuple,
-    params: ParameterSpace,
-    val_data: tuple = None,
-    max_iter: int = 100,
-    threshold: float = -1,
-    start_config: DenseNetConfig = None,
-    temperature_method: Callable = None,
-    distance_method: Callable = None,
-    update_gen_cycle: int = 0,
-    logging: bool = False,
-    file_name: str = "",
-    callbacks: list = None,
-) -> Tuple[float, int, str, str, dict, int]:
+        data: tuple,
+        params: ParameterSpace,
+        val_data: tuple = None,
+        max_iter: int = 100,
+        threshold: float = 1,
+        start_config: Any = None,
+        temperature_method: Callable = None,
+        distance_method: Callable = None,
+        update_gen_cycle: int = 0,
+        logging: bool = False,
+        file_name: str = "",
+        callbacks: list = None,
+        verbose: bool = False
+) -> Tuple[float, Any, dict, int]:
     """
     Performs a simulated annealing algorithm to find the best neural network configuration.
-
     Parameters
     ----------
     data: Tuple[Any, Any]
@@ -129,7 +129,7 @@ def simulated_annealing(
         Maximum number of iterations.
     threshold: float
         Loss threshold for early stopping.
-    start_config: DenseNetConfig
+    start_config: Any
         Starting configuration for the algorithm.
     temperature_method: Callable
         Function for temperature calculation.
@@ -143,23 +143,19 @@ def simulated_annealing(
         Name for log files.
     callbacks: List[Any]
         List of training callbacks.
-
+    verbose: bool
+        Flag to enable verbose output.
     Returns
     -------
     best_loss: float
         Best training loss achieved.
-    best_epoch: int
-        Number of epochs for best configuration.
-    best_loss_func: str
-        Loss function name for best configuration.
-    best_opt: str
-        Optimizer name for best configuration.
+    best_config: Any
+        Best configuration object.
     best_net: dict
         Dictionary representation of the best network.
     k: int
         Number of iterations performed.
     """
-
     if temperature_method is None:
         temperature_method = temperature_lin
 
@@ -171,57 +167,57 @@ def simulated_annealing(
     else:
         curr_config = copy.deepcopy(start_config)
 
-    curr_loss, curr_val_loss, curr_net = params.train(
+    train_result = params.train(
         config=curr_config,
         data=data,
         val_data=val_data,
         logging=logging,
         file_name=file_name,
         callbacks=callbacks,
-        update_gen_cycle=update_gen_cycle,
     )
+    curr_loss = train_result[0]
+    curr_net = train_result[2]
 
     best_loss = curr_loss
-    best_epoch = curr_config.num_epoch
-    best_loss_func = curr_config.loss_func
-    best_opt = curr_config.optimizer
+    best_config = copy.deepcopy(curr_config)
     best_net = curr_net
-
     k = 0
     t = 1.0
 
     while k < max_iter and curr_loss > threshold:
         update_random_generator(k, cycle_size=update_gen_cycle)
+        if verbose:
+            print(f"{k + 1}/{max_iter}", datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
 
         t = temperature_method(k=k, k_max=max_iter, t=t)
         distance = distance_method(temperature=t)
 
         neighbour_config = params.generate_neighbour_config(curr_config, distance)
 
-        neighbour_loss, neighbour_val_loss, neighbour_net = params.train(
+        neighbour_result = params.train(
             config=neighbour_config,
             data=data,
             val_data=val_data,
             logging=logging,
             file_name=file_name,
             callbacks=callbacks,
-            update_gen_cycle=update_gen_cycle,
         )
+        neighbour_loss = neighbour_result[0]
+        neighbour_net = neighbour_result[2]
 
         if (
-            neighbour_loss < curr_loss
-            or math.exp((curr_loss - neighbour_loss) / max(t, 1e-8)) > random.random()
+                neighbour_loss < curr_loss
+                or math.exp((curr_loss - neighbour_loss) / max(t, 1e-8)) > random.random()
         ):
             curr_config = neighbour_config
             curr_loss = neighbour_loss
-            curr_val_loss = neighbour_val_loss
+            curr_net = neighbour_net
+
             if curr_loss < best_loss:
                 best_loss = curr_loss
-                best_epoch = neighbour_config.num_epoch
-                best_loss_func = neighbour_config.loss_func
-                best_opt = neighbour_config.optimizer
+                best_config = copy.deepcopy(neighbour_config)
                 best_net = neighbour_net
 
         k += 1
 
-    return best_loss, best_epoch, best_loss_func, best_opt, best_net, k
+    return best_loss, best_config, best_net, k

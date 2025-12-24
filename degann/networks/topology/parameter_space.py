@@ -5,7 +5,7 @@ from itertools import product
 from degann.search_algorithms.nn_code import alph_n_full, alphabet_activations, decode, encode
 from degann.search_algorithms.utils import update_random_generator, log_to_file
 from degann.networks.imodel import IModel
-from degann.search_algorithms.generate import generate_neighbour
+from degann.search_algorithms.generate import generate_neighbour, mutate_block_sizes, mutate_activations
 from degann.networks.topology.configs import DenseNetConfig, GANConfig
 
 
@@ -398,8 +398,96 @@ class GANParameterSpace(ParameterSpace):
         )
         return config
 
-    def generate_neighbour_config(self, config, distance: float):
-        pass
+    def generate_neighbour_config(
+            self,
+            config: GANConfig,
+            distance: float,
+    ) -> GANConfig:
+        """
+        Generate a neighbour configuration for GANConfig.
+
+        Parameters
+        ----------
+        config : GANConfig
+            Original configuration.
+        distance : float
+            A proxy for mutation strength (higher -> more changes).
+
+        Returns
+        -------
+        GANConfig
+            New neighbour configuration.
+        """
+        mutation_prob = min(0.5, distance / 100.0)
+
+        new_gen_block_sizes = mutate_block_sizes(
+            block_sizes=config.gen_block_sizes,
+            layer_sizes=self.gen_layer_sizes,
+            min_depth=self.gen_min_depth,
+            max_depth=self.gen_max_depth,
+            mutation_prob=mutation_prob,
+        )
+        new_gen_activations = mutate_activations(
+            activations=config.gen_activation_funcs[:-1] + [config.gen_out_activation],
+            all_activations=self.gen_activation_funcs,
+            mutation_prob=mutation_prob,
+        )
+
+        if len(new_gen_activations) > 1:
+            new_gen_activations[-1] = config.gen_out_activation
+        else:
+            new_gen_activations = [config.gen_out_activation]
+
+        new_disc_block_sizes = mutate_block_sizes(
+            block_sizes=config.disc_block_sizes,
+            layer_sizes=self.disc_layer_sizes,
+            min_depth=self.disc_min_depth,
+            max_depth=self.disc_max_depth,
+            mutation_prob=mutation_prob,
+        )
+        new_disc_activations = mutate_activations(
+            activations=config.disc_activation_funcs[:-1] + ["linear"],
+            all_activations=self.disc_activation_funcs,
+            mutation_prob=mutation_prob,
+        )
+
+        if len(new_disc_activations) > 1:
+            new_disc_activations[-1] = "linear"
+        else:
+            new_disc_activations = ["linear"]
+
+        new_gen_optimizer = config.gen_optimizer
+        new_disc_optimizer = config.disc_optimizer
+        new_gen_loss_func = config.gen_loss_func
+        new_disc_loss_func = config.disc_loss_func
+        new_num_epoch = config.num_epoch
+
+        if random.random() < mutation_prob:
+            new_gen_optimizer = random.choice(self.gen_optimizers)
+        if random.random() < mutation_prob:
+            new_disc_optimizer = random.choice(self.disc_optimizers)
+        if random.random() < mutation_prob:
+            new_gen_loss_func = random.choice(self.gen_loss_funcs)
+        if random.random() < mutation_prob:
+            new_disc_loss_func = random.choice(self.disc_loss_funcs)
+        if random.random() < mutation_prob:
+            new_num_epoch = random.choice(self.epochs)
+
+        neighbour_config = GANConfig(
+            gen_input_size=self.gen_input_size,
+            gen_output_size=self.gen_output_size,
+            gen_block_sizes=new_gen_block_sizes,
+            gen_activation_funcs=new_gen_activations,
+            gen_out_activation=config.gen_out_activation,
+            disc_block_sizes=new_disc_block_sizes,
+            disc_activation_funcs=new_disc_activations,
+            gen_optimizer=new_gen_optimizer,
+            disc_optimizer=new_disc_optimizer,
+            gen_loss_func=new_gen_loss_func,
+            disc_loss_func=new_disc_loss_func,
+            num_epoch=new_num_epoch,
+        )
+        return neighbour_config
 
     def train(
             self,
