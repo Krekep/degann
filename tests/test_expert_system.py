@@ -1,3 +1,4 @@
+import os
 import pytest
 import numpy as np
 from degann.expert import ExpertSystemTags, suggest_parameters, execute_pipeline
@@ -25,7 +26,8 @@ def validate_file_name():
 
 @pytest.fixture
 def equation_data(train_file_name, validate_file_name):
-    folder_path = "./data"
+    test_dir = os.path.dirname(__file__)
+    folder_path = os.path.join(test_dir, "data")
     train_data = np.genfromtxt(folder_path + "/" + train_file_name, delimiter=",")
     train_data_x, train_data_y = train_data[:, 0], train_data[:, 1]
     train_data_x = train_data_x.reshape((-1, 1))

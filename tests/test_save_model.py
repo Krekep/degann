@@ -1,4 +1,5 @@
 import pytest
+import os
 import numpy as np
 
 from degann.networks.imodel import IModel
@@ -8,7 +9,8 @@ from tests.utils import array_compare, file_compare
 
 @pytest.fixture
 def folder_path():
-    return "./data"
+    test_dir = os.path.dirname(__file__)
+    return os.path.join(test_dir, "data")
 
 
 @pytest.mark.parametrize(

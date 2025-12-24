@@ -1,3 +1,4 @@
+import os
 import pytest
 import numpy as np
 from degann.networks.imodel import IModel
@@ -6,7 +7,8 @@ from degann.networks.topology.configs import DenseNetConfig
 
 @pytest.fixture
 def folder_path():
-    return "./data"
+    test_dir = os.path.dirname(__file__)
+    return os.path.join(test_dir, "data")
 
 
 @pytest.mark.parametrize(
