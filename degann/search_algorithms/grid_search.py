@@ -5,12 +5,12 @@ from degann.networks.callbacks import MeasureTrainTime
 
 
 def grid_search(
-        data: tuple,
-        params: ParameterSpace,
-        val_data: tuple = None,
-        logging=False,
-        file_name: str = "",
-        verbose=False,
+    data: tuple,
+    params: ParameterSpace,
+    val_data: tuple = None,
+    logging=False,
+    file_name: str = "",
+    verbose=False,
 ) -> Tuple[float, int, str, str, dict]:
     """
     Perform grid search algorithm to find the best neural network configuration.
@@ -53,7 +53,10 @@ def grid_search(
     configs = params.create_parameter_space()
     for i, config in enumerate(configs):
         if verbose:
-            print(f"{i + 1}/{len(configs)}", datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
+            print(
+                f"{i + 1}/{len(configs)}",
+                datetime.today().strftime("%Y-%m-%d %H:%M:%S"),
+            )
         curr_loss, curr_val_loss, curr_nn = params.train(
             config=config,
             data=data,

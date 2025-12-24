@@ -2,10 +2,19 @@ import random
 from abc import ABC, abstractmethod
 from typing import List, Tuple
 from itertools import product
-from degann.search_algorithms.nn_code import alph_n_full, alphabet_activations, decode, encode
+from degann.search_algorithms.nn_code import (
+    alph_n_full,
+    alphabet_activations,
+    decode,
+    encode,
+)
 from degann.search_algorithms.utils import update_random_generator, log_to_file
 from degann.networks.imodel import IModel
-from degann.search_algorithms.generate import generate_neighbour, mutate_block_sizes, mutate_activations
+from degann.search_algorithms.generate import (
+    generate_neighbour,
+    mutate_block_sizes,
+    mutate_activations,
+)
 from degann.networks.topology.configs import DenseNetConfig, GANConfig
 
 
@@ -49,21 +58,21 @@ class DenseNetParameterSpace(ParameterSpace):
     """
 
     def __init__(
-            self,
-            input_size: int,
-            output_size: int,
-            optimizers: list[str],
-            loss: list[str],
-            min_epoch: int = 100,
-            max_epoch: int = 700,
-            epoch_step: int = 1,
-            nn_min_length: int = 1,
-            nn_max_length: int = 6,
-            nn_alphabet: list[str] = [
-                "".join(elem) for elem in product(alph_n_full, alphabet_activations)
-            ],
-            alphabet_block_size: int = 1,
-            alphabet_offset: int = 8,
+        self,
+        input_size: int,
+        output_size: int,
+        optimizers: list[str],
+        loss: list[str],
+        min_epoch: int = 100,
+        max_epoch: int = 700,
+        epoch_step: int = 1,
+        nn_min_length: int = 1,
+        nn_max_length: int = 6,
+        nn_alphabet: list[str] = [
+            "".join(elem) for elem in product(alph_n_full, alphabet_activations)
+        ],
+        alphabet_block_size: int = 1,
+        alphabet_offset: int = 8,
     ):
         self.input_size = input_size
         self.output_size = output_size
@@ -96,7 +105,11 @@ class DenseNetParameterSpace(ParameterSpace):
                 for epoch in range(self.min_epoch, self.max_epoch + 1, self.epoch_step):
                     for opt in self.optimizers:
                         for loss_func in self.loss:
-                            b, a = decode(code, block_size=self.alphabet_block_size, offset=self.alphabet_offset)
+                            b, a = decode(
+                                code,
+                                block_size=self.alphabet_block_size,
+                                offset=self.alphabet_offset,
+                            )
                             config = DenseNetConfig(
                                 block_size=b,
                                 activation_func=a + ["linear"],
@@ -105,7 +118,7 @@ class DenseNetParameterSpace(ParameterSpace):
                                 num_epoch=epoch,
                                 code=code,
                                 input_size=self.input_size,
-                                output_size=self.output_size
+                                output_size=self.output_size,
                             )
                             configs.append(config)
         return configs
@@ -126,7 +139,9 @@ class DenseNetParameterSpace(ParameterSpace):
         for i in range(block):
             code += self.nn_alphabet[random.randint(0, len(self.nn_alphabet) - 1)]
         epoch = random.randint(self.min_epoch, self.max_epoch)
-        b, a = decode(code, block_size=self.alphabet_block_size, offset=self.alphabet_offset)
+        b, a = decode(
+            code, block_size=self.alphabet_block_size, offset=self.alphabet_offset
+        )
         opt = random.choice(self.optimizers)
         loss_func = random.choice(self.loss)
         config = DenseNetConfig(
@@ -137,11 +152,13 @@ class DenseNetParameterSpace(ParameterSpace):
             num_epoch=epoch,
             code=code,
             input_size=self.input_size,
-            output_size=self.output_size
+            output_size=self.output_size,
         )
         return config
 
-    def generate_neighbour_config(self, config: DenseNetConfig, distance: float) -> DenseNetConfig:
+    def generate_neighbour_config(
+        self, config: DenseNetConfig, distance: float
+    ) -> DenseNetConfig:
         """
         Generate neighbour configuration based on distance value.
 
@@ -174,9 +191,7 @@ class DenseNetParameterSpace(ParameterSpace):
 
         new_code = new_code_param.value()
         b, a = decode(
-            new_code,
-            block_size=self.alphabet_block_size,
-            offset=self.alphabet_offset
+            new_code, block_size=self.alphabet_block_size, offset=self.alphabet_offset
         )
 
         neighbour_config = DenseNetConfig(
@@ -187,20 +202,20 @@ class DenseNetParameterSpace(ParameterSpace):
             num_epoch=new_epoch_param.value(),
             code=new_code,
             input_size=config.input_size,
-            output_size=config.output_size
+            output_size=config.output_size,
         )
         return neighbour_config
 
     def train(
-            self,
-            config: DenseNetConfig = None,
-            data: tuple = None,
-            repeat: int = 1,
-            update_gen_cycle: int = 0,
-            val_data: tuple = None,
-            logging: bool = False,
-            file_name: str = "",
-            callbacks: list = None,
+        self,
+        config: DenseNetConfig = None,
+        data: tuple = None,
+        repeat: int = 1,
+        update_gen_cycle: int = 0,
+        val_data: tuple = None,
+        logging: bool = False,
+        file_name: str = "",
+        callbacks: list = None,
     ) -> tuple[float, float, dict]:
         """
         Train and evaluate model with given configuration.
@@ -240,14 +255,14 @@ class DenseNetParameterSpace(ParameterSpace):
         for i in range(repeat):
             update_random_generator(i, cycle_size=update_gen_cycle)
             history = dict()
-            nn = IModel(
-                config=config,
-                name="net",
-                net_type="DenseNet"
-            )
+            nn = IModel(config=config, name="net", net_type="DenseNet")
             nn.compile(optimizer=config.optimizer, loss_func=config.loss_func)
             temp_his = nn.train(
-                data[0], data[1], epochs=config.num_epoch, verbose=0, callbacks=callbacks
+                data[0],
+                data[1],
+                epochs=config.num_epoch,
+                verbose=0,
+                callbacks=callbacks,
             )
 
             history["shapes"] = [nn.get_shape]
@@ -258,7 +273,11 @@ class DenseNetParameterSpace(ParameterSpace):
             history["loss function"] = [config.loss_func]
             history["loss"] = [temp_his.history["loss"][-1]]
             history["validation loss"] = (
-                [nn.evaluate(val_data[0], val_data[1], verbose=0, return_dict=True)["loss"]]
+                [
+                    nn.evaluate(val_data[0], val_data[1], verbose=0, return_dict=True)[
+                        "loss"
+                    ]
+                ]
                 if val_data is not None
                 else [None]
             )
@@ -284,17 +303,14 @@ class GANParameterSpace(ParameterSpace):
         gen_max_depth: int,
         gen_activation_funcs: List[str],
         gen_out_activation: str,
-
         disc_layer_sizes: List[int],
         disc_min_depth: int,
         disc_max_depth: int,
         disc_activation_funcs: List[str],
-
         gen_optimizers: List[str],
         disc_optimizers: List[str],
         gen_loss_funcs: List[str],
         disc_loss_funcs: List[str],
-
         epochs: List[int],
     ):
         self.gen_input_size = gen_input_size
@@ -344,12 +360,18 @@ class GANParameterSpace(ParameterSpace):
                     gen_hidden_depth = len(gen_bs)
                     disc_hidden_depth = len(disc_bs)
 
-                    gen_af_options = list(product(self.gen_activation_funcs, repeat=gen_hidden_depth))
-                    disc_af_options = list(product(self.disc_activation_funcs, repeat=disc_hidden_depth))
+                    gen_af_options = list(
+                        product(self.gen_activation_funcs, repeat=gen_hidden_depth)
+                    )
+                    disc_af_options = list(
+                        product(self.disc_activation_funcs, repeat=disc_hidden_depth)
+                    )
 
                     for gen_af_tuple in gen_af_options:
                         for disc_af_tuple in disc_af_options:
-                            gen_activation_funcs = list(gen_af_tuple) + [self.gen_out_activation]
+                            gen_activation_funcs = list(gen_af_tuple) + [
+                                self.gen_out_activation
+                            ]
                             disc_activation_funcs = list(disc_af_tuple) + ["linear"]
 
                             for epoch in self.epochs:
@@ -374,11 +396,19 @@ class GANParameterSpace(ParameterSpace):
         gen_depth = random.randint(self.gen_min_depth, self.gen_max_depth)
         disc_depth = random.randint(self.disc_min_depth, self.disc_max_depth)
 
-        gen_block_sizes = [random.choice(self.gen_layer_sizes) for _ in range(gen_depth)]
-        disc_block_sizes = [random.choice(self.disc_layer_sizes) for _ in range(disc_depth)]
+        gen_block_sizes = [
+            random.choice(self.gen_layer_sizes) for _ in range(gen_depth)
+        ]
+        disc_block_sizes = [
+            random.choice(self.disc_layer_sizes) for _ in range(disc_depth)
+        ]
 
-        gen_activation_funcs = [random.choice(self.gen_activation_funcs) for _ in range(gen_depth)] + [self.gen_out_activation]
-        disc_activation_funcs = [random.choice(self.disc_activation_funcs) for _ in range(disc_depth)] + ["linear"]
+        gen_activation_funcs = [
+            random.choice(self.gen_activation_funcs) for _ in range(gen_depth)
+        ] + [self.gen_out_activation]
+        disc_activation_funcs = [
+            random.choice(self.disc_activation_funcs) for _ in range(disc_depth)
+        ] + ["linear"]
 
         epoch = random.choice(self.epochs)
 
@@ -399,9 +429,9 @@ class GANParameterSpace(ParameterSpace):
         return config
 
     def generate_neighbour_config(
-            self,
-            config: GANConfig,
-            distance: float,
+        self,
+        config: GANConfig,
+        distance: float,
     ) -> GANConfig:
         """
         Generate a neighbour configuration for GANConfig.
@@ -490,20 +520,20 @@ class GANParameterSpace(ParameterSpace):
         return neighbour_config
 
     def train(
-            self,
-            config: GANConfig = None,
-            data: tuple = None,
-            repeat: int = 1,
-            val_data: tuple = None,
-            logging: bool = False,
-            file_name: str = "",
-            callbacks: list = None,
-            verbose: int = 0,
-            mini_batch_size: int = 32,
+        self,
+        config: GANConfig = None,
+        data: tuple = None,
+        repeat: int = 1,
+        val_data: tuple = None,
+        logging: bool = False,
+        file_name: str = "",
+        callbacks: list = None,
+        verbose: int = 0,
+        mini_batch_size: int = 32,
     ) -> tuple[float, float, dict]:
         best_net = None
-        best_loss = float('inf')
-        best_val_loss = float('inf')
+        best_loss = float("inf")
+        best_val_loss = float("inf")
 
         for i in range(repeat):
             nn = IModel(config=config, net_type="GAN")
@@ -521,11 +551,11 @@ class GANParameterSpace(ParameterSpace):
                 epochs=config.num_epoch,
                 mini_batch_size=mini_batch_size,
                 callbacks=callbacks,
-                verbose=verbose
+                verbose=verbose,
             )
 
-            last_gen_loss = history.history['gen_loss'][-1]
-            last_disc_loss = history.history['disc_loss'][-1]
+            last_gen_loss = history.history["gen_loss"][-1]
+            last_disc_loss = history.history["disc_loss"][-1]
             current_loss = (last_disc_loss + last_gen_loss) / 2.0
 
             current_val_loss = current_loss

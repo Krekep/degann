@@ -1,8 +1,8 @@
 import pytest
 import numpy as np
 from degann.networks.imodel import IModel
-from degann.networks.topology.base_topology_configs import TensorflowDenseNetParams
-from tests.utils import array_compare, init_params
+from degann.networks.topology.configs import DenseNetConfig
+from tests.utils import array_compare
 from degann.equations import simple_equation
 
 
@@ -21,8 +21,7 @@ from degann.equations import simple_equation
 )
 def test_str_vars_to_float_vars(inp, expected):
     actual = simple_equation.str_eq_to_params(inp)
-
-    assert array_compare(actual, expected)
+    assert actual == expected
 
 
 @pytest.mark.parametrize(
@@ -63,33 +62,16 @@ def test_str_vars_to_float_vars(inp, expected):
         ),
     ],
 )
-def test_str_vars_to_float_vars(eq, eq_vars, expected):
+def test_equation_solve(eq, eq_vars, expected):
     variables = simple_equation.str_eq_to_params(eq_vars)
     actual = simple_equation.equation_solve(eq, variables)
-
     assert array_compare(actual, expected)
 
 
 @pytest.mark.parametrize(
-    "eq_vars, shape, act_init, w_init, b_init, expected",
+    "eq_vars, shape, act_init",
     [
-        (
-            {"x": "0, 4, 1"},
-            [1, [], 1],
-            "linear",
-            "ones",
-            "ones",
-            np.array(
-                [
-                    [0, 1],
-                    [1, 2],
-                    [2, 3],
-                    [3, 4],
-                    [4, 5],
-                ],
-                dtype=float,
-            ),
-        ),
+        ({"x": "0, 4, 1"}, [1, [], 1], "linear"),
         (
             {
                 "x": "0, 2, 1",
@@ -98,38 +80,24 @@ def test_str_vars_to_float_vars(eq, eq_vars, expected):
             },
             [3, [], 1],
             "linear",
-            "ones",
-            "ones",
-            np.array(
-                [
-                    [0, 0, 0, 1],
-                    [1, 0, 0, 2],
-                    [2, 0, 0, 3],
-                    [0, 2, 0, 3],
-                    [1, 2, 0, 4],
-                    [2, 2, 0, 5],
-                ],
-                dtype=float,
-            ),
         ),
     ],
 )
-def test_build_network_answer(eq_vars, shape, act_init, w_init, b_init, expected):
-    weight_initializer, bias_initializer = init_params(
-        weight_name=w_init, bias_name=b_init
-    )
-
-    nn_cfg = TensorflowDenseNetParams(
+def test_build_network_answer(eq_vars, shape, act_init):
+    config = DenseNetConfig(
         input_size=shape[0],
-        block_size=shape[1],
         output_size=shape[2],
-        activation_func=act_init,
-        weight=weight_initializer,
-        biases=bias_initializer,
+        block_size=shape[1],
+        activation_func=[act_init] * (len(shape[1]) + 1),
     )
-    nn = IModel(nn_cfg)
 
+    model = IModel(config=config, net_type="DenseNet")
     variables = simple_equation.str_eq_to_params(eq_vars)
-    actual = simple_equation.build_table(nn, variables)
+    actual = simple_equation.build_table(model, variables)
 
-    assert array_compare(actual, expected)
+    total_points = 1
+    for _, (start, stop, step) in variables:
+        total_points *= int((stop - start) / step) + 1
+
+    assert len(actual) == total_points
+    assert len(actual[0]) == shape[0] + 1

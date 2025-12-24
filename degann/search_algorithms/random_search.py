@@ -5,17 +5,17 @@ from degann.networks.topology.parameter_space import ParameterSpace
 
 
 def random_search(
-        data: tuple,
-        params: ParameterSpace,
-        iterations: int,
-        threshold: float = 1,
-        max_iter: int = 1,
-        val_data: tuple = None,
-        logging=False,
-        file_name: str = "",
-        callbacks: list = None,
-        verbose: bool = False,
-        update_gen_cycle: int = 0,
+    data: tuple,
+    params: ParameterSpace,
+    iterations: int,
+    threshold: float = 1,
+    max_iter: int = 1,
+    val_data: tuple = None,
+    logging=False,
+    file_name: str = "",
+    callbacks: list = None,
+    verbose: bool = False,
+    update_gen_cycle: int = 0,
 ) -> Tuple[float, int, str, str, dict]:
     """
     Perform random search algorithm to find the best neural network configuration.
@@ -103,7 +103,10 @@ def random_search(
         for i in range(iterations):
             update_random_generator(i, cycle_size=update_gen_cycle)
             if verbose:
-                print(f"{i + 1}/{iterations}", datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
+                print(
+                    f"{i + 1}/{iterations}",
+                    datetime.today().strftime("%Y-%m-%d %H:%M:%S"),
+                )
 
             config = params.get_random_config()
 

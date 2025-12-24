@@ -296,11 +296,11 @@ def generate_neighbour(
 
 
 def mutate_block_sizes(
-        block_sizes: List[int],
-        layer_sizes: List[int],
-        min_depth: int,
-        max_depth: int,
-        mutation_prob: float = 0.3,
+    block_sizes: List[int],
+    layer_sizes: List[int],
+    min_depth: int,
+    max_depth: int,
+    mutation_prob: float = 0.3,
 ) -> List[int]:
     new_blocks = block_sizes.copy()
 
@@ -317,9 +317,9 @@ def mutate_block_sizes(
 
 
 def mutate_activations(
-        activations: List[str],
-        all_activations: List[str],
-        mutation_prob: float = 0.3,
+    activations: List[str],
+    all_activations: List[str],
+    mutation_prob: float = 0.3,
 ) -> List[str]:
     new_activations = activations.copy()
     for i in range(len(new_activations) - 1):

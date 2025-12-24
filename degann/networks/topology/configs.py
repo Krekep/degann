@@ -69,8 +69,10 @@ class GANConfig:
 
     @property
     def get_shape(self) -> tuple[List[int], List[int]]:
-        return (self.gen_block_sizes if self.gen_block_sizes else [],
-                self.disc_block_sizes if self.disc_block_sizes else [])
+        return (
+            self.gen_block_sizes if self.gen_block_sizes else [],
+            self.disc_block_sizes if self.disc_block_sizes else [],
+        )
 
     @property
     def get_input_size(self) -> tuple[int, int]:

@@ -101,19 +101,19 @@ def distance_lin(offset, multiplier):
 
 
 def simulated_annealing(
-        data: tuple,
-        params: ParameterSpace,
-        val_data: tuple = None,
-        max_iter: int = 100,
-        threshold: float = 1,
-        start_config: Any = None,
-        temperature_method: Callable = None,
-        distance_method: Callable = None,
-        update_gen_cycle: int = 0,
-        logging: bool = False,
-        file_name: str = "",
-        callbacks: list = None,
-        verbose: bool = False
+    data: tuple,
+    params: ParameterSpace,
+    val_data: tuple = None,
+    max_iter: int = 100,
+    threshold: float = 1,
+    start_config: Any = None,
+    temperature_method: Callable = None,
+    distance_method: Callable = None,
+    update_gen_cycle: int = 0,
+    logging: bool = False,
+    file_name: str = "",
+    callbacks: list = None,
+    verbose: bool = False,
 ) -> Tuple[float, Any, dict, int]:
     """
     Performs a simulated annealing algorithm to find the best neural network configuration.
@@ -206,8 +206,8 @@ def simulated_annealing(
         neighbour_net = neighbour_result[2]
 
         if (
-                neighbour_loss < curr_loss
-                or math.exp((curr_loss - neighbour_loss) / max(t, 1e-8)) > random.random()
+            neighbour_loss < curr_loss
+            or math.exp((curr_loss - neighbour_loss) / max(t, 1e-8)) > random.random()
         ):
             curr_config = neighbour_config
             curr_loss = neighbour_loss

@@ -3,7 +3,10 @@ import tensorflow as tf
 from tensorflow import keras
 
 from degann.networks.topology.configs import GANConfig
-from degann.networks.topology.tf_gan_components import TensorflowGenerator, TensorflowDiscriminator
+from degann.networks.topology.tf_gan_components import (
+    TensorflowGenerator,
+    TensorflowDiscriminator,
+)
 from degann.networks import losses, metrics
 
 
@@ -50,24 +53,19 @@ class TensorflowGAN(tf.keras.Model):
         self.disc_optimizer: Optional[keras.optimizers.Optimizer] = None
         self.gen_loss: Optional[Callable] = None
         self.disc_loss: Optional[Callable] = None
-        self.metric_real = tf.keras.metrics.Mean(name='metric_disc_real')
-        self.metric_fake = tf.keras.metrics.Mean(name='metric_disc_fake')
+        self.metric_real = tf.keras.metrics.Mean(name="metric_disc_real")
+        self.metric_fake = tf.keras.metrics.Mean(name="metric_disc_fake")
         self.trained_time = {"train_time": 0.0, "epoch_time": [], "predict_time": 0}
 
     def compile(
-            self,
-            gen_optimizer: str = "Adam",
-            disc_optimizer: str = "Adam",
-            gen_loss_func: str = "MeanSquaredError",
-            disc_loss_func: str = "MeanSquaredError",
-            **kwargs
+        self,
+        gen_optimizer: str = "Adam",
+        disc_optimizer: str = "Adam",
+        gen_loss_func: str = "MeanSquaredError",
+        disc_loss_func: str = "MeanSquaredError",
+        **kwargs,
     ):
-        super().compile(
-            optimizer="sgd",
-            loss="mse",
-            run_eagerly=True,
-            **kwargs
-        )
+        super().compile(optimizer="sgd", loss="mse", run_eagerly=True, **kwargs)
 
         self.gen_optimizer = keras.optimizers.get(gen_optimizer)
         self.disc_optimizer = keras.optimizers.get(disc_optimizer)
@@ -93,8 +91,12 @@ class TensorflowGAN(tf.keras.Model):
             disc_fake_loss = self.disc_loss(tf.zeros_like(fake_output), fake_output)
             total_disc_loss = (disc_real_loss + disc_fake_loss) / 2.0
 
-        disc_gradients = disc_tape.gradient(total_disc_loss, self.discriminator.trainable_variables)
-        self.disc_optimizer.apply_gradients(zip(disc_gradients, self.discriminator.trainable_variables))
+        disc_gradients = disc_tape.gradient(
+            total_disc_loss, self.discriminator.trainable_variables
+        )
+        self.disc_optimizer.apply_gradients(
+            zip(disc_gradients, self.discriminator.trainable_variables)
+        )
 
         with tf.GradientTape() as gen_tape:
             y_generated = self.generator(x, training=True)
@@ -107,8 +109,12 @@ class TensorflowGAN(tf.keras.Model):
 
             total_gen_loss = gen_data_loss + gen_adversarial_loss
 
-        gen_gradients = gen_tape.gradient(total_gen_loss, self.generator.trainable_variables)
-        self.gen_optimizer.apply_gradients(zip(gen_gradients, self.generator.trainable_variables))
+        gen_gradients = gen_tape.gradient(
+            total_gen_loss, self.generator.trainable_variables
+        )
+        self.gen_optimizer.apply_gradients(
+            zip(gen_gradients, self.generator.trainable_variables)
+        )
 
         self.metric_real.update_state(real_output)
         self.metric_fake.update_state(fake_output)

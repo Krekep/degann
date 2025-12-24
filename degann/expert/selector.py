@@ -7,31 +7,20 @@ from degann.expert.tags import (
 )
 from degann.search_algorithms.nn_code import default_alphabet
 from typing import Optional, Callable
-
-from degann.search_algorithms.simulated_annealing_functions import (
-    distance_lin,
-    distance_const,
-    temperature_lin,
-    temperature_exp,
-)
+from degann.search_algorithms.simulated_annealing import *
 
 
 class BaseSamParameters:
-    distance_to_neighbor: Callable = distance_const
+    distance_to_neighbor: Callable = None
     dist_offset: int = 300
     dist_scale: int = 0
-    temperature_reduction_method: Callable = temperature_lin
+    temperature_reduction_method: Callable = None
     temperature_speed: float = 0
 
 
 class BaseParameters:
     launch_count_random_search: int = 2
     launch_count_simulated_annealing: int = 2
-    nn_max_length: int = 4
-    nn_min_length: int = 1
-    nn_alphabet_block_size: int = 1
-    nn_alphabet_offset: int = 8
-    nn_alphabet: list[str] = default_alphabet
     min_train_epoch: int = 200
     max_train_epoch: int = 500
     iteration_count: int = 5
@@ -145,6 +134,31 @@ def suggest_parameters(
         parameters.launch_count_random_search += 1
     elif tags.data_size == DataSize.BIG:
         parameters.launch_count_random_search += 1
+
+    def make_distance_func(offset, scale):
+        return lambda k, k_max: offset + (scale - offset) * (k / k_max)
+
+    def make_temp_func(speed):
+        return lambda k, k_max: speed**k
+
+    if simulated_annealing_params.distance_to_neighbor == distance_lin:
+        simulated_annealing_params.distance_to_neighbor = make_distance_func(
+            simulated_annealing_params.dist_offset,
+            simulated_annealing_params.dist_scale,
+        )
+    else:  # distance_const
+        simulated_annealing_params.distance_to_neighbor = (
+            lambda k, k_max: simulated_annealing_params.dist_offset
+        )
+
+    if simulated_annealing_params.temperature_reduction_method == temperature_exp:
+        simulated_annealing_params.temperature_reduction_method = make_temp_func(
+            simulated_annealing_params.temperature_speed
+        )
+    else:  # temperature_lin
+        simulated_annealing_params.temperature_reduction_method = lambda k, k_max: 1 - (
+            k / k_max
+        )
 
     parameters.simulated_annealing_params = simulated_annealing_params
     return parameters

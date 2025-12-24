@@ -107,7 +107,7 @@ class TensorflowDenseNet(tf.keras.Model):
         rate=1e-2,
         optimizer="SGD",
         loss_func="MeanSquaredError",
-        metric_funcs=None,
+        metric_funcs=[],
         run_eagerly=False,
     ):
         """
@@ -214,7 +214,7 @@ class TensorflowDenseNet(tf.keras.Model):
 
         """
         res = {
-            "net_type": "TFDense",
+            "net_type": "DenseNet",
             "name": self._name,
             "input_size": self.input_size,
             "block_size": self.block_size,

@@ -7,7 +7,6 @@ from degann.expert.tags import (
 )
 from degann.networks.imodel import IModel
 from degann.search_algorithms import (
-    random_search_endless,
     simulated_annealing,
     pattern_search,
     grid_search,
@@ -31,13 +30,6 @@ from degann.equations import (
 import numpy as np
 
 from random import randint
-
-from degann.search_algorithms.search_algorithms_parameters import (
-    BaseSearchParameters,
-    GridSearchParameters,
-    RandomEarlyStoppingSearchParameters,
-    SimulatedAnnealingSearchParameters,
-)
 
 
 # Prepare data for neural network training

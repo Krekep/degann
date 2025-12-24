@@ -72,10 +72,7 @@ class IModel(object):
         self._is_debug = is_debug
         self.set_name(name)
 
-    def compile(
-        self,
-        **kwargs
-    ) -> None:
+    def compile(self, **kwargs) -> None:
         """
         Configures the model for training
         """
@@ -412,50 +409,6 @@ class IModel(object):
         """
 
         return str(self.network)
-
-    @classmethod
-    def create_neuron(
-        cls, input_size: int, output_size: int, shape: list[int], **kwargs
-    ):
-        """
-        Create neural network with passed size and sigmoid activation
-
-        Parameters
-        ----------
-        input_size: int
-        output_size: int
-        shape: list[int]
-            Sizes of hidden layers
-        kwargs
-
-        Returns
-        -------
-        net: imodel.IModel
-            Neural network
-        """
-        activation, decorator_params, weight, biases, kwargs = _get_act_and_init(
-            kwargs,
-            "sigmoid",
-            None,
-            tf.random_normal_initializer(),
-        )
-
-        config = DenseNetConfig(
-            block_size=shape,
-            activation_func=[activation] * len(shape) + ["linear"],
-            input_size=input_size,
-            output_size=output_size
-        )
-
-        res = cls(
-            config=config,
-            bias_init=biases,
-            weight_init=weight,
-            decorator_params=decorator_params,
-            **kwargs,
-        )
-
-        return res
 
 
 _create_functions = defaultdict(lambda: TensorflowDenseNet)

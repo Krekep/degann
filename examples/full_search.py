@@ -9,10 +9,7 @@ from degann.search_algorithms.nn_code import (
     alphabet_activations_cut,
     alph_n_div3,
 )
-from degann.search_algorithms.search_algorithms_parameters import (
-    BaseSearchParameters,
-    GridSearchParameters,
-)
+
 from experiments.functions import LH_ODE_1_solution
 
 

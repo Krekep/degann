@@ -2,13 +2,13 @@ import pytest
 import numpy as np
 
 from degann.networks.imodel import IModel
-from degann.networks.topology.base_topology_configs import TensorflowDenseNetParams
+from degann.networks.topology.configs import DenseNetConfig
 from tests.utils import array_compare, file_compare
 
 
 @pytest.fixture
 def folder_path():
-    return "./tests/data"
+    return "./data"
 
 
 @pytest.mark.parametrize(
@@ -22,28 +22,24 @@ def folder_path():
     ],
 )
 def test_predict_is_same(inp, shape, act_init, decorator_params, folder_path):
-    nn_cfg = TensorflowDenseNetParams(
+    if isinstance(act_init, str):
+        activation_list = [act_init] * len(shape[1]) + ["linear"]
+    else:
+        activation_list = act_init
+
+    config = DenseNetConfig(
         input_size=shape[0],
-        block_size=shape[1],
         output_size=shape[2],
-        activation_func=act_init,
+        block_size=shape[1],
+        activation_func=activation_list,
     )
 
-    nn = IModel(
-        nn_cfg,
-        decorator_params=decorator_params,
-    )
+    nn = IModel(config=config, net_type="DenseNet")
 
     expected = nn.feedforward(inp).numpy()
     nn.export_to_file(f"{folder_path}/test_export")
 
-    nn_loaded_cfg = TensorflowDenseNetParams(
-        input_size=shape[0],
-        block_size=shape[1],
-        output_size=shape[2],
-    )
-
-    nn_loaded = IModel(nn_loaded_cfg)
+    nn_loaded = IModel(config=config, net_type="DenseNet")
     nn_loaded.from_file(f"{folder_path}/test_export")
     nn_loaded.export_to_file(f"{folder_path}/test_export1")
     actual = nn_loaded.feedforward(inp).numpy()
@@ -54,47 +50,25 @@ def test_predict_is_same(inp, shape, act_init, decorator_params, folder_path):
 @pytest.mark.parametrize(
     "inp, shape",
     [
-        (
-            np.array([[1]], dtype=float),
-            [1, [1], 1],
-        ),
-        (
-            np.array([[1]], dtype=float),
-            [1, [1], 1],
-        ),
-        (
-            np.array([[1]], dtype=float),
-            [1, [1], 1],
-        ),
-        (
-            np.array([[1, 1]], dtype=float),
-            [2, [1], 1],
-        ),
-        (
-            np.array([[1], [1]], dtype=float),
-            [1, [1], 1],
-        ),
-        (
-            np.array([[1, 1], [1, 1]], dtype=float),
-            [2, [1], 2],
-        ),
-        (
-            np.array([[1, 1], [1, 1]], dtype=float),
-            [2, [1], 1],
-        ),
+        (np.array([[1]], dtype=float), [1, [1], 1]),
+        (np.array([[1, 1]], dtype=float), [2, [1], 1]),
+        (np.array([[1], [1]], dtype=float), [1, [1], 1]),
+        (np.array([[1, 1], [1, 1]], dtype=float), [2, [1], 2]),
+        (np.array([[1, 1], [1, 1]], dtype=float), [2, [1], 1]),
     ],
 )
 def test_file_is_same(inp, shape, folder_path):
-    cfg = TensorflowDenseNetParams(
+    config = DenseNetConfig(
         input_size=shape[0],
-        block_size=shape[1],
         output_size=shape[2],
+        block_size=shape[1],
+        activation_func=["tanh"] * len(shape[1]) + ["linear"],
     )
 
-    nn = IModel(cfg)
+    nn = IModel(config=config, net_type="DenseNet")
     nn.export_to_file(f"{folder_path}/test_export")
 
-    nn_loaded = IModel(cfg)
+    nn_loaded = IModel(config=config, net_type="DenseNet")
     nn_loaded.from_file(f"{folder_path}/test_export")
     nn_loaded.export_to_file(f"{folder_path}/test_export1")
 
