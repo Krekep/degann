@@ -1,13 +1,13 @@
 from degann.networks.topology.parameter_space import ParameterSpace
 from datetime import datetime
-from typing import Tuple
+from typing import Tuple, Optional
 from degann.networks.callbacks import MeasureTrainTime
 
 
 def grid_search(
     data: tuple,
     params: ParameterSpace,
-    val_data: tuple = None,
+    val_data: Optional[tuple] = None,
     logging=False,
     file_name: str = "",
     verbose=False,
@@ -50,11 +50,10 @@ def grid_search(
     best_loss_func: str = ""
     best_opt: str = ""
     time_viewer = MeasureTrainTime()
-    configs = params.create_parameter_space()
-    for i, config in enumerate(configs):
+    for i, config in enumerate(params.iter_configs()):
         if verbose:
             print(
-                f"{i + 1}/{len(configs)}",
+                f"{i + 1}",
                 datetime.today().strftime("%Y-%m-%d %H:%M:%S"),
             )
         curr_loss, curr_val_loss, curr_nn = params.train(

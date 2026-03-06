@@ -2,7 +2,7 @@ import math
 import random
 import copy
 from datetime import datetime
-from typing import Callable, Tuple, Dict, Any
+from typing import Callable, Tuple, Dict, Any, Optional
 from .utils import update_random_generator
 from degann.networks.topology.parameter_space import ParameterSpace
 
@@ -26,7 +26,7 @@ def temperature_lin(k: int, k_max: int, **kwargs) -> float:
     return 1 - (k + 1) / k_max
 
 
-def distance_const(d: float) -> Callable:
+def distance_const(d: float) -> Callable[..., float]:
     """
     Calculate distance to neighbour for simulated annealing as constant
 
@@ -47,7 +47,7 @@ def distance_const(d: float) -> Callable:
     return d_c
 
 
-def temperature_exp(alpha: float) -> Callable[[float], float]:
+def temperature_exp(alpha: float) -> Callable[[float, Any], float]:
     """
     Calculate new temperature for simulated annealing as *t * alpha*
 
@@ -79,7 +79,7 @@ def temperature_exp(alpha: float) -> Callable[[float], float]:
     return t_e
 
 
-def distance_lin(offset, multiplier):
+def distance_lin(offset: float, multiplier: float) -> Callable[..., float]:
     """
     Calculate distance to neighbour for simulated annealing as *offset + temperature * multiplier*
 
@@ -103,16 +103,16 @@ def distance_lin(offset, multiplier):
 def simulated_annealing(
     data: tuple,
     params: ParameterSpace,
-    val_data: tuple = None,
+    val_data: Optional[tuple] = None,
     max_iter: int = 100,
     threshold: float = 1,
-    start_config: Any = None,
-    temperature_method: Callable = None,
-    distance_method: Callable = None,
+    start_config: Optional[Any] = None,
+    temperature_method: Optional[Callable] = None,
+    distance_method: Optional[Callable] = None,
     update_gen_cycle: int = 0,
     logging: bool = False,
     file_name: str = "",
-    callbacks: list = None,
+    callbacks: Optional[list] = None,
     verbose: bool = False,
 ) -> Tuple[float, Any, dict, int]:
     """

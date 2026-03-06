@@ -1,6 +1,6 @@
 import random
 from abc import ABC, abstractmethod
-from typing import List, Tuple
+from typing import List, Tuple, Any, Optional, Iterator
 from itertools import product
 from degann.search_algorithms.nn_code import (
     alph_n_full,
@@ -24,28 +24,28 @@ class ParameterSpace(ABC):
     """
 
     @abstractmethod
-    def create_parameter_space(self) -> List:
+    def iter_configs(self) -> Iterator[Any]:
         """
-        Abstract method for creating parameter space dict.
+        Abstract method for generating configs from the parameter space.
         """
         pass
 
     @abstractmethod
-    def get_random_config(self):
+    def get_random_config(self) -> Any:
         """
         Abstract method that creates and returns a random config.
         """
         pass
 
     @abstractmethod
-    def generate_neighbour_config(self, config, distance: float):
+    def generate_neighbour_config(self, config: Any, distance: float) -> Any:
         """
         Abstract method that generates neighbour config.
         """
         pass
 
     @abstractmethod
-    def train(self, config, *args, **kwargs) -> Tuple[float, float, dict]:
+    def train(self, config: Any, data: tuple, *args, **kwargs) -> Tuple[float, float, dict]:
         """
         Abstract method for training and evaluating model.
         """
@@ -61,14 +61,14 @@ class DenseNetParameterSpace(ParameterSpace):
         self,
         input_size: int,
         output_size: int,
-        optimizers: list[str],
-        loss: list[str],
+        optimizers: List[str],
+        losses: List[str],
         min_epoch: int = 100,
         max_epoch: int = 700,
         epoch_step: int = 1,
         nn_min_length: int = 1,
         nn_max_length: int = 6,
-        nn_alphabet: list[str] = [
+        nn_alphabet: List[str] = [
             "".join(elem) for elem in product(alph_n_full, alphabet_activations)
         ],
         alphabet_block_size: int = 1,
@@ -77,7 +77,7 @@ class DenseNetParameterSpace(ParameterSpace):
         self.input_size = input_size
         self.output_size = output_size
         self.optimizers = optimizers
-        self.loss = loss
+        self.losses = losses
         self.min_epoch = min_epoch
         self.max_epoch = max_epoch
         self.epoch_step = epoch_step
@@ -87,24 +87,23 @@ class DenseNetParameterSpace(ParameterSpace):
         self.alphabet_block_size = alphabet_block_size
         self.alphabet_offset = alphabet_offset
 
-    def create_parameter_space(self) -> List[DenseNetConfig]:
+    def iter_configs(self) -> Iterator[DenseNetConfig]:
         """
-        Creates parameter space with all possible configurations.
+        Generates all possible configuration from the parameter space.
 
-        Returns
+        Yields
         -------
-        configs: List[DenseNetConfig]
-            List of all possible configurations in the parameter space.
+        DenseNetConfig
+            Configuration from the parameter space.
         """
 
-        configs = []
         for i in range(self.nn_min_length, self.nn_max_length + 1):
             codes = product(self.nn_alphabet, repeat=i)
             for elem in codes:
                 code = "".join(elem)
                 for epoch in range(self.min_epoch, self.max_epoch + 1, self.epoch_step):
                     for opt in self.optimizers:
-                        for loss_func in self.loss:
+                        for loss_func in self.losses:
                             b, a = decode(
                                 code,
                                 block_size=self.alphabet_block_size,
@@ -120,8 +119,7 @@ class DenseNetParameterSpace(ParameterSpace):
                                 input_size=self.input_size,
                                 output_size=self.output_size,
                             )
-                            configs.append(config)
-        return configs
+                            yield config
 
     def get_random_config(self) -> DenseNetConfig:
         """
@@ -143,7 +141,7 @@ class DenseNetParameterSpace(ParameterSpace):
             code, block_size=self.alphabet_block_size, offset=self.alphabet_offset
         )
         opt = random.choice(self.optimizers)
-        loss_func = random.choice(self.loss)
+        loss_func = random.choice(self.losses)
         config = DenseNetConfig(
             block_size=b,
             activation_func=a + ["linear"],
@@ -208,14 +206,14 @@ class DenseNetParameterSpace(ParameterSpace):
 
     def train(
         self,
-        config: DenseNetConfig = None,
-        data: tuple = None,
+        config: DenseNetConfig,
+        data: tuple,
         repeat: int = 1,
         update_gen_cycle: int = 0,
-        val_data: tuple = None,
+        val_data: Optional[tuple] = None,
         logging: bool = False,
         file_name: str = "",
-        callbacks: list = None,
+        callbacks: Optional[list] = None,
     ) -> tuple[float, float, dict]:
         """
         Train and evaluate model with given configuration.
@@ -521,13 +519,13 @@ class GANParameterSpace(ParameterSpace):
 
     def train(
         self,
-        config: GANConfig = None,
-        data: tuple = None,
+        config: GANConfig,
+        data: tuple,
         repeat: int = 1,
-        val_data: tuple = None,
+        val_data: Optional[tuple] = None,
         logging: bool = False,
         file_name: str = "",
-        callbacks: list = None,
+        callbacks: Optional[list] = None,
         verbose: int = 0,
         mini_batch_size: int = 32,
     ) -> tuple[float, float, dict]:

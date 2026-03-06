@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Tuple
+from typing import Tuple, Optional
 from .utils import update_random_generator
 from degann.networks.topology.parameter_space import ParameterSpace
 
@@ -10,10 +10,10 @@ def random_search(
     iterations: int,
     threshold: float = 1,
     max_iter: int = 1,
-    val_data: tuple = None,
+    val_data: Optional[tuple] = None,
     logging=False,
     file_name: str = "",
-    callbacks: list = None,
+    callbacks: Optional[list] = None,
     verbose: bool = False,
     update_gen_cycle: int = 0,
 ) -> Tuple[float, int, str, str, dict]:
