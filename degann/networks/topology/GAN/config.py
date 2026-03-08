@@ -1,13 +1,18 @@
-from dataclasses import dataclass
 from typing import List, Dict, Any, Self, Tuple
 from ..abstracts import NetConfig
 from ..DenseNet.config import DenseNetConfig
 
 
-@dataclass
 class GANConfig(NetConfig):
-    gen_config: DenseNetConfig
-    disc_config: DenseNetConfig
+    def __init__(
+            self,
+            gen_config: DenseNetConfig,
+            disc_config: DenseNetConfig
+    ):
+        self.gen_config = gen_config
+        self.disc_config = disc_config
+        self.disc_config.input_size = self.gen_config.input_size + self.gen_config.output_size
+        self.disc_config.output_size = 1
 
     def to_dict(self) -> Dict[str, Any]:
         return {

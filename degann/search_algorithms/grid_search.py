@@ -1,4 +1,4 @@
-from degann.networks.topology.parameter_space import ParameterSpace
+from degann.networks.topology.abstracts import ParameterSpace
 from datetime import datetime
 from typing import Tuple, Optional
 from degann.networks.callbacks import MeasureTrainTime

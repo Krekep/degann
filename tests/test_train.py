@@ -2,7 +2,7 @@ import os
 import pytest
 import numpy as np
 from degann.networks.imodel import IModel
-from degann.networks.topology.configs import DenseNetConfig
+from degann.networks.topology.DenseNet.config import DenseNetConfig
 
 
 @pytest.fixture

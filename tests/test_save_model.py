@@ -3,7 +3,7 @@ import os
 import numpy as np
 
 from degann.networks.imodel import IModel
-from degann.networks.topology.configs import DenseNetConfig
+from degann.networks.topology.DenseNet.config import DenseNetConfig
 from tests.utils import array_compare, file_compare
 
 

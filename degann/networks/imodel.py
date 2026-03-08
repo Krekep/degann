@@ -7,9 +7,8 @@ import tensorflow as tf
 from tensorflow import keras
 
 from degann.networks.config_format import HEADER_OF_APG_FILE
-from degann.networks.topology.tf_densenet import TensorflowDenseNet
-from degann.networks.topology.tf_gan import TensorflowGAN
-from degann.networks.topology.configs import DenseNetConfig
+from degann.networks.topology.DenseNet.tf_densenet import TensorflowDenseNet
+from degann.networks.topology.GAN.tf_gan import TensorflowGAN
 
 
 def _get_act_and_init(
@@ -76,10 +75,7 @@ class IModel(object):
         """
         Configures the model for training
         """
-        if hasattr(self.network, "custom_compile"):
-            self.network.custom_compile(**kwargs)
-        else:
-            self.network.compile(**kwargs)
+        self.network.custom_compile(**kwargs)
 
     def feedforward(self, inputs: np.ndarray) -> tf.Tensor:
         """

@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 
 from degann.networks.topology import DenseNetConfig
-from degann.networks.topology.tf_densenet import TensorflowDenseNet
+from degann.networks.topology.DenseNet.tf_densenet import TensorflowDenseNet
 from degann.networks.imodel import IModel
 from tests.utils import array_compare, init_params
 

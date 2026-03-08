@@ -2,40 +2,6 @@ from abc import ABC, abstractmethod
 from typing import Tuple, Any, Iterator, Dict, Self
 
 
-class ParameterSpace(ABC):
-    """
-    Abstract class for parameter space of different neural network architectures.
-    """
-
-    @abstractmethod
-    def iter_configs(self) -> Iterator[Any]:
-        """
-        Abstract method for generating configs from the parameter space.
-        """
-        pass
-
-    @abstractmethod
-    def get_random_config(self) -> Any:
-        """
-        Abstract method that creates and returns a random config.
-        """
-        pass
-
-    @abstractmethod
-    def generate_neighbour_config(self, config: Any, distance: float) -> Any:
-        """
-        Abstract method that generates neighbour config.
-        """
-        pass
-
-    @abstractmethod
-    def train(self, config: Any, data: tuple, *args, **kwargs) -> Tuple[float, float, dict]:
-        """
-        Abstract method for training and evaluating model.
-        """
-        pass
-
-
 class NetConfig(ABC):
     """
     Abstract base class for neural network configuration.
@@ -94,5 +60,39 @@ class NetConfig(ABC):
     def from_dict(cls, config_dict: Dict[str, Any]) -> Self:
         """
         Create a configuration instance from a dictionary.
+        """
+        pass
+
+
+class ParameterSpace(ABC):
+    """
+    Abstract class for parameter space of different neural network architectures.
+    """
+
+    @abstractmethod
+    def iter_configs(self) -> Iterator[NetConfig]:
+        """
+        Abstract method for generating configs from the parameter space.
+        """
+        pass
+
+    @abstractmethod
+    def get_random_config(self) -> NetConfig:
+        """
+        Abstract method that creates and returns a random config.
+        """
+        pass
+
+    @abstractmethod
+    def generate_neighbour_config(self, config: NetConfig, distance: float) -> NetConfig:
+        """
+        Abstract method that generates neighbour config.
+        """
+        pass
+
+    @abstractmethod
+    def train(self, config: NetConfig, data: tuple, *args, **kwargs) -> Tuple[float, float, dict]:
+        """
+        Abstract method for training and evaluating model.
         """
         pass

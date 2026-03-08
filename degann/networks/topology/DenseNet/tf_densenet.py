@@ -8,7 +8,7 @@ from degann.networks.config_format import LAYER_DICT_NAMES
 from degann.networks import layer_creator, losses, metrics, cpp_utils
 from degann.networks import optimizers
 from degann.networks.layers.tf_dense import TensorflowDense
-from degann.networks.topology.configs import DenseNetConfig
+from degann.networks.topology.DenseNet.config import DenseNetConfig
 
 
 class TensorflowDenseNet(tf.keras.Model):

@@ -2,9 +2,9 @@ import math
 import random
 import copy
 from datetime import datetime
-from typing import Callable, Tuple, Dict, Any, Optional
+from typing import Callable, Tuple, Any, Optional
 from .utils import update_random_generator
-from degann.networks.topology.parameter_space import ParameterSpace
+from degann.networks.topology.abstracts import ParameterSpace
 
 
 def temperature_lin(k: int, k_max: int, **kwargs) -> float:

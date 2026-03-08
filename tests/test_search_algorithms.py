@@ -2,10 +2,8 @@ import os
 import pytest
 import numpy as np
 from degann.search_algorithms import grid_search, random_search, simulated_annealing
-from degann.networks.topology.parameter_space import (
-    DenseNetParameterSpace,
-    GANParameterSpace,
-)
+from degann.networks.topology.DenseNet.parameter_space import DenseNetParameterSpace,
+from degann.networks.topology.GAN.parameter_space import GANParameterSpace
 
 
 @pytest.fixture

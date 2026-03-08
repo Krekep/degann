@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Tuple, Optional
 from .utils import update_random_generator
-from degann.networks.topology.parameter_space import ParameterSpace
+from degann.networks.topology.abstracts import ParameterSpace
 
 
 def random_search(

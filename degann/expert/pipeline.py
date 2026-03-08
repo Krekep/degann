@@ -1,5 +1,5 @@
 from degann.search_algorithms import simulated_annealing, grid_search, random_search
-from degann.networks.topology.parameter_space import ParameterSpace
+from degann.networks.topology.abstracts import ParameterSpace
 
 
 def execute_pipeline(

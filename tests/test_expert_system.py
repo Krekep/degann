@@ -9,8 +9,8 @@ from degann.expert.tags import (
     RequiredModelPrecision,
 )
 from degann.networks import IModel
-from degann.networks.topology.configs import DenseNetConfig
-from degann.networks.topology.parameter_space import DenseNetParameterSpace
+from degann.networks.topology.DenseNet.config import DenseNetConfig
+from degann.networks.topology.DenseNet.parameter_space import DenseNetParameterSpace
 from degann.search_algorithms.nn_code import default_alphabet
 
 
