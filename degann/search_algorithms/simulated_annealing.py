@@ -115,7 +115,7 @@ def simulated_annealing(
     file_name: str = "",
     callbacks: Optional[list] = None,
     verbose: bool = False,
-) -> Tuple[float, NetConfig, dict, int]:
+) -> Tuple[float, int, str, str, dict, int]:
     """
     Performs a simulated annealing algorithm to find the best neural network configuration.
 
@@ -189,8 +189,10 @@ def simulated_annealing(
     curr_loss = train_result[0]
     curr_net = train_result[2]
 
+    best_epochs = curr_epochs
     best_loss = curr_loss
-    best_config = copy.deepcopy(curr_config)
+    loss_func = curr_config.get_loss_func
+    opt = curr_config.get_optimizer
     best_net = curr_net
     k = 0
     t = 1.0
@@ -230,9 +232,11 @@ def simulated_annealing(
 
             if curr_loss < best_loss:
                 best_loss = curr_loss
-                best_config = copy.deepcopy(neighbour_config)
+                loss_func = curr_config.get_loss_func
+                opt = curr_config.get_optimizer
                 best_net = neighbour_net
+                best_epochs = curr_epochs
 
         k += 1
 
-    return best_loss, best_config, best_net, k
+    return best_loss, best_epochs, loss_func, opt, best_net, k

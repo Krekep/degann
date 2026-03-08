@@ -51,14 +51,14 @@ def test_expert_system(equation_data):
         input_size=1,
         output_size=1,
         optimizers=["Adam"],
-        loss=["MaxAbsoluteDeviation"],
+        losses=["MaxAbsoluteDeviation"],
         min_epoch=10,
         max_epoch=10,
         nn_min_length=3,
         nn_max_length=3,
         nn_alphabet=["20", "10", "08"],
     )
-    base_config = base_params.create_parameter_space()[0]
+    base_config, epoch = next(base_params.iter_configs())
     nn_base = IModel(base_config, net_type="DenseNet")
     nn_base.compile(optimizer=base_config.optimizer, loss_func=base_config.loss_func)
     model_val_loss = nn_base.evaluate(validation_data[0], validation_data[1], verbose=0)
@@ -93,7 +93,7 @@ def test_expert_system(equation_data):
         input_size=1,
         output_size=1,
         optimizers=[algorithms_parameters.optimizer],
-        loss=[algorithms_parameters.loss_function],
+        losses=[algorithms_parameters.loss_function],
         min_epoch=algorithms_parameters.min_train_epoch,
         max_epoch=algorithms_parameters.max_train_epoch,
         nn_min_length=nn_min_length,
@@ -101,7 +101,13 @@ def test_expert_system(equation_data):
         nn_alphabet=nn_alphabet,
     )
 
-    result_loss, result_nn = execute_pipeline(
+    (
+        result_loss,
+        result_epoch,
+        result_loss_func,
+        result_opt,
+        result_nn,
+    ) = execute_pipeline(
         data=train_data,
         params=expert_params,
         parameters={
@@ -116,16 +122,17 @@ def test_expert_system(equation_data):
 
     config = DenseNetConfig(
         block_size=result_nn["block_size"],
-        activation_func=["tanh"] * (len(result_nn["block_size"]) + 1),
-        optimizer="Adam",
-        loss_func="MeanSquaredError",
-        num_epoch=100,
+        activation_func=result_nn.get(
+            "activation_func", ["tanh"] * (len(result_nn["block_size"]) + 1)
+        ),
+        optimizer=result_opt,
+        loss_func=result_loss_func,
         input_size=result_nn["input_size"],
         output_size=result_nn["output_size"],
     )
     model_from_expert_system = IModel(config=config, net_type=result_nn["net_type"])
     model_from_expert_system.from_dict(result_nn)
-    model_from_expert_system.compile(optimizer="Adam", loss_func="MaxAbsoluteDeviation")
+    model_from_expert_system.compile(optimizer=result_opt, loss_func=result_loss_func)
     expert_val_loss = model_from_expert_system.evaluate(
         validation_data[0], validation_data[1], verbose=0
     )

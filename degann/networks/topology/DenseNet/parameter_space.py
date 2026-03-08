@@ -116,7 +116,7 @@ class DenseNetParameterSpace(ParameterSpace):
         return config, epoch
 
     def generate_neighbour_config(
-            self, config: DenseNetConfig, num_epochs: int, distance: float
+        self, config: DenseNetConfig, num_epochs: int, distance: float
     ) -> Tuple[DenseNetConfig, int]:
         """
         Generate neighbour configuration based on distance value.
@@ -166,16 +166,16 @@ class DenseNetParameterSpace(ParameterSpace):
         return neighbour_config, new_epoch_param.value()
 
     def train(
-            self,
-            config: DenseNetConfig,
-            num_epochs: int,
-            data: tuple,
-            repeat: int = 1,
-            update_gen_cycle: int = 0,
-            val_data: Optional[tuple] = None,
-            logging: bool = False,
-            file_name: str = "",
-            callbacks: Optional[list] = None,
+        self,
+        config: DenseNetConfig,
+        num_epochs: int,
+        data: tuple,
+        repeat: int = 1,
+        update_gen_cycle: int = 0,
+        val_data: Optional[tuple] = None,
+        logging: bool = False,
+        file_name: str = "",
+        callbacks: Optional[list] = None,
     ) -> Tuple[float, float, dict]:
         """
         Train and evaluate model with given configuration.

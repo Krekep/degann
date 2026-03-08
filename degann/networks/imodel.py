@@ -1,6 +1,6 @@
 import json
 from collections import defaultdict
-from typing import List, Optional, Dict, Union
+from typing import List, Optional, Dict, Union, Any, Tuple
 
 import numpy as np
 import tensorflow as tf
@@ -52,9 +52,9 @@ class IModel(object):
     def __init__(
         self,
         config,
-        net_type,
-        name="net",
-        is_debug=False,
+        net_type: str,
+        name: str = "net",
+        is_debug: bool = False,
         **kwargs,
     ):
         self.network = _create_functions[net_type](
@@ -70,6 +70,7 @@ class IModel(object):
         self._name = name
         self._is_debug = is_debug
         self.set_name(name)
+        self._evaluate_history = None
 
     def compile(self, **kwargs) -> None:
         """
@@ -91,46 +92,21 @@ class IModel(object):
         outputs: tf.Tensor
             Network answer
         """
-
         return self.network(inputs, training=False)
 
     def train(
         self,
         x_data: np.ndarray,
         y_data: np.ndarray,
-        validation_split=0.0,
-        validation_data=None,
-        epochs=10,
-        mini_batch_size=None,
-        callbacks: List = None,
-        verbose="auto",
+        validation_split: float = 0.0,
+        validation_data: Optional[tuple] = None,
+        epochs: int = 10,
+        mini_batch_size: Optional[int] = None,
+        callbacks: Optional[List] = None,
+        verbose: Union[int, str] = "auto",
     ) -> keras.callbacks.History:
         """
         Train network on passed dataset and return training history
-
-        Parameters
-        ----------
-        x_data: np.ndarray
-            Array of input vectors
-        y_data: np.ndarray
-            Array of output vectors
-        validation_split: float
-            Percentage of data to validate
-        validation_data: tuple[np.ndarray, np.ndarray]
-            Validation dataset
-        epochs: int
-            Count of epochs for training
-        mini_batch_size: int
-            Size of batches
-        callbacks: list
-            List of tensorflow callbacks for fit function
-        verbose: int
-            Output accompanying training
-
-        Returns
-        -------
-        history: tf.keras.callbacks.History
-            History of training
         """
         if self._is_debug:
             if callbacks is not None:
@@ -161,33 +137,13 @@ class IModel(object):
         self,
         x_data: np.ndarray,
         y_data: np.ndarray,
-        batch_size=None,
-        callbacks: List = None,
-        verbose="auto",
+        batch_size: Optional[int] = None,
+        callbacks: Optional[List] = None,
+        verbose: Union[int, str] = "auto",
         **kwargs,
     ) -> Union[float, List[float]]:
         """
         Evaluate network on passed dataset and return evaluate history
-
-        Parameters
-        ----------
-        x_data: np.ndarray
-            Array of input vectors
-        y_data: np.ndarray
-            Array of output vectors
-        batch_size: int
-            Size of batches
-        callbacks: list
-            List of tensorflow callbacks for evaluate function
-        verbose: int
-            Output accompanying evaualing
-
-        Returns
-        -------
-        history: Union[float, List[float]]
-            Scalar test loss (if the model has a single output and no metrics)
-            or list of scalars (if the model has multiple outputs
-            and/or metrics).
         """
         if self._is_debug:
             if callbacks is not None:
@@ -226,24 +182,6 @@ class IModel(object):
     ) -> None:
         """
         Export neural network as feedforward function on c++
-
-        Parameters
-        ----------
-        path: str
-            path to file with name, without extension
-        array_type: str
-            c-style or cpp-style ("[]" or "vector")
-        path_to_compiler: str
-            path to c/c++ compiler, if `None` then the resulting code will not be compiled
-        vectorized_level: str
-            Level of code vectorization
-            Available levels: none, auto (the program will choose the latest level by itself),
-            sse, avx, avx512f
-        kwargs
-
-        Returns
-        -------
-
         """
         self.network.export_to_cpp(
             path,
@@ -253,67 +191,30 @@ class IModel(object):
             **kwargs,
         )
 
-    def to_dict(self, **kwargs):
+    def to_dict(self, **kwargs) -> Dict[str, Any]:
         """
         Export neural network to dictionary
-
-        Parameters
-        ----------
-        kwargs
-
-        Returns
-        -------
-
         """
         return self.network.to_dict(**kwargs)
 
-    def export_to_file(self, path, **kwargs):
+    def export_to_file(self, path: str, **kwargs) -> None:
         """
         Export neural network as parameters to file
-
-        Parameters
-        ----------
-        path:
-            path to file with name, without extension
-        kwargs
-
-        Returns
-        -------
-
         """
         config = self.to_dict(**kwargs)
         with open(path + ".apg", "w") as f:
             f.write(HEADER_OF_APG_FILE + json.dumps(config, indent=2))
 
-    def from_dict(self, config: dict, **kwargs):
+    def from_dict(self, config: dict, **kwargs) -> None:
         """
         Import neural network from dictionary
-
-        Parameters
-        ----------
-        config: dict
-            Network configuration
-
-        Returns
-        -------
-
         """
         self.network.from_dict(config, **kwargs)
         self._shape = self.network.config.get_shape
 
-    def from_file(self, path: str, **kwargs):
+    def from_file(self, path: str, **kwargs) -> None:
         """
         Import neural network as parameters from file
-
-        Parameters
-        ----------
-        path:
-            path to file with name, without extension
-        kwargs
-
-        Returns
-        -------
-
         """
         with open(path + ".apg", "r") as f:
             for header in range(HEADER_OF_APG_FILE.count("\n")):
@@ -322,20 +223,12 @@ class IModel(object):
             for line in f:
                 config_str += line
             config = json.loads(config_str)
-            self.network.from_dict(config)
+            self.network.from_dict(config, **kwargs)
             self.set_name(config["name"])
 
     def set_name(self, name: str) -> None:
         """
         Set network name
-
-        Parameters
-        ----------
-        name: str
-            New name
-        Returns
-        -------
-        None
         """
         self.network.set_name(name)
         self._name = name
@@ -345,65 +238,37 @@ class IModel(object):
         return self._name
 
     @property
-    def get_shape(self):
+    def get_shape(self) -> Any:
         """
         Get shape for current network
-
-        Returns
-        -------
-        shape: List[int]
-            Network shape
         """
-
         return self._shape
 
     @property
-    def get_input_size(self):
+    def get_input_size(self) -> Any:
         """
         Get input vector size for current network
-
-        Returns
-        -------
-        size: int
-            Input vector size
         """
-
         return self._input_size
 
     @property
-    def get_output_size(self):
+    def get_output_size(self) -> Any:
         """
         Get output vector size for current network
-
-        Returns
-        -------
-        size: int
-            Output vector size
         """
-
         return self._output_size
 
     @property
-    def get_activations(self) -> list:
+    def get_activations(self) -> Union[List[str], Tuple[List[str], List[str]]]:
         """
         Get list of activations for each layer
-
-        Returns
-        -------
-        activations: list
         """
-
         return self.network.get_activations
 
     def __str__(self) -> str:
         """
         Get a string representation of the neural network
-
-        Returns
-        -------
-        result: str
         """
-
         return str(self.network)
 
 

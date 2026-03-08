@@ -21,6 +21,7 @@ class TensorflowDenseNet(tf.keras.Model):
         **kwargs,
     ):
         self.config = config
+        self.name = ""
         block_size = config.block_size
         activation_func = config.activation_func
         input_size = config.input_size
@@ -191,8 +192,8 @@ class TensorflowDenseNet(tf.keras.Model):
         # Return a dict mapping metric names to current value
         return {m.name: m.result() for m in self.metrics}
 
-    def set_name(self, new_name):
-        self._name = new_name
+    def set_name(self, name):
+        self.name = name
 
     def __str__(self):
         res = f"IModel {self.name}\n"
@@ -215,7 +216,7 @@ class TensorflowDenseNet(tf.keras.Model):
         """
         res = {
             "net_type": "DenseNet",
-            "name": self._name,
+            "name": self.name,
             "input_size": self.input_size,
             "block_size": self.block_size,
             "output_size": self.output_size,

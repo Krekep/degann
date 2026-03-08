@@ -1,3 +1,4 @@
+from typing import Optional, Tuple
 from degann.search_algorithms import simulated_annealing, grid_search, random_search
 from degann.networks.topology.abstracts import ParameterSpace
 
@@ -7,8 +8,8 @@ def execute_pipeline(
     params: ParameterSpace,
     parameters: dict,
     run_grid_search: bool = False,
-    val_data=None,
-) -> tuple[float, dict]:
+    val_data: Optional[tuple] = None,
+) -> Tuple[float, int, str, str, dict]:
     """
     This function sequentially launches algorithms for searching the topology of a neural network
     with the passed parameters and returns the resulting neural network.
@@ -28,8 +29,8 @@ def execute_pipeline(
 
     Returns
     -------
-    search_result: tuple[float, dict]
-        Loss value and resulting neural network
+    search_result: tuple[float, int, str, str, dict]
+        Loss value, epochs, loss function, optimizer, and resulting neural network
     """
     threshold = parameters.get("loss_threshold", 1.0)
 
@@ -39,11 +40,9 @@ def execute_pipeline(
             params=params,
             iterations=parameters["iteration_count"],
             val_data=val_data,
-            threshold=threshold,
         )
-        train_loss, result_nn = result[0], result[4]
-        if train_loss <= threshold:
-            return train_loss, result_nn
+        if result[0] <= threshold:
+            return result
     print("Random search didn't find any results")
 
     for i in range(parameters["launch_count_simulated_annealing"]):
@@ -54,9 +53,9 @@ def execute_pipeline(
             max_iter=parameters["iteration_count"],
             threshold=threshold,
         )
-        train_loss, result_nn = result[0], result[2]
+        train_loss, best_epochs, loss_func, opt, best_net, k = result
         if train_loss <= threshold:
-            return train_loss, result_nn
+            return train_loss, best_epochs, loss_func, opt, best_net
     print("Simulated annealing didn't find any results")
 
     if run_grid_search:
@@ -65,6 +64,6 @@ def execute_pipeline(
             params=params,
             val_data=val_data,
         )
-        return result[0], result[4]
+        return result
 
-    return 10**9, {}
+    return 10**9, 0, "", "", {}

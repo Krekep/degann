@@ -113,7 +113,8 @@ class GANParameterSpace(ParameterSpace):
                                     activation_func=disc_activation_funcs,
                                     optimizer=disc_opt,
                                     loss_func=disc_lf,
-                                    input_size=self.gen_input_size + self.gen_output_size,
+                                    input_size=self.gen_input_size
+                                    + self.gen_output_size,
                                     output_size=1,
                                 )
 
@@ -176,10 +177,10 @@ class GANParameterSpace(ParameterSpace):
         return config, epoch
 
     def generate_neighbour_config(
-            self,
-            config: GANConfig,
-            num_epochs: int,
-            distance: float,
+        self,
+        config: GANConfig,
+        num_epochs: int,
+        distance: float,
     ) -> Tuple[GANConfig, int]:
         """
         Generate a neighbour configuration for GANConfig.
@@ -208,7 +209,8 @@ class GANParameterSpace(ParameterSpace):
             mutation_prob=mutation_prob,
         )
         new_gen_activations = mutate_activations(
-            activations=config.gen_config.activation_func[:-1] + [config.gen_config.activation_func[-1]],
+            activations=config.gen_config.activation_func[:-1]
+            + [config.gen_config.activation_func[-1]],
             all_activations=self.gen_activation_funcs,
             mutation_prob=mutation_prob,
         )
@@ -279,17 +281,17 @@ class GANParameterSpace(ParameterSpace):
         return neighbour_config, new_num_epoch
 
     def train(
-            self,
-            config: GANConfig,
-            num_epochs: int,
-            data: tuple,
-            repeat: int = 1,
-            val_data: Optional[tuple] = None,
-            logging: bool = False,
-            file_name: str = "",
-            callbacks: Optional[list] = None,
-            verbose: int = 0,
-            mini_batch_size: int = 32,
+        self,
+        config: GANConfig,
+        num_epochs: int,
+        data: tuple,
+        repeat: int = 1,
+        val_data: Optional[tuple] = None,
+        logging: bool = False,
+        file_name: str = "",
+        callbacks: Optional[list] = None,
+        verbose: int = 0,
+        mini_batch_size: int = 32,
     ) -> tuple[float, float, dict]:
         """
         Train and evaluate model with given configuration.

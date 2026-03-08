@@ -22,6 +22,7 @@ class TensorflowGAN(tf.keras.Model):
 
         self.config = config
         self.is_debug = is_debug
+        self.name = ""
 
         self.generator = TensorflowDenseNet(
             config=config.gen_config,
@@ -84,9 +85,6 @@ class TensorflowGAN(tf.keras.Model):
 
         """
 
-        if metric_funcs is None:
-            metric_funcs = []
-
         self.gen_optimizer = optimizers.get_optimizer(gen_optimizer)(
             learning_rate=gen_rate
         )
@@ -95,11 +93,9 @@ class TensorflowGAN(tf.keras.Model):
         )
         self.gen_loss = losses.get_loss(gen_loss_func)
         self.disc_loss = losses.get_loss(disc_loss_func)
-        m = [metrics.get_metric(metric) for metric in metric_funcs]
-        self.compile(
-            optimizer="sgd",
-            loss="mse",
-            metrics=m,
+        super().compile(
+            optimizer=self.gen_optimizer,
+            loss=self.gen_loss,
             run_eagerly=run_eagerly,
         )
 
@@ -173,7 +169,7 @@ class TensorflowGAN(tf.keras.Model):
 
     def set_name(self, name):
         """Set model name."""
-        self._name = name
+        self.name = name
 
     def to_dict(self) -> Dict[str, Any]:
         """
@@ -186,7 +182,7 @@ class TensorflowGAN(tf.keras.Model):
         """
 
         res = {
-            "net_type": "TFGAN",
+            "net_type": "GAN",
             "name": self.name,
             "config": self.config.to_dict(),
             "generator": self.generator.to_dict(),
