@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Callable, List, Any, Self, Tuple
+from typing import Optional, Dict, Callable, List, Any, Tuple
 import tensorflow as tf
 from tensorflow import keras
 
@@ -48,15 +48,15 @@ class TensorflowGAN(tf.keras.Model):
         self.trained_time = {"train_time": 0.0, "epoch_time": [], "predict_time": 0}
 
     def custom_compile(
-            self,
-            gen_rate=1e-2,
-            disc_rate=1e-2,
-            gen_optimizer="Adam",
-            disc_optimizer="Adam",
-            gen_loss_func="MeanSquaredError",
-            disc_loss_func="MeanSquaredError",
-            metric_funcs=None,
-            run_eagerly=False,
+        self,
+        gen_rate=1e-2,
+        disc_rate=1e-2,
+        gen_optimizer="Adam",
+        disc_optimizer="Adam",
+        gen_loss_func="MeanSquaredError",
+        disc_loss_func="MeanSquaredError",
+        metric_funcs=None,
+        run_eagerly=False,
     ):
         """
         Configures the model for training
@@ -87,8 +87,12 @@ class TensorflowGAN(tf.keras.Model):
         if metric_funcs is None:
             metric_funcs = []
 
-        self.gen_optimizer = optimizers.get_optimizer(gen_optimizer)(learning_rate=gen_rate)
-        self.disc_optimizer = optimizers.get_optimizer(disc_optimizer)(learning_rate=disc_rate)
+        self.gen_optimizer = optimizers.get_optimizer(gen_optimizer)(
+            learning_rate=gen_rate
+        )
+        self.disc_optimizer = optimizers.get_optimizer(disc_optimizer)(
+            learning_rate=disc_rate
+        )
         self.gen_loss = losses.get_loss(gen_loss_func)
         self.disc_loss = losses.get_loss(disc_loss_func)
         m = [metrics.get_metric(metric) for metric in metric_funcs]
@@ -191,7 +195,7 @@ class TensorflowGAN(tf.keras.Model):
         return res
 
     @classmethod
-    def from_dict(cls, config_dict: Dict[str, Any], **kwargs) -> Self:
+    def from_dict(cls, config_dict: Dict[str, Any], **kwargs):
         """
         Restore neural network from dictionary.
 

@@ -4,7 +4,7 @@ import copy
 from datetime import datetime
 from typing import Callable, Tuple, Any, Optional
 from .utils import update_random_generator
-from degann.networks.topology.abstracts import ParameterSpace
+from degann.networks.topology.abstracts import ParameterSpace, NetConfig
 
 
 def temperature_lin(k: int, k_max: int, **kwargs) -> float:
@@ -106,7 +106,8 @@ def simulated_annealing(
     val_data: Optional[tuple] = None,
     max_iter: int = 100,
     threshold: float = 1,
-    start_config: Optional[Any] = None,
+    start_config: Optional[NetConfig] = None,
+    start_epochs: int = 0,
     temperature_method: Optional[Callable] = None,
     distance_method: Optional[Callable] = None,
     update_gen_cycle: int = 0,
@@ -114,9 +115,10 @@ def simulated_annealing(
     file_name: str = "",
     callbacks: Optional[list] = None,
     verbose: bool = False,
-) -> Tuple[float, Any, dict, int]:
+) -> Tuple[float, NetConfig, dict, int]:
     """
     Performs a simulated annealing algorithm to find the best neural network configuration.
+
     Parameters
     ----------
     data: Tuple[Any, Any]
@@ -129,8 +131,10 @@ def simulated_annealing(
         Maximum number of iterations.
     threshold: float
         Loss threshold for early stopping.
-    start_config: Any
+    start_config: NetConfig
         Starting configuration for the algorithm.
+    start_epochs: int
+        Starting number of epochs.
     temperature_method: Callable
         Function for temperature calculation.
     distance_method: Callable
@@ -145,17 +149,19 @@ def simulated_annealing(
         List of training callbacks.
     verbose: bool
         Flag to enable verbose output.
+
     Returns
     -------
     best_loss: float
         Best training loss achieved.
-    best_config: Any
+    best_config: NetConfig
         Best configuration object.
     best_net: dict
         Dictionary representation of the best network.
     k: int
         Number of iterations performed.
     """
+
     if temperature_method is None:
         temperature_method = temperature_lin
 
@@ -163,12 +169,17 @@ def simulated_annealing(
         distance_method = distance_const(150)
 
     if start_config is None:
-        curr_config = params.get_random_config()
+        curr_config, curr_epochs = params.get_random_config()
     else:
         curr_config = copy.deepcopy(start_config)
+        if start_epochs == 0:
+            curr_epochs = 10
+        else:
+            curr_epochs = start_epochs
 
     train_result = params.train(
         config=curr_config,
+        num_epochs=curr_epochs,
         data=data,
         val_data=val_data,
         logging=logging,
@@ -192,10 +203,13 @@ def simulated_annealing(
         t = temperature_method(k=k, k_max=max_iter, t=t)
         distance = distance_method(temperature=t)
 
-        neighbour_config = params.generate_neighbour_config(curr_config, distance)
+        neighbour_config, neighbour_epochs = params.generate_neighbour_config(
+            curr_config, curr_epochs, distance
+        )
 
         neighbour_result = params.train(
             config=neighbour_config,
+            num_epochs=neighbour_epochs,
             data=data,
             val_data=val_data,
             logging=logging,
@@ -210,6 +224,7 @@ def simulated_annealing(
             or math.exp((curr_loss - neighbour_loss) / max(t, 1e-8)) > random.random()
         ):
             curr_config = neighbour_config
+            curr_epochs = neighbour_epochs
             curr_loss = neighbour_loss
             curr_net = neighbour_net
 

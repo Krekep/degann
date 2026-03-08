@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Tuple, Any, Iterator, Dict, Self
+from typing import Tuple, Any, Iterator, Dict
 
 
 class NetConfig(ABC):
@@ -57,7 +57,7 @@ class NetConfig(ABC):
 
     @classmethod
     @abstractmethod
-    def from_dict(cls, config_dict: Dict[str, Any]) -> Self:
+    def from_dict(cls, config_dict: Dict[str, Any]):
         """
         Create a configuration instance from a dictionary.
         """
@@ -70,28 +70,32 @@ class ParameterSpace(ABC):
     """
 
     @abstractmethod
-    def iter_configs(self) -> Iterator[NetConfig]:
+    def iter_configs(self) -> Iterator[Tuple[NetConfig, int]]:
         """
         Abstract method for generating configs from the parameter space.
         """
         pass
 
     @abstractmethod
-    def get_random_config(self) -> NetConfig:
+    def get_random_config(self) -> Tuple[NetConfig, int]:
         """
         Abstract method that creates and returns a random config.
         """
         pass
 
     @abstractmethod
-    def generate_neighbour_config(self, config: NetConfig, distance: float) -> NetConfig:
+    def generate_neighbour_config(
+        self, config: NetConfig, num_epochs: int, distance: float
+    ) -> NetConfig:
         """
         Abstract method that generates neighbour config.
         """
         pass
 
     @abstractmethod
-    def train(self, config: NetConfig, data: tuple, *args, **kwargs) -> Tuple[float, float, dict]:
+    def train(
+        self, config: NetConfig, num_epochs: int, data: tuple, *args, **kwargs
+    ) -> Tuple[float, float, dict]:
         """
         Abstract method for training and evaluating model.
         """

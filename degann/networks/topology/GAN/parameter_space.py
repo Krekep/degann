@@ -1,11 +1,12 @@
 import random
-from typing import List, Optional, Iterator
+from typing import List, Optional, Iterator, Tuple
 from itertools import product
 from degann.search_algorithms.utils import log_to_file
 from degann.networks.imodel import IModel
 from degann.search_algorithms.generate import mutate_block_sizes, mutate_activations
 from degann.networks.topology.GAN.config import GANConfig
-from ..abstracts import ParameterSpace
+from degann.networks.topology.DenseNet.config import DenseNetConfig
+from degann.networks.topology.abstracts import ParameterSpace
 
 
 class GANParameterSpace(ParameterSpace):
@@ -48,8 +49,16 @@ class GANParameterSpace(ParameterSpace):
 
         self.epochs = epochs
 
-    def create_parameter_space(self) -> List[GANConfig]:
-        configs = []
+    def iter_configs(self) -> Iterator[Tuple[GANConfig, int]]:
+        """
+        Generates all possible configurations from the parameter space.
+
+        Yields
+        ------
+        Tuple[GANConfig, int]
+            Configuration from the parameter space and number of epochs.
+        """
+
         gen_block_size_options = []
         for depth in range(self.gen_min_depth, self.gen_max_depth + 1):
             for sizes in product(self.gen_layer_sizes, repeat=depth):
@@ -90,24 +99,39 @@ class GANParameterSpace(ParameterSpace):
                             disc_activation_funcs = list(disc_af_tuple) + ["linear"]
 
                             for epoch in self.epochs:
-                                config = GANConfig(
-                                    gen_input_size=self.gen_input_size,
-                                    gen_output_size=self.gen_output_size,
-                                    gen_block_sizes=gen_bs,
-                                    gen_activation_funcs=gen_activation_funcs,
-                                    gen_out_activation=self.gen_out_activation,
-                                    disc_block_sizes=disc_bs,
-                                    disc_activation_funcs=disc_activation_funcs,
-                                    gen_optimizer=gen_opt,
-                                    disc_optimizer=disc_opt,
-                                    gen_loss_func=gen_lf,
-                                    disc_loss_func=disc_lf,
-                                    num_epoch=epoch,
+                                gen_config = DenseNetConfig(
+                                    block_size=gen_bs,
+                                    activation_func=gen_activation_funcs,
+                                    optimizer=gen_opt,
+                                    loss_func=gen_lf,
+                                    input_size=self.gen_input_size,
+                                    output_size=self.gen_output_size,
                                 )
-                                configs.append(config)
-        return configs
 
-    def get_random_config(self):
+                                disc_config = DenseNetConfig(
+                                    block_size=disc_bs,
+                                    activation_func=disc_activation_funcs,
+                                    optimizer=disc_opt,
+                                    loss_func=disc_lf,
+                                    input_size=self.gen_input_size + self.gen_output_size,
+                                    output_size=1,
+                                )
+
+                                config = GANConfig(
+                                    gen_config=gen_config,
+                                    disc_config=disc_config,
+                                )
+                                yield config, epoch
+
+    def get_random_config(self) -> Tuple[GANConfig, int]:
+        """
+        Creates random configuration.
+
+        Returns
+        -------
+        Tuple[GANConfig, int]
+            Random configuration and number of epochs.
+        """
         gen_depth = random.randint(self.gen_min_depth, self.gen_max_depth)
         disc_depth = random.randint(self.disc_min_depth, self.disc_max_depth)
 
@@ -127,71 +151,82 @@ class GANParameterSpace(ParameterSpace):
 
         epoch = random.choice(self.epochs)
 
-        config = GANConfig(
-            gen_input_size=self.gen_input_size,
-            gen_output_size=self.gen_output_size,
-            gen_block_sizes=gen_block_sizes,
-            gen_activation_funcs=gen_activation_funcs,
-            gen_out_activation=self.gen_out_activation,
-            disc_block_sizes=disc_block_sizes,
-            disc_activation_funcs=disc_activation_funcs,
-            gen_optimizer=random.choice(self.gen_optimizers),
-            disc_optimizer=random.choice(self.disc_optimizers),
-            gen_loss_func=random.choice(self.gen_loss_funcs),
-            disc_loss_func=random.choice(self.disc_loss_funcs),
-            num_epoch=epoch,
+        gen_config = DenseNetConfig(
+            block_size=gen_block_sizes,
+            activation_func=gen_activation_funcs,
+            optimizer=random.choice(self.gen_optimizers),
+            loss_func=random.choice(self.gen_loss_funcs),
+            input_size=self.gen_input_size,
+            output_size=self.gen_output_size,
         )
-        return config
+
+        disc_config = DenseNetConfig(
+            block_size=disc_block_sizes,
+            activation_func=disc_activation_funcs,
+            optimizer=random.choice(self.disc_optimizers),
+            loss_func=random.choice(self.disc_loss_funcs),
+            input_size=self.gen_input_size + self.gen_output_size,
+            output_size=1,
+        )
+
+        config = GANConfig(
+            gen_config=gen_config,
+            disc_config=disc_config,
+        )
+        return config, epoch
 
     def generate_neighbour_config(
-        self,
-        config: GANConfig,
-        distance: float,
-    ) -> GANConfig:
+            self,
+            config: GANConfig,
+            num_epochs: int,
+            distance: float,
+    ) -> Tuple[GANConfig, int]:
         """
         Generate a neighbour configuration for GANConfig.
 
         Parameters
         ----------
-        config : GANConfig
+        config: GANConfig
             Original configuration.
-        distance : float
+        num_epochs: int
+            Number of epochs.
+        distance: float
             A proxy for mutation strength (higher -> more changes).
 
         Returns
         -------
-        GANConfig
-            New neighbour configuration.
+        Tuple[GANConfig, int]
+            New neighbour configuration and number of epochs.
         """
         mutation_prob = min(0.5, distance / 100.0)
 
         new_gen_block_sizes = mutate_block_sizes(
-            block_sizes=config.gen_block_sizes,
+            block_sizes=config.gen_config.block_size,
             layer_sizes=self.gen_layer_sizes,
             min_depth=self.gen_min_depth,
             max_depth=self.gen_max_depth,
             mutation_prob=mutation_prob,
         )
         new_gen_activations = mutate_activations(
-            activations=config.gen_activation_funcs[:-1] + [config.gen_out_activation],
+            activations=config.gen_config.activation_func[:-1] + [config.gen_config.activation_func[-1]],
             all_activations=self.gen_activation_funcs,
             mutation_prob=mutation_prob,
         )
 
         if len(new_gen_activations) > 1:
-            new_gen_activations[-1] = config.gen_out_activation
+            new_gen_activations[-1] = config.gen_config.activation_func[-1]
         else:
-            new_gen_activations = [config.gen_out_activation]
+            new_gen_activations = [config.gen_config.activation_func[-1]]
 
         new_disc_block_sizes = mutate_block_sizes(
-            block_sizes=config.disc_block_sizes,
+            block_sizes=config.disc_config.block_size,
             layer_sizes=self.disc_layer_sizes,
             min_depth=self.disc_min_depth,
             max_depth=self.disc_max_depth,
             mutation_prob=mutation_prob,
         )
         new_disc_activations = mutate_activations(
-            activations=config.disc_activation_funcs[:-1] + ["linear"],
+            activations=config.disc_config.activation_func[:-1] + ["linear"],
             all_activations=self.disc_activation_funcs,
             mutation_prob=mutation_prob,
         )
@@ -201,11 +236,11 @@ class GANParameterSpace(ParameterSpace):
         else:
             new_disc_activations = ["linear"]
 
-        new_gen_optimizer = config.gen_optimizer
-        new_disc_optimizer = config.disc_optimizer
-        new_gen_loss_func = config.gen_loss_func
-        new_disc_loss_func = config.disc_loss_func
-        new_num_epoch = config.num_epoch
+        new_gen_optimizer = config.gen_config.optimizer
+        new_disc_optimizer = config.disc_config.optimizer
+        new_gen_loss_func = config.gen_config.loss_func
+        new_disc_loss_func = config.disc_config.loss_func
+        new_num_epoch = num_epochs
 
         if random.random() < mutation_prob:
             new_gen_optimizer = random.choice(self.gen_optimizers)
@@ -218,34 +253,79 @@ class GANParameterSpace(ParameterSpace):
         if random.random() < mutation_prob:
             new_num_epoch = random.choice(self.epochs)
 
-        neighbour_config = GANConfig(
-            gen_input_size=self.gen_input_size,
-            gen_output_size=self.gen_output_size,
-            gen_block_sizes=new_gen_block_sizes,
-            gen_activation_funcs=new_gen_activations,
-            gen_out_activation=config.gen_out_activation,
-            disc_block_sizes=new_disc_block_sizes,
-            disc_activation_funcs=new_disc_activations,
-            gen_optimizer=new_gen_optimizer,
-            disc_optimizer=new_disc_optimizer,
-            gen_loss_func=new_gen_loss_func,
-            disc_loss_func=new_disc_loss_func,
-            num_epoch=new_num_epoch,
+        new_gen_config = DenseNetConfig(
+            block_size=new_gen_block_sizes,
+            activation_func=new_gen_activations,
+            optimizer=new_gen_optimizer,
+            loss_func=new_gen_loss_func,
+            input_size=config.gen_config.input_size,
+            output_size=config.gen_config.output_size,
         )
-        return neighbour_config
+
+        new_disc_config = DenseNetConfig(
+            block_size=new_disc_block_sizes,
+            activation_func=new_disc_activations,
+            optimizer=new_disc_optimizer,
+            loss_func=new_disc_loss_func,
+            input_size=config.disc_config.input_size,
+            output_size=config.disc_config.output_size,
+        )
+
+        neighbour_config = GANConfig(
+            gen_config=new_gen_config,
+            disc_config=new_disc_config,
+        )
+
+        return neighbour_config, new_num_epoch
 
     def train(
-        self,
-        config: GANConfig,
-        data: tuple,
-        repeat: int = 1,
-        val_data: Optional[tuple] = None,
-        logging: bool = False,
-        file_name: str = "",
-        callbacks: Optional[list] = None,
-        verbose: int = 0,
-        mini_batch_size: int = 32,
+            self,
+            config: GANConfig,
+            num_epochs: int,
+            data: tuple,
+            repeat: int = 1,
+            val_data: Optional[tuple] = None,
+            logging: bool = False,
+            file_name: str = "",
+            callbacks: Optional[list] = None,
+            verbose: int = 0,
+            mini_batch_size: int = 32,
     ) -> tuple[float, float, dict]:
+        """
+        Train and evaluate model with given configuration.
+
+        Parameters
+        ----------
+        config: GANConfig
+            Configuration for training the model.
+        num_epochs: int
+            Number of training epochs.
+        data: Tuple[Any, Any]
+            Training data.
+        repeat: int
+            Number of training repetitions.
+        val_data: Tuple[Any, Any]
+            Validation data.
+        logging: bool
+            Flag to enable logging.
+        file_name: str
+            Name for log files.
+        callbacks: List[Any]
+            List of training callbacks.
+        verbose: int
+            Verbosity level.
+        mini_batch_size: int
+            Mini batch size for training.
+
+        Returns
+        -------
+        best_loss: float
+            Best training loss achieved.
+        best_val_loss: float
+            Best validation loss achieved.
+        best_net: dict
+            Dictionary representation of the best network.
+        """
         best_net = None
         best_loss = float("inf")
         best_val_loss = float("inf")
@@ -253,17 +333,17 @@ class GANParameterSpace(ParameterSpace):
         for i in range(repeat):
             nn = IModel(config=config, net_type="GAN")
             nn.compile(
-                gen_optimizer=config.gen_optimizer,
-                disc_optimizer=config.disc_optimizer,
-                gen_loss_func=config.gen_loss_func,
-                disc_loss_func=config.disc_loss_func,
+                gen_optimizer=config.gen_config.optimizer,
+                disc_optimizer=config.disc_config.optimizer,
+                gen_loss_func=config.gen_config.loss_func,
+                disc_loss_func=config.disc_config.loss_func,
             )
 
             history = nn.train(
                 x_data=data[0],
                 y_data=data[1],
                 validation_data=val_data,
-                epochs=config.num_epoch,
+                epochs=num_epochs,
                 mini_batch_size=mini_batch_size,
                 callbacks=callbacks,
                 verbose=verbose,
@@ -278,7 +358,7 @@ class GANParameterSpace(ParameterSpace):
                 pass
 
             if logging:
-                fn = f"{file_name}_gan_{len(data[0])}_{config.num_epoch}_{config.gen_loss_func}_{config.disc_loss_func}_{config.gen_optimizer}_{config.disc_optimizer}"
+                fn = f"{file_name}_gan_{len(data[0])}_{num_epochs}_{config.gen_config.loss_func}_{config.disc_config.loss_func}_{config.gen_config.optimizer}_{config.disc_config.optimizer}"
                 log_to_file(history, fn)
 
             if current_loss < best_loss:

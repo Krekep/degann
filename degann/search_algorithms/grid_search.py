@@ -50,7 +50,8 @@ def grid_search(
     best_loss_func: str = ""
     best_opt: str = ""
     time_viewer = MeasureTrainTime()
-    for i, config in enumerate(params.iter_configs()):
+
+    for i, (config, epoch) in enumerate(params.iter_configs()):
         if verbose:
             print(
                 f"{i + 1}",
@@ -58,6 +59,7 @@ def grid_search(
             )
         curr_loss, curr_val_loss, curr_nn = params.train(
             config=config,
+            num_epochs=epoch,
             data=data,
             val_data=val_data,
             logging=logging,
@@ -68,7 +70,7 @@ def grid_search(
         if best_loss > curr_loss:
             best_net = curr_nn
             best_loss = curr_loss
-            best_epoch = config.num_epoch
+            best_epoch = epoch
             best_loss_func = config.get_loss_func
             best_opt = config.get_optimizer
     return best_loss, best_epoch, best_loss_func, best_opt, best_net

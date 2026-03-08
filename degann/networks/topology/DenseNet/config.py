@@ -1,6 +1,6 @@
 from dataclasses import dataclass, asdict
-from typing import List, Optional, Dict, Any, Self
-from ..abstracts import NetConfig
+from typing import List, Optional, Dict, Any
+from degann.networks.topology.abstracts import NetConfig
 
 
 @dataclass
@@ -17,7 +17,7 @@ class DenseNetConfig(NetConfig):
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, config_dict: Dict[str, Any]) -> Self:
+    def from_dict(cls, config_dict: Dict[str, Any]):
         return cls(**config_dict)
 
     @property
