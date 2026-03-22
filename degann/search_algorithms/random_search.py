@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Tuple, Optional
 from .utils import update_random_generator
 from degann.networks.topology.abstracts import ParameterSpace
+from degann.networks.topology.trainer import train
 
 
 def random_search(
@@ -68,7 +69,7 @@ def random_search(
 
         config, epoch = params.get_random_config()
 
-        curr_loss, curr_val_loss, curr_nn = params.train(
+        curr_loss, curr_val_loss, curr_nn = train(
             config=config,
             num_epochs=epoch,
             data=data,

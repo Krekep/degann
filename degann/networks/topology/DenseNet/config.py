@@ -12,6 +12,7 @@ class DenseNetConfig(NetConfig):
     code: Optional[str] = None
     input_size: int = 1
     output_size: int = 1
+    net_type: str = "DenseNet"
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -39,3 +40,7 @@ class DenseNetConfig(NetConfig):
     @property
     def get_optimizer(self) -> str:
         return self.optimizer
+
+    @property
+    def get_compile_kwargs(self) -> Dict[str, Any]:
+        return {"optimizer": self.optimizer, "loss_func": self.loss_func}

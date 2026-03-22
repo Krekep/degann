@@ -8,6 +8,8 @@ class NetConfig(ABC):
     Defines the interface that all config classes must implement.
     """
 
+    net_type: str
+
     @property
     @abstractmethod
     def get_shape(self) -> Any:
@@ -45,6 +47,14 @@ class NetConfig(ABC):
     def get_optimizer(self) -> Any:
         """
         Get the optimizer name.
+        """
+        pass
+
+    @property
+    @abstractmethod
+    def get_compile_kwargs(self) -> Dict[str, Any]:
+        """
+        Get compile data.
         """
         pass
 
@@ -89,14 +99,5 @@ class ParameterSpace(ABC):
     ) -> NetConfig:
         """
         Abstract method that generates neighbour config.
-        """
-        pass
-
-    @abstractmethod
-    def train(
-        self, config: NetConfig, num_epochs: int, data: tuple, *args, **kwargs
-    ) -> Tuple[float, float, dict]:
-        """
-        Abstract method for training and evaluating model.
         """
         pass

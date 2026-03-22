@@ -2,6 +2,7 @@ from degann.networks.topology.abstracts import ParameterSpace
 from datetime import datetime
 from typing import Tuple, Optional
 from degann.networks.callbacks import MeasureTrainTime
+from degann.networks.topology.trainer import train
 
 
 def grid_search(
@@ -57,7 +58,7 @@ def grid_search(
                 f"{i + 1}",
                 datetime.today().strftime("%Y-%m-%d %H:%M:%S"),
             )
-        curr_loss, curr_val_loss, curr_nn = params.train(
+        curr_loss, curr_val_loss, curr_nn = train(
             config=config,
             num_epochs=epoch,
             data=data,

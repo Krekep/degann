@@ -9,6 +9,7 @@ from tensorflow import keras
 from degann.networks.config_format import HEADER_OF_APG_FILE
 from degann.networks.topology.DenseNet.tf_densenet import TensorflowDenseNet
 from degann.networks.topology.GAN.tf_gan import TensorflowGAN
+from degann.networks.topology.abstracts import NetConfig
 
 
 def _get_act_and_init(
@@ -51,7 +52,7 @@ class IModel(object):
 
     def __init__(
         self,
-        config,
+        config: NetConfig,
         net_type: str,
         name: str = "net",
         is_debug: bool = False,
@@ -101,7 +102,7 @@ class IModel(object):
         validation_split: float = 0.0,
         validation_data: Optional[tuple] = None,
         epochs: int = 10,
-        mini_batch_size: Optional[int] = None,
+        batch_size: int = 32,
         callbacks: Optional[List] = None,
         verbose: Union[int, str] = "auto",
     ) -> keras.callbacks.History:
@@ -124,7 +125,7 @@ class IModel(object):
         temp = self.network.fit(
             x_data,
             y_data,
-            batch_size=mini_batch_size,
+            batch_size=batch_size,
             callbacks=callbacks,
             validation_split=validation_split,
             validation_data=validation_data,

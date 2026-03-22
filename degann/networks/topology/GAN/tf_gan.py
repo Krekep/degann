@@ -165,6 +165,7 @@ class TensorflowGAN(tf.keras.Model):
             "disc_loss": total_disc_loss,
             "real_score": self.metric_real.result(),
             "fake_score": self.metric_fake.result(),
+            "loss": (total_gen_loss + total_disc_loss) / 2,
         }
 
     def set_name(self, name):

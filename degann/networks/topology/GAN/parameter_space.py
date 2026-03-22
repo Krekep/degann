@@ -1,8 +1,6 @@
 import random
-from typing import List, Optional, Iterator, Tuple
+from typing import List, Iterator, Tuple
 from itertools import product
-from degann.search_algorithms.utils import log_to_file
-from degann.networks.imodel import IModel
 from degann.search_algorithms.generate import mutate_block_sizes, mutate_activations
 from degann.networks.topology.GAN.config import GANConfig
 from degann.networks.topology.DenseNet.config import DenseNetConfig
@@ -279,93 +277,3 @@ class GANParameterSpace(ParameterSpace):
         )
 
         return neighbour_config, new_num_epoch
-
-    def train(
-        self,
-        config: GANConfig,
-        num_epochs: int,
-        data: tuple,
-        repeat: int = 1,
-        val_data: Optional[tuple] = None,
-        logging: bool = False,
-        file_name: str = "",
-        callbacks: Optional[list] = None,
-        verbose: int = 0,
-        mini_batch_size: int = 32,
-    ) -> tuple[float, float, dict]:
-        """
-        Train and evaluate model with given configuration.
-
-        Parameters
-        ----------
-        config: GANConfig
-            Configuration for training the model.
-        num_epochs: int
-            Number of training epochs.
-        data: Tuple[Any, Any]
-            Training data.
-        repeat: int
-            Number of training repetitions.
-        val_data: Tuple[Any, Any]
-            Validation data.
-        logging: bool
-            Flag to enable logging.
-        file_name: str
-            Name for log files.
-        callbacks: List[Any]
-            List of training callbacks.
-        verbose: int
-            Verbosity level.
-        mini_batch_size: int
-            Mini batch size for training.
-
-        Returns
-        -------
-        best_loss: float
-            Best training loss achieved.
-        best_val_loss: float
-            Best validation loss achieved.
-        best_net: dict
-            Dictionary representation of the best network.
-        """
-        best_net = None
-        best_loss = float("inf")
-        best_val_loss = float("inf")
-
-        for i in range(repeat):
-            nn = IModel(config=config, net_type="GAN")
-            nn.compile(
-                gen_optimizer=config.gen_config.optimizer,
-                disc_optimizer=config.disc_config.optimizer,
-                gen_loss_func=config.gen_config.loss_func,
-                disc_loss_func=config.disc_config.loss_func,
-            )
-
-            history = nn.train(
-                x_data=data[0],
-                y_data=data[1],
-                validation_data=val_data,
-                epochs=num_epochs,
-                mini_batch_size=mini_batch_size,
-                callbacks=callbacks,
-                verbose=verbose,
-            )
-
-            last_gen_loss = history.history["gen_loss"][-1]
-            last_disc_loss = history.history["disc_loss"][-1]
-            current_loss = (last_disc_loss + last_gen_loss) / 2.0
-
-            current_val_loss = current_loss
-            if val_data is not None:
-                pass
-
-            if logging:
-                fn = f"{file_name}_gan_{len(data[0])}_{num_epochs}_{config.gen_config.loss_func}_{config.disc_config.loss_func}_{config.gen_config.optimizer}_{config.disc_config.optimizer}"
-                log_to_file(history, fn)
-
-            if current_loss < best_loss:
-                best_loss = current_loss
-                best_val_loss = current_val_loss
-                best_net = nn.to_dict()
-
-        return best_loss, best_val_loss, best_net

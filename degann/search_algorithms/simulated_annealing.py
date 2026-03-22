@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Callable, Tuple, Any, Optional
 from .utils import update_random_generator
 from degann.networks.topology.abstracts import ParameterSpace, NetConfig
+from degann.networks.topology.trainer import train
 
 
 def temperature_lin(k: int, k_max: int, **kwargs) -> float:
@@ -177,7 +178,7 @@ def simulated_annealing(
         else:
             curr_epochs = start_epochs
 
-    train_result = params.train(
+    train_result = train(
         config=curr_config,
         num_epochs=curr_epochs,
         data=data,
@@ -209,7 +210,7 @@ def simulated_annealing(
             curr_config, curr_epochs, distance
         )
 
-        neighbour_result = params.train(
+        neighbour_result = train(
             config=neighbour_config,
             num_epochs=neighbour_epochs,
             data=data,

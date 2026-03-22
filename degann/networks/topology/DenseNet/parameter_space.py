@@ -1,14 +1,7 @@
 import random
-from typing import List, Tuple, Optional, Iterator
+from typing import List, Tuple, Iterator
 from itertools import product
-from degann.search_algorithms.nn_code import (
-    alph_n_full,
-    alphabet_activations,
-    decode,
-    encode,
-)
-from degann.search_algorithms.utils import update_random_generator, log_to_file
-from degann.networks.imodel import IModel
+from degann.search_algorithms.nn_code import alph_n_full, alphabet_activations, decode
 from degann.search_algorithms.generate import generate_neighbour
 from degann.networks.topology.DenseNet.config import DenseNetConfig
 from degann.networks.topology.abstracts import ParameterSpace
@@ -164,92 +157,3 @@ class DenseNetParameterSpace(ParameterSpace):
             output_size=config.output_size,
         )
         return neighbour_config, new_epoch_param.value()
-
-    def train(
-        self,
-        config: DenseNetConfig,
-        num_epochs: int,
-        data: tuple,
-        repeat: int = 1,
-        update_gen_cycle: int = 0,
-        val_data: Optional[tuple] = None,
-        logging: bool = False,
-        file_name: str = "",
-        callbacks: Optional[list] = None,
-    ) -> Tuple[float, float, dict]:
-        """
-        Train and evaluate model with given configuration.
-
-        Parameters
-        ----------
-        config: DenseNetConfig
-            Configuration for training the model.
-        num_epochs: int
-            Number of training epochs.
-        data: Tuple[Any, Any]
-            Training data.
-        repeat: int
-            Number of training repetitions.
-        update_gen_cycle: int
-            Cycle size for random generator update.
-        val_data: Tuple[Any, Any]
-            Validation data.
-        logging: bool
-            Flag to enable logging.
-        file_name: str
-            Name for log files.
-        callbacks: List[Any]
-            List of training callbacks.
-
-        Returns
-        -------
-        best_loss: float
-            Best training loss achieved.
-        best_val_loss: float
-            Best validation loss achieved.
-        best_net: dict
-            Dictionary representation of the best network.
-        """
-
-        best_net = None
-        best_loss = 1e6
-        best_val_loss = 1e6
-        for i in range(repeat):
-            update_random_generator(i, cycle_size=update_gen_cycle)
-            history = dict()
-            nn = IModel(config=config, name="net", net_type="DenseNet")
-            nn.compile(optimizer=config.optimizer, loss_func=config.loss_func)
-            temp_his = nn.train(
-                data[0],
-                data[1],
-                epochs=num_epochs,
-                verbose=0,
-                callbacks=callbacks,
-            )
-
-            history["shapes"] = [nn.get_shape]
-            history["activations"] = [config.activation_func]
-            history["code"] = [encode(nn)]
-            history["epoch"] = [num_epochs]
-            history["optimizer"] = [config.optimizer]
-            history["loss function"] = [config.loss_func]
-            history["loss"] = [temp_his.history["loss"][-1]]
-            history["validation loss"] = (
-                [
-                    nn.evaluate(val_data[0], val_data[1], verbose=0, return_dict=True)[
-                        "loss"
-                    ]
-                ]
-                if val_data is not None
-                else [None]
-            )
-            history["train_time"] = [nn.network.trained_time["train_time"]]
-
-            if logging:
-                fn = f"{file_name}_{len(data[0])}_{num_epochs}_{config.loss_func}_{config.optimizer}"
-                log_to_file(history, fn)
-            if history["loss"][0] < best_loss:
-                best_loss = history["loss"][0]
-                best_val_loss = history["validation loss"][0]
-                best_net = nn.to_dict()
-        return best_loss, best_val_loss, best_net

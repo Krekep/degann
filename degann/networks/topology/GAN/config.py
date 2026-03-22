@@ -8,6 +8,7 @@ from degann.networks.topology.DenseNet.config import DenseNetConfig
 class GANConfig(NetConfig):
     gen_config: DenseNetConfig
     disc_config: DenseNetConfig
+    net_type: str = "GAN"
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -41,3 +42,12 @@ class GANConfig(NetConfig):
     @property
     def get_optimizer(self) -> Tuple[str, str]:
         return self.gen_config.get_optimizer, self.disc_config.get_optimizer
+
+    @property
+    def get_compile_kwargs(self) -> Dict[str, Any]:
+        return {
+            "gen_optimizer": self.gen_config.optimizer,
+            "disc_optimizer": self.disc_config.optimizer,
+            "gen_loss_func": self.gen_config.loss_func,
+            "disc_loss_func": self.disc_config.loss_func,
+        }
