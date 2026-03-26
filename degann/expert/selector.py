@@ -5,8 +5,7 @@ from degann.expert.tags import (
     ModelPredictTime,
     RequiredModelPrecision,
 )
-from degann.search_algorithms.nn_code import default_alphabet
-from typing import Optional, Callable
+from typing import Optional
 from degann.search_algorithms.simulated_annealing import *
 
 
@@ -24,6 +23,8 @@ class BaseParameters:
     min_train_epoch: int = 200
     max_train_epoch: int = 500
     iteration_count: int = 5
+    nn_min_depth: int = 1
+    nn_max_depth: int = 10
     loss_function: str = "MaxAbsoluteDeviation"
     eval_metric: str = "root_mean_squared_error"
     metric_threshold: float = 1
@@ -69,7 +70,7 @@ def suggest_parameters(
     ]:
         parameters.min_train_epoch *= 2
         parameters.max_train_epoch = 700
-        parameters.nn_max_length += 1
+        parameters.nn_max_depth += 1
         parameters.iteration_count += 10
 
         # simulated_annealing_params["distance_to_neighbor"] = [distance_const(300), distance_lin(50, 400)]
@@ -95,10 +96,10 @@ def suggest_parameters(
         parameters.max_train_epoch = 700
 
     if tags.predict_time == ModelPredictTime.SHORT:
-        parameters.nn_max_length -= 1
-        parameters.nn_min_length -= 1
+        parameters.nn_max_depth -= 1
+        parameters.nn_min_depth -= 1
     elif tags.predict_time == ModelPredictTime.LONG:
-        parameters.nn_max_length += 1
+        parameters.nn_max_depth += 1
 
     if tags.data_size == DataSize.AUTO:
         if data is None:

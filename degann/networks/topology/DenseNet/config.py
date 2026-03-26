@@ -1,15 +1,14 @@
 from dataclasses import dataclass, asdict
-from typing import List, Optional, Dict, Any
+from typing import List, Dict, Any
 from degann.networks.topology.abstracts import NetConfig
 
 
 @dataclass
 class DenseNetConfig(NetConfig):
-    block_size: Optional[List[int]]
-    activation_func: Optional[List[str]]
+    layer_sizes: List[int]
+    activation_funcs: List[str]
     optimizer: str = "SGD"
     loss_func: str = "MeanSquaredError"
-    code: Optional[str] = None
     input_size: int = 1
     output_size: int = 1
     net_type: str = "DenseNet"
@@ -23,7 +22,11 @@ class DenseNetConfig(NetConfig):
 
     @property
     def get_shape(self) -> List[int]:
-        return self.block_size if self.block_size else []
+        return self.layer_sizes if self.layer_sizes else []
+
+    @property
+    def get_activation_funcs(self) -> List[str]:
+        return self.activation_funcs if self.activation_funcs else []
 
     @property
     def get_input_size(self) -> int:

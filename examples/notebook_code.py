@@ -6,14 +6,11 @@ from degann.expert.tags import (
     DataSize,
 )
 from degann.networks.imodel import IModel
+from degann.networks.topology.DenseNet.config import DenseNetConfig
+from degann.networks.topology.DenseNet.parameter_space import DenseNetParameterSpace
 from degann.search_algorithms import (
     simulated_annealing,
-    pattern_search,
     grid_search,
-)
-from degann.search_algorithms.nn_code import (
-    encode,
-    decode,
 )
 
 from degann.expert.selector import suggest_parameters
@@ -28,7 +25,6 @@ from degann.equations import (
 )
 
 import numpy as np
-
 from random import randint
 
 
@@ -50,24 +46,30 @@ train_idx.sort()
 train_data_x = x_data[train_idx, :]  # X data
 train_data_y = y_data[train_idx, :]  # Y data
 
-nn_1_32_16_8_1 = IModel(input_size=1, block_size=[32, 16, 8], output_size=1)
+
+config_1 = DenseNetConfig(
+    layer_sizes=[32, 16, 8],
+    activation_funcs=["tanh", "tanh", "tanh", "linear"],
+    input_size=1,
+    output_size=1,
+)
+nn_1_32_16_8_1 = IModel(config=config_1, net_type="DenseNet")
 print(nn_1_32_16_8_1)
 
 shape = [10, 10]
-activations = ["swish", "relu"] + [
-    "linear"
-]  # additional activation function for output layer
+activations = ["swish", "relu", "linear"]
 
-nn_1_10_10_3 = IModel(
+config_2 = DenseNetConfig(
+    layer_sizes=shape,
+    activation_funcs=activations,
     input_size=1,
-    block_size=shape,
     output_size=1,
-    activation_func=activations,
 )
+nn_1_10_10_3 = IModel(config=config_2, net_type="DenseNet")
 
-print("Activation functions per layer for n_1_10_10_3")
+print("Activation functions per layer for nn_1_10_10_3")
 acts = nn_1_10_10_3.get_activations
-for i, act_name in enumerate(activations):
+for i, act_name in enumerate(acts):
     print(i, act_name)
 
 print(nn_1_10_10_3)
@@ -77,14 +79,18 @@ print(nn_1_10_10_3)
 nn_1_32_16_8_1.compile(
     optimizer="Adam",
     loss_func="MaxAbsoluteDeviation",  # max(abs(y_true - y_prediction))
-    metrics=[],
 )
 
 # Train network (something about 5 sec. on Google Colab)
 
 loss_before_train = nn_1_32_16_8_1.evaluate(x_data, y_data, verbose=0)
 
-nn_1_32_16_8_1.train(train_data_x, train_data_y, epochs=50, verbose=0)
+nn_1_32_16_8_1.train(
+    x_data=train_data_x,
+    y_data=train_data_y,
+    epochs=50,
+    verbose=0,
+)
 
 loss_after_train = nn_1_32_16_8_1.evaluate(x_data, y_data, verbose=0)
 
@@ -94,111 +100,66 @@ print(f"Loss after training = {loss_after_train}")
 nn_1_32_16_8_1.export_to_file("some_path")
 nn_1_32_16_8_1.export_to_cpp("some_path")
 
+# Grid Search Example
 
-# Takes about 2 min. in Google Colab
-
-config = {
-    "loss_functions": ["MeanSquaredError"],
-    "optimizers": ["Adam"],
-    "metrics": ["MaxAbsoluteDeviation", "MeanSquaredLogarithmicError"],
-    "net_shapes": [[], [10], [5, 5]],  # neural network without hidden layers
-    "activations": ["parabolic", "exponential"],
-    "validation_split": 0,
-    "rates": [1e-2],
-    "epochs": [10],
-    "normalize": [False],
-    "use_rand_net": False,
-}
-
-best_nns = pattern_search(
-    x_data=train_data_x, y_data=train_data_y, x_val=x_data, y_val=y_data, **config
-)
-print(best_nns)
-
-# Examples of coding
-
-shape_1 = [10, 8, 23, 16]
-activations_1 = ["tanh", "exponential", "relu", "swish", "linear"]
-nn_for_code_1 = IModel(
-    input_size=1, block_size=shape_1, output_size=1, activation_func=activations_1
-)
-code_1 = encode(nn_for_code_1, offset=8)
-print(
-    f"Neural network with shape {shape_1} and activations {activations_1} encoded in {code_1}"
+params = DenseNetParameterSpace(
+    input_size=1,
+    output_size=1,
+    optimizers=["Adam"],
+    losses=["MeanSquaredError"],
+    layer_sizes=[10, 5],
+    activation_funcs=["parabolic", "exponential"],
+    min_epoch=10,
+    max_epoch=10,
+    epoch_step=1,
+    nn_min_depth=0,
+    nn_max_depth=2,
 )
 
-shape_1_from_code, activations_1_from_code = decode(code_1, block_size=1, offset=8)
-print(
-    f"{code_1} decoded in shape {shape_1_from_code} and activations {activations_1_from_code}"
+best_loss, best_epoch, best_loss_func, best_opt, best_net = grid_search(
+    data=(train_data_x, train_data_y),
+    params=params,
+    val_data=(x_data, y_data),
+    logging=False,
+    file_name="grid_search_example",
+    verbose=True,
 )
+print(f"Best loss: {best_loss}, Best epoch: {best_epoch}")
 
-code_2 = "e4aa00"
-shape_2_from_code, activations_2_from_code = decode(code_2, block_size=2, offset=1)
-print(
-    f"{code_2} with block_size=2 and offset=1 decoded in shape {shape_2_from_code} and activations {activations_2_from_code}"
+
+# Simulated Annealing Example
+
+sa_params = DenseNetParameterSpace(
+    input_size=1,
+    output_size=1,
+    optimizers=["Adam"],
+    losses=["Huber"],
+    layer_sizes=[10, 16, 23],
+    activation_funcs=["relu", "tanh", "swish"],
+    min_epoch=10,
+    max_epoch=20,
+    nn_min_depth=1,
+    nn_max_depth=3,
 )
-
-
-base_params = BaseSearchParameters()
-base_params.input_size = 1  # size of input data (x)
-base_params.output_size = 1  # size of output data (y)
-base_params.data = (train_data_x, train_data_y)  # dataset
-base_params.min_epoch = 10  # starting number of epochs
-base_params.max_epoch = 20  # final number of epochs
-base_params.nn_min_length = 1  # starting number of hidden layers of neural networks
-base_params.nn_max_length = 2  # final number of hidden layers of neural networks
-base_params.nn_alphabet = [
-    "0a",
-    "42",
-]  # list of possible sizes of hidden layers with activations for them
-base_params.logging = False  # logging search process to file
-base_params.optimizer = "Adam"  # Optimizer
-
-grid_search_params = GridSearchParameters(base_params)
-grid_search_params.optimizers = ["Adam"]  # list of optimizers
-grid_search_params.losses = ["MeanAbsolutePercentageError"]  # list of loss functions
-grid_search_params.epoch_step = 10  # step between `min_epoch` and `max_epoch`
-
-
-result_loss, result_epoch, result_loss_name, result_optimizer, result_nn = grid_search(
-    grid_search_params
-)
-print(result_nn)
-
-random_search_params = RandomEarlyStoppingSearchParameters(base_params)
-random_search_params.nn_max_length = 3
-random_search_params.nn_alphabet = ["0a", "f8", "42"]
-random_search_params.max_launches = 10
-random_search_params.loss_threshold = 20
-random_search_params.iterations = 1
-random_search_params.loss_function = "MaxAbsolutePercentageError"
 
 (
     result_loss,
     result_epoch,
-    result_loss_name,
-    result_optimizer,
-    result_nn,
-    final_iteration,
-) = random_search_endless(random_search_params)
-print(result_nn)
+    result_loss_func,
+    result_opt,
+    result_net,
+    iterations,
+) = simulated_annealing(
+    data=(train_data_x, train_data_y),
+    params=sa_params,
+    val_data=(x_data, y_data),
+    max_iter=10,
+    threshold=1,
+    verbose=True,
+)
+print(f"SA Result: loss={result_loss}, epochs={result_epoch}, iterations={iterations}")
 
-sim_ann_search_params = SimulatedAnnealingSearchParameters(base_params)
-sim_ann_search_params.loss_function = "Huber"
-sim_ann_search_params.max_launches = 10
-sim_ann_search_params.nn_max_length = 3
-sim_ann_search_params.loss_threshold = 1
-sim_ann_search_params.nn_alphabet = ["0a", "f8", "42"]
-
-(
-    result_loss,
-    result_epoch,
-    result_loss_name,
-    result_optimizer,
-    result_nn,
-    final_iteration,
-) = simulated_annealing(sim_ann_search_params)
-print(result_nn)
+# Expert System Example
 
 selector_tags = ExpertSystemTags()
 selector_tags.equation_type = (
@@ -217,23 +178,55 @@ print("Resulting parameters by expert system for search algorithms")
 for k, v in algorithms_parameters.__dict__.items():
     print(f"{k}: {v}")
 
-# All possible tags:
+# Execute Pipeline
 
-# print(expert_system_tags)
-
-# Takes about 30 sec. in Google colab
-
-result_loss, result_nn = execute_pipeline(
+expert_params = DenseNetParameterSpace(
     input_size=1,
     output_size=1,
+    optimizers=[algorithms_parameters.optimizer],
+    losses=[algorithms_parameters.loss_function],
+    layer_sizes=[8, 16, 32],
+    activation_funcs=["relu", "tanh", "linear"],
+    min_epoch=algorithms_parameters.min_train_epoch,
+    max_epoch=algorithms_parameters.max_train_epoch,
+    nn_min_depth=1,
+    nn_max_depth=4,
+)
+
+(
+    result_loss,
+    result_epoch,
+    result_loss_func,
+    result_optimizer,
+    result_nn,
+) = execute_pipeline(
     data=(train_data_x, train_data_y),
-    parameters=algorithms_parameters,
+    params=expert_params,
+    parameters={
+        "launch_count_random_search": algorithms_parameters.launch_count_random_search,
+        "launch_count_simulated_annealing": algorithms_parameters.launch_count_simulated_annealing,
+        "iteration_count": algorithms_parameters.iteration_count,
+        "loss_threshold": algorithms_parameters.metric_threshold,
+    },
+    val_data=(x_data, y_data),
+    run_grid_search=False,
 )
 print("Resulting loss value =", result_loss)
 print("Resulting network:")
 print(result_nn)
 
-model_from_expert_system = IModel(1, [], 1)
+# Restore model from dict and plot
+
+model_from_expert_system_config = DenseNetConfig(
+    layer_sizes=result_nn["layer_sizes"],
+    activation_funcs=result_nn["activation_funcs"],
+    input_size=result_nn["input_size"],
+    output_size=result_nn["output_size"],
+)
+model_from_expert_system = IModel(
+    config=model_from_expert_system_config,
+    net_type=result_nn["net_type"],
+)
 model_from_expert_system.from_dict(result_nn)  # restore model from dict
 
 indices = []

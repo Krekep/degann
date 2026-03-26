@@ -20,6 +20,14 @@ class NetConfig(ABC):
 
     @property
     @abstractmethod
+    def get_activation_funcs(self) -> Any:
+        """
+        Get activation functions of the network configuration.
+        """
+        pass
+
+    @property
+    @abstractmethod
     def get_input_size(self) -> Any:
         """
         Get the input size of the network.

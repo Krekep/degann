@@ -22,8 +22,8 @@ class TensorflowDenseNet(tf.keras.Model):
     ):
         self.config = config
         self.name = ""
-        block_size = config.block_size
-        activation_func = config.activation_func
+        layer_sizes = config.layer_sizes
+        activation_funcs = config.activation_funcs
         input_size = config.input_size
         output_size = config.output_size
 
@@ -40,26 +40,26 @@ class TensorflowDenseNet(tf.keras.Model):
             and decorator_params[0] is None
             or decorator_params is None
         ):
-            decorator_params = [None] * (len(block_size) + 1)
+            decorator_params = [None] * (len(layer_sizes) + 1)
 
         if (
             isinstance(decorator_params, list)
             and len(decorator_params) == 1
             and decorator_params[0] is not None
         ):
-            decorator_params = decorator_params * (len(block_size) + 1)
+            decorator_params = decorator_params * (len(layer_sizes) + 1)
 
         super(TensorflowDenseNet, self).__init__(**kwargs)
         self.blocks: List[TensorflowDense] = []
 
-        if not isinstance(activation_func, list):
-            activation_func = [activation_func] * (len(block_size) + 1)
-        if len(block_size) != 0:
+        if not isinstance(activation_funcs, list):
+            activation_funcs = [activation_funcs] * (len(layer_sizes) + 1)
+        if len(layer_sizes) != 0:
             self.blocks.append(
                 layer_creator.create_dense(
                     input_size,
-                    block_size[0],
-                    activation=activation_func[0],
+                    layer_sizes[0],
+                    activation=activation_funcs[0],
                     weight=weight,
                     bias=biases,
                     is_debug=is_debug,
@@ -67,12 +67,12 @@ class TensorflowDenseNet(tf.keras.Model):
                     decorator_params=decorator_params[0],
                 )
             )
-            for i in range(1, len(block_size)):
+            for i in range(1, len(layer_sizes)):
                 self.blocks.append(
                     layer_creator.create_dense(
-                        block_size[i - 1],
-                        block_size[i],
-                        activation=activation_func[i],
+                        layer_sizes[i - 1],
+                        layer_sizes[i],
+                        activation=activation_funcs[i],
                         weight=weight,
                         bias=biases,
                         is_debug=is_debug,
@@ -80,14 +80,14 @@ class TensorflowDenseNet(tf.keras.Model):
                         decorator_params=decorator_params[i],
                     )
                 )
-            last_block_size = block_size[-1]
+            last_layer_size = layer_sizes[-1]
         else:
-            last_block_size = input_size
+            last_layer_size = input_size
 
         self.out_layer = layer_creator.create_dense(
-            last_block_size,
+            last_layer_size,
             output_size,
-            activation=activation_func[-1],
+            activation=activation_funcs[-1],
             weight=weight,
             bias=biases,
             is_debug=is_debug,
@@ -95,11 +95,11 @@ class TensorflowDenseNet(tf.keras.Model):
             decorator_params=decorator_params[-1],
         )
 
-        self.activation_funcs = activation_func
+        self.activation_funcs = activation_funcs
         self.weight_initializer = weight
         self.bias_initializer = biases
         self.input_size = input_size
-        self.block_size = block_size
+        self.layer_sizes = layer_sizes
         self.output_size = output_size
         self.trained_time = {"train_time": 0.0, "epoch_time": [], "predict_time": 0}
 
@@ -218,7 +218,8 @@ class TensorflowDenseNet(tf.keras.Model):
             "net_type": "DenseNet",
             "name": self.name,
             "input_size": self.input_size,
-            "block_size": self.block_size,
+            "layer_sizes": self.layer_sizes,
+            "activation_funcs": self.activation_funcs,
             "output_size": self.output_size,
             "layer": [],
             "out_layer": self.out_layer.to_dict(),
@@ -233,7 +234,8 @@ class TensorflowDenseNet(tf.keras.Model):
     def from_layers(
         cls,
         input_size: int,
-        block_size: List[int],
+        layer_sizes: List[int],
+        activation_funcs: List[str],
         output_size: int,
         layers: List[TensorflowDense],
         **kwargs,
@@ -243,7 +245,8 @@ class TensorflowDenseNet(tf.keras.Model):
         Parameters
         ----------
         input_size
-        block_size
+        layer_sizes
+        activation_funcs
         output_size
         layers
         kwargs
@@ -252,12 +255,13 @@ class TensorflowDenseNet(tf.keras.Model):
         -------
 
         """
-        res = cls(
+        temp_config = DenseNetConfig(
+            layer_sizes=layer_sizes,
+            activation_funcs=activation_funcs,
             input_size=input_size,
-            block_size=block_size,
             output_size=output_size,
-            **kwargs,
         )
+        res = cls(config=temp_config, **kwargs)
 
         for layer_num in range(len(res.blocks)):
             res.blocks[layer_num] = layers[layer_num]
@@ -277,12 +281,14 @@ class TensorflowDenseNet(tf.keras.Model):
 
         """
         input_size = config["input_size"]
-        block_size = config["block_size"]
+        layer_sizes = config["layer_sizes"]
         output_size = config["output_size"]
+        activation_funcs = config["activation_funcs"]
 
-        self.block_size = list(block_size)
+        self.layer_sizes = list(layer_sizes)
         self.input_size = input_size
         self.output_size = output_size
+        self.activation_funcs = activation_funcs
 
         layers: List[TensorflowDense] = []
         for layer_config in config["layer"]:
@@ -332,7 +338,7 @@ class TensorflowDenseNet(tf.keras.Model):
 
         input_size = self.input_size
         output_size = self.output_size
-        blocks = self.block_size
+        blocks = self.layer_sizes
         reverse = False
         layers = config["layer"] + [config["out_layer"]]
         if vectorized_level == "auto":

@@ -11,7 +11,6 @@ from degann.expert.tags import (
 from degann.networks import IModel
 from degann.networks.topology.DenseNet.config import DenseNetConfig
 from degann.networks.topology.DenseNet.parameter_space import DenseNetParameterSpace
-from degann.search_algorithms.nn_code import default_alphabet
 
 
 @pytest.fixture
@@ -47,16 +46,20 @@ def test_expert_system(equation_data):
     train_data = equation_data[0]
     validation_data = equation_data[1]
 
+    layer_sizes = [10, 5, 15]
+    activations = ["tanh", "sigmoid", "relu"]
+
     base_params = DenseNetParameterSpace(
         input_size=1,
         output_size=1,
         optimizers=["Adam"],
         losses=["MaxAbsoluteDeviation"],
+        layer_sizes=layer_sizes,
+        activation_funcs=activations,
         min_epoch=10,
         max_epoch=10,
-        nn_min_length=3,
-        nn_max_length=3,
-        nn_alphabet=["20", "10", "08"],
+        nn_min_depth=3,
+        nn_max_depth=3,
     )
     base_config, epoch = next(base_params.iter_configs())
     nn_base = IModel(base_config, net_type="DenseNet")
@@ -72,33 +75,33 @@ def test_expert_system(equation_data):
     algorithms_parameters = suggest_parameters(tags=selector_tags)
     algorithms_parameters.loss_function = "MaxAbsoluteDeviation"
 
-    nn_min_length = 1
-    nn_max_length = 4
-    nn_alphabet = default_alphabet
+    nn_min_depth = 2
+    nn_max_depth = 4
 
     if selector_tags.equation_type in [
         EquationType.SIN,
         EquationType.MULTIDIM,
         EquationType.UNKNOWN,
     ]:
-        nn_max_length += 1
+        nn_max_depth += 1
 
     if selector_tags.predict_time == ModelPredictTime.SHORT:
-        nn_max_length = max(nn_min_length, nn_max_length - 1)
-        nn_min_length = max(1, nn_min_length - 1)
+        nn_max_depth = max(nn_min_depth, nn_max_depth - 1)
+        nn_min_depth = max(1, nn_min_depth - 1)
     elif selector_tags.predict_time == ModelPredictTime.LONG:
-        nn_max_length += 1
+        nn_max_depth += 1
 
     expert_params = DenseNetParameterSpace(
         input_size=1,
         output_size=1,
         optimizers=[algorithms_parameters.optimizer],
         losses=[algorithms_parameters.loss_function],
+        layer_sizes=layer_sizes,
+        activation_funcs=activations,
         min_epoch=algorithms_parameters.min_train_epoch,
         max_epoch=algorithms_parameters.max_train_epoch,
-        nn_min_length=nn_min_length,
-        nn_max_length=nn_max_length,
-        nn_alphabet=nn_alphabet,
+        nn_min_depth=nn_min_depth,
+        nn_max_depth=nn_max_depth,
     )
 
     (
@@ -113,7 +116,7 @@ def test_expert_system(equation_data):
         parameters={
             "launch_count_random_search": algorithms_parameters.launch_count_random_search,
             "launch_count_simulated_annealing": algorithms_parameters.launch_count_simulated_annealing,
-            "iteration_count": algorithms_parameters.iteration_count,
+            "iteration_count": 10,
             "loss_threshold": algorithms_parameters.metric_threshold,
         },
         val_data=validation_data,
@@ -121,10 +124,8 @@ def test_expert_system(equation_data):
     )
 
     config = DenseNetConfig(
-        block_size=result_nn["block_size"],
-        activation_func=result_nn.get(
-            "activation_func", ["tanh"] * (len(result_nn["block_size"]) + 1)
-        ),
+        layer_sizes=result_nn["layer_sizes"],
+        activation_funcs=result_nn["activation_funcs"],
         optimizer=result_opt,
         loss_func=result_loss_func,
         input_size=result_nn["input_size"],

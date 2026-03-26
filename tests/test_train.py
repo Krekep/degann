@@ -39,8 +39,8 @@ def test_densenet_predict(
     config = DenseNetConfig(
         input_size=shape[0],
         output_size=out_size,
-        block_size=shape[1],
-        activation_func=activation_list,
+        layer_sizes=shape[1],
+        activation_funcs=activation_list,
     )
     nn = IModel(config=config, net_type="DenseNet")
     nn.compile(optimizer="Adam", loss_func="MaxAbsoluteDeviation")

@@ -101,11 +101,9 @@ def test_densenet_predict(inp, shape, act_init, w_init, b_init, out_size, expect
     config = DenseNetConfig(
         input_size=shape[0],
         output_size=out_size,
-        block_size=shape[1],
-        activation_func=[act_init] * (len(shape[1]) + 1) if shape[1] else [act_init],
+        layer_sizes=shape[1],
+        activation_funcs=[act_init] * (len(shape[1]) + 1) if shape[1] else [act_init],
     )
-
-    model = IModel(config=config, net_type="DenseNet")
 
     nn = TensorflowDenseNet(
         config=config,

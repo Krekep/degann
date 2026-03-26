@@ -32,8 +32,8 @@ def test_predict_is_same(inp, shape, act_init, decorator_params, folder_path):
     config = DenseNetConfig(
         input_size=shape[0],
         output_size=shape[2],
-        block_size=shape[1],
-        activation_func=activation_list,
+        layer_sizes=shape[1],
+        activation_funcs=activation_list,
     )
 
     nn = IModel(config=config, net_type="DenseNet")
@@ -63,8 +63,8 @@ def test_file_is_same(inp, shape, folder_path):
     config = DenseNetConfig(
         input_size=shape[0],
         output_size=shape[2],
-        block_size=shape[1],
-        activation_func=["tanh"] * len(shape[1]) + ["linear"],
+        layer_sizes=shape[1],
+        activation_funcs=["tanh"] * len(shape[1]) + ["linear"],
     )
 
     nn = IModel(config=config, net_type="DenseNet")

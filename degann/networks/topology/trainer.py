@@ -5,15 +5,15 @@ from degann.search_algorithms.utils import update_random_generator, log_to_file
 
 
 def train(
-        config: NetConfig,
-        num_epochs: int,
-        data: tuple,
-        repeat: int = 1,
-        update_gen_cycle: int = 0,
-        val_data: Optional[tuple] = None,
-        logging: bool = False,
-        file_name: str = "",
-        callbacks: Optional[list] = None,
+    config: NetConfig,
+    num_epochs: int,
+    data: tuple,
+    repeat: int = 1,
+    update_gen_cycle: int = 0,
+    val_data: Optional[tuple] = None,
+    logging: bool = False,
+    file_name: str = "",
+    callbacks: Optional[list] = None,
 ) -> Tuple[float, float, dict]:
     """
     Train and evaluate model with given configuration.

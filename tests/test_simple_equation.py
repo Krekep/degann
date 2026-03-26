@@ -87,8 +87,8 @@ def test_build_network_answer(eq_vars, shape, act_init):
     config = DenseNetConfig(
         input_size=shape[0],
         output_size=shape[2],
-        block_size=shape[1],
-        activation_func=[act_init] * (len(shape[1]) + 1),
+        layer_sizes=shape[1],
+        activation_funcs=[act_init] * (len(shape[1]) + 1),
     )
 
     model = IModel(config=config, net_type="DenseNet")

@@ -1,17 +1,12 @@
 from datetime import datetime
-from itertools import product
 from random import randint
 
 import numpy as np
 
 from degann.search_algorithms import grid_search
-from degann.search_algorithms.nn_code import (
-    alphabet_activations_cut,
-    alph_n_div3,
-)
+from degann.networks.topology.DenseNet.parameter_space import DenseNetParameterSpace
 
 from experiments.functions import LH_ODE_1_solution
-
 
 #
 # Prepare data for training. Equation is `sin(10 * x)`
@@ -34,12 +29,15 @@ nn_data_y = nn_data_y[train_idx, :]  # Y data
 # To complete the work faster, we will not go through all the variants,
 # but truncated ones by three
 #
-# all_variants = ["".join(elem) for elem in product(alph_n_full, alphabet_activations_cut)]
-div3_variants = [
-    "".join(elem) for elem in product(alph_n_div3, alphabet_activations_cut)
-]
+layer_sizes = [8, 11, 14, 17, 20]  # [CHANGED] вместо alph_n_div3
+activation_funcs = [
+    "linear",
+    "relu",
+    "tanh",
+    "sigmoid",
+]  # [CHANGED] вместо alphabet_activations_cut
 print(file_name)
-print(len(div3_variants))
+print(f"Layer sizes: {len(layer_sizes)}, Activations: {len(activation_funcs)}")
 
 opt = "Adam"  # optimizer
 loss = "MaxAbsoluteDeviation"  # loss function
@@ -47,28 +45,26 @@ loss = "MaxAbsoluteDeviation"  # loss function
 #
 # Start full search over specified parameters
 #
-
-base_params = BaseSearchParameters()
-base_params.input_size = 1  # size of input data (x)
-base_params.output_size = 1  # size of output data (y)
-base_params.data = (nn_data_x, nn_data_y)  # dataset
-base_params.min_epoch = num_epoch  # starting number of epochs
-base_params.max_epoch = num_epoch  # final number of epochs
-base_params.nn_min_length = 1  # starting number of hidden layers of neural networks
-base_params.nn_max_length = 4  # final number of hidden layers of neural networks
-base_params.nn_alphabet = (
-    div3_variants  # list of possible sizes of hidden layers with activations for them
+params = DenseNetParameterSpace(
+    input_size=1,
+    output_size=1,
+    optimizers=[opt],
+    losses=[loss],
+    layer_sizes=layer_sizes,
+    activation_funcs=activation_funcs,
+    min_epoch=num_epoch,
+    max_epoch=num_epoch,
+    epoch_step=10,
+    nn_min_depth=1,
+    nn_max_depth=4,
 )
-base_params.logging = True  # logging search process to file
-base_params.file_name = "full_search_example"  # file for logging
-
-grid_search_params = GridSearchParameters(base_params)
-grid_search_params.optimizers = [opt]  # list of optimizers
-grid_search_params.losses = [loss]  # list of loss functions
-grid_search_params.epoch_step = 10  # step between `min_epoch` and `max_epoch`
 
 grid_search(
-    grid_search_params,
-    verbose=True,  # print additional information to console during the searching
+    data=(nn_data_x, nn_data_y),
+    params=params,
+    val_data=(val_data_x, val_data_y),
+    logging=True,
+    file_name="full_search_example",
+    verbose=True,
 )
 print("END 1, 4", datetime.today().strftime("%Y-%m-%d %H:%M:%S"))

@@ -46,11 +46,12 @@ def test_grid_search(equation_data):
         output_size=1,
         optimizers=["Adam"],
         losses=["MeanSquaredError"],
+        layer_sizes=[5],
+        activation_funcs=["relu"],
         min_epoch=5,
         max_epoch=5,
-        nn_min_length=1,
-        nn_max_length=1,
-        nn_alphabet=["0a"],
+        nn_min_depth=1,
+        nn_max_depth=1,
     )
 
     result = grid_search(
@@ -76,11 +77,12 @@ def test_random_search(equation_data):
         output_size=1,
         optimizers=["Adam"],
         losses=["MeanSquaredError"],
+        layer_sizes=[5, 10],
+        activation_funcs=["sigmoid", "relu"],
         min_epoch=5,
         max_epoch=5,
-        nn_min_length=1,
-        nn_max_length=2,
-        nn_alphabet=["0a", "f8"],
+        nn_min_depth=1,
+        nn_max_depth=2,
     )
 
     result = random_search(
@@ -107,11 +109,12 @@ def test_simulated_annealing(equation_data):
         output_size=1,
         optimizers=["Adam"],
         losses=["MeanSquaredError"],
+        layer_sizes=[5, 10],
+        activation_funcs=["sigmoid", "relu"],
         min_epoch=5,
         max_epoch=5,
-        nn_min_length=1,
-        nn_max_length=2,
-        nn_alphabet=["0a", "f8"],
+        nn_min_depth=1,
+        nn_max_depth=2,
     )
 
     result = simulated_annealing(

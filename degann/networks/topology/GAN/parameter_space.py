@@ -98,8 +98,8 @@ class GANParameterSpace(ParameterSpace):
 
                             for epoch in self.epochs:
                                 gen_config = DenseNetConfig(
-                                    block_size=gen_bs,
-                                    activation_func=gen_activation_funcs,
+                                    layer_sizes=gen_bs,
+                                    activation_funcs=gen_activation_funcs,
                                     optimizer=gen_opt,
                                     loss_func=gen_lf,
                                     input_size=self.gen_input_size,
@@ -107,8 +107,8 @@ class GANParameterSpace(ParameterSpace):
                                 )
 
                                 disc_config = DenseNetConfig(
-                                    block_size=disc_bs,
-                                    activation_func=disc_activation_funcs,
+                                    layer_sizes=disc_bs,
+                                    activation_funcs=disc_activation_funcs,
                                     optimizer=disc_opt,
                                     loss_func=disc_lf,
                                     input_size=self.gen_input_size
@@ -151,8 +151,8 @@ class GANParameterSpace(ParameterSpace):
         epoch = random.choice(self.epochs)
 
         gen_config = DenseNetConfig(
-            block_size=gen_block_sizes,
-            activation_func=gen_activation_funcs,
+            layer_sizes=gen_block_sizes,
+            activation_funcs=gen_activation_funcs,
             optimizer=random.choice(self.gen_optimizers),
             loss_func=random.choice(self.gen_loss_funcs),
             input_size=self.gen_input_size,
@@ -160,8 +160,8 @@ class GANParameterSpace(ParameterSpace):
         )
 
         disc_config = DenseNetConfig(
-            block_size=disc_block_sizes,
-            activation_func=disc_activation_funcs,
+            layer_sizes=disc_block_sizes,
+            activation_funcs=disc_activation_funcs,
             optimizer=random.choice(self.disc_optimizers),
             loss_func=random.choice(self.disc_loss_funcs),
             input_size=self.gen_input_size + self.gen_output_size,
@@ -200,33 +200,33 @@ class GANParameterSpace(ParameterSpace):
         mutation_prob = min(0.5, distance / 100.0)
 
         new_gen_block_sizes = mutate_block_sizes(
-            block_sizes=config.gen_config.block_size,
+            block_sizes=config.gen_config.layer_sizes,
             layer_sizes=self.gen_layer_sizes,
             min_depth=self.gen_min_depth,
             max_depth=self.gen_max_depth,
             mutation_prob=mutation_prob,
         )
         new_gen_activations = mutate_activations(
-            activations=config.gen_config.activation_func[:-1]
-            + [config.gen_config.activation_func[-1]],
+            activations=config.gen_config.activation_funcs[:-1]
+            + [config.gen_config.activation_funcs[-1]],
             all_activations=self.gen_activation_funcs,
             mutation_prob=mutation_prob,
         )
 
         if len(new_gen_activations) > 1:
-            new_gen_activations[-1] = config.gen_config.activation_func[-1]
+            new_gen_activations[-1] = config.gen_config.activation_funcs[-1]
         else:
-            new_gen_activations = [config.gen_config.activation_func[-1]]
+            new_gen_activations = [config.gen_config.activation_funcs[-1]]
 
         new_disc_block_sizes = mutate_block_sizes(
-            block_sizes=config.disc_config.block_size,
+            block_sizes=config.disc_config.layer_sizes,
             layer_sizes=self.disc_layer_sizes,
             min_depth=self.disc_min_depth,
             max_depth=self.disc_max_depth,
             mutation_prob=mutation_prob,
         )
         new_disc_activations = mutate_activations(
-            activations=config.disc_config.activation_func[:-1] + ["linear"],
+            activations=config.disc_config.activation_funcs[:-1] + ["linear"],
             all_activations=self.disc_activation_funcs,
             mutation_prob=mutation_prob,
         )
@@ -254,8 +254,8 @@ class GANParameterSpace(ParameterSpace):
             new_num_epoch = random.choice(self.epochs)
 
         new_gen_config = DenseNetConfig(
-            block_size=new_gen_block_sizes,
-            activation_func=new_gen_activations,
+            layer_sizes=new_gen_block_sizes,
+            activation_funcs=new_gen_activations,
             optimizer=new_gen_optimizer,
             loss_func=new_gen_loss_func,
             input_size=config.gen_config.input_size,
@@ -263,8 +263,8 @@ class GANParameterSpace(ParameterSpace):
         )
 
         new_disc_config = DenseNetConfig(
-            block_size=new_disc_block_sizes,
-            activation_func=new_disc_activations,
+            layer_sizes=new_disc_block_sizes,
+            activation_funcs=new_disc_activations,
             optimizer=new_disc_optimizer,
             loss_func=new_disc_loss_func,
             input_size=config.disc_config.input_size,

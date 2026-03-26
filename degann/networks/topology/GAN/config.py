@@ -28,6 +28,13 @@ class GANConfig(NetConfig):
         return self.gen_config.get_shape, self.disc_config.get_shape
 
     @property
+    def get_activation_funcs(self) -> Tuple[List[str], List[str]]:
+        return (
+            self.gen_config.get_activation_funcs,
+            self.disc_config.get_activation_funcs,
+        )
+
+    @property
     def get_input_size(self) -> Tuple[int, int]:
         return self.gen_config.get_input_size, self.disc_config.get_input_size
 
