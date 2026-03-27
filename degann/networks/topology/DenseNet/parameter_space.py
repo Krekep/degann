@@ -19,9 +19,7 @@ class DenseNetParameterSpace(ParameterSpace):
         losses: List[str],
         layer_sizes: List[int],
         activation_funcs: List[str],
-        min_epoch: int = 10,
-        max_epoch: int = 20,
-        epoch_step: int = 1,
+        epochs: List[int],
         nn_min_depth: int = 1,
         nn_max_depth: int = 6,
     ):
@@ -29,9 +27,7 @@ class DenseNetParameterSpace(ParameterSpace):
         self.output_size = output_size
         self.optimizers = optimizers
         self.losses = losses
-        self.min_epoch = min_epoch
-        self.max_epoch = max_epoch
-        self.epoch_step = epoch_step
+        self.epochs = epochs
         self.nn_min_depth = nn_min_depth
         self.nn_max_depth = nn_max_depth
         self.layer_sizes = layer_sizes
@@ -50,9 +46,7 @@ class DenseNetParameterSpace(ParameterSpace):
         for i in range(self.nn_min_depth, self.nn_max_depth + 1):
             for block_sizes in product(self.layer_sizes, repeat=i):
                 for activations in product(self.activation_funcs, repeat=i):
-                    for epoch in range(
-                        self.min_epoch, self.max_epoch + 1, self.epoch_step
-                    ):
+                    for epoch in self.epochs:
                         for opt in self.optimizers:
                             for loss_func in self.losses:
                                 config = DenseNetConfig(
@@ -78,7 +72,7 @@ class DenseNetParameterSpace(ParameterSpace):
         block = random.randint(self.nn_min_depth, self.nn_max_depth)
         block_sizes = [random.choice(self.layer_sizes) for _ in range(block)]
         activation_funcs = [random.choice(self.activation_funcs) for _ in range(block)]
-        epoch = random.randint(self.min_epoch, self.max_epoch)
+        epoch = random.choice(self.epochs)
         opt = random.choice(self.optimizers)
         loss_func = random.choice(self.losses)
         config = DenseNetConfig(
@@ -120,8 +114,8 @@ class DenseNetParameterSpace(ParameterSpace):
             all_activations=self.activation_funcs,
             min_depth=self.nn_min_depth,
             max_depth=self.nn_max_depth,
-            min_epoch=self.min_epoch,
-            max_epoch=self.max_epoch,
+            min_epoch=min(self.epochs),
+            max_epoch=max(self.epochs),
             distance=distance,
         )
 

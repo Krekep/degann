@@ -5,7 +5,7 @@ from degann.expert.tags import (
     ModelPredictTime,
     RequiredModelPrecision,
 )
-from typing import Optional
+from typing import Optional, List
 from degann.search_algorithms.simulated_annealing import *
 
 
@@ -20,8 +20,7 @@ class BaseSamParameters:
 class BaseParameters:
     launch_count_random_search: int = 2
     launch_count_simulated_annealing: int = 2
-    min_train_epoch: int = 200
-    max_train_epoch: int = 500
+    train_epochs: Optional[List[int]] = None
     iteration_count: int = 5
     nn_min_depth: int = 1
     nn_max_depth: int = 10
@@ -59,6 +58,10 @@ def suggest_parameters(
         tags.predict_time = ModelPredictTime.LONG
         tags.data_size = DataSize.AUTO
 
+    base_min_epoch = 200
+    base_max_epoch = 500
+    epoch_step = 100
+
     parameters = BaseParameters()
 
     simulated_annealing_params = BaseSamParameters()
@@ -68,13 +71,11 @@ def suggest_parameters(
         EquationType.MULTIDIM,
         EquationType.UNKNOWN,
     ]:
-        parameters.min_train_epoch *= 2
-        parameters.max_train_epoch = 700
+        base_min_epoch *= 2
+        base_max_epoch = 700
         parameters.nn_max_depth += 1
         parameters.iteration_count += 10
 
-        # simulated_annealing_params["distance_to_neighbor"] = [distance_const(300), distance_lin(50, 400)]
-        # simulated_annealing_params["temperature_reduction_method"] = [temperature_exp(0.95), temperature_exp(0.95)]
         simulated_annealing_params.distance_to_neighbor = distance_lin
         simulated_annealing_params.dist_offset = 50
         simulated_annealing_params.dist_scale = 400
@@ -93,7 +94,7 @@ def suggest_parameters(
     if tags.model_precision == RequiredModelPrecision.MAXIMAL:
         parameters.metric_threshold /= 10
         parameters.iteration_count = int(40 * parameters.iteration_count)
-        parameters.max_train_epoch = 700
+        base_max_epoch = 700
 
     if tags.predict_time == ModelPredictTime.SHORT:
         parameters.nn_max_depth -= 1
@@ -119,22 +120,27 @@ def suggest_parameters(
                 case 3:
                     tags.data_size = DataSize.BIG
     if tags.data_size == DataSize.VERY_SMALL:
-        parameters.min_train_epoch *= 2
-        parameters.max_train_epoch = 700
+        base_min_epoch *= 2
+        base_max_epoch = 700
         parameters.iteration_count += 10
         parameters.launch_count_random_search += 2
         parameters.launch_count_simulated_annealing += 2
     elif tags.data_size == DataSize.SMALL:
-        parameters.min_train_epoch = int(parameters.min_train_epoch * 1.5)
+        base_min_epoch = int(base_min_epoch * 1.5)
         parameters.iteration_count += 10
         parameters.launch_count_random_search += 1
         parameters.launch_count_simulated_annealing += 1
     elif tags.data_size == DataSize.MEDIAN:
-        parameters.min_train_epoch = int(parameters.min_train_epoch * 1.25)
+        base_min_epoch = int(base_min_epoch * 1.25)
         parameters.iteration_count += 10
         parameters.launch_count_random_search += 1
     elif tags.data_size == DataSize.BIG:
         parameters.launch_count_random_search += 1
+
+    if parameters.train_epochs is None:
+        parameters.train_epochs = list(
+            range(base_min_epoch, base_max_epoch + 1, epoch_step)
+        )
 
     def make_distance_func(offset, scale):
         return lambda k, k_max: offset + (scale - offset) * (k / k_max)
@@ -147,7 +153,7 @@ def suggest_parameters(
             simulated_annealing_params.dist_offset,
             simulated_annealing_params.dist_scale,
         )
-    else:  # distance_const
+    else:
         simulated_annealing_params.distance_to_neighbor = (
             lambda k, k_max: simulated_annealing_params.dist_offset
         )
@@ -156,7 +162,7 @@ def suggest_parameters(
         simulated_annealing_params.temperature_reduction_method = make_temp_func(
             simulated_annealing_params.temperature_speed
         )
-    else:  # temperature_lin
+    else:
         simulated_annealing_params.temperature_reduction_method = lambda k, k_max: 1 - (
             k / k_max
         )

@@ -56,8 +56,7 @@ def test_expert_system(equation_data):
         losses=["MaxAbsoluteDeviation"],
         layer_sizes=layer_sizes,
         activation_funcs=activations,
-        min_epoch=10,
-        max_epoch=10,
+        epochs=[10],
         nn_min_depth=3,
         nn_max_depth=3,
     )
@@ -98,8 +97,7 @@ def test_expert_system(equation_data):
         losses=[algorithms_parameters.loss_function],
         layer_sizes=layer_sizes,
         activation_funcs=activations,
-        min_epoch=algorithms_parameters.min_train_epoch,
-        max_epoch=algorithms_parameters.max_train_epoch,
+        epochs=algorithms_parameters.train_epochs,
         nn_min_depth=nn_min_depth,
         nn_max_depth=nn_max_depth,
     )

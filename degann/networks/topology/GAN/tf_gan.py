@@ -4,7 +4,7 @@ from tensorflow import keras
 
 from degann.networks.topology.DenseNet.tf_densenet import TensorflowDenseNet
 from degann.networks.topology.GAN.config import GANConfig
-from degann.networks import losses, metrics, optimizers
+from degann.networks import losses, optimizers
 
 
 class TensorflowGAN(tf.keras.Model):
