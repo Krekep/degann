@@ -1,5 +1,5 @@
 import os
-from typing import List, Optional, Dict, Callable
+from typing import List, Optional, Dict, Callable, Any
 
 import tensorflow as tf
 from tensorflow import keras
@@ -202,30 +202,26 @@ class TensorflowDenseNet(tf.keras.Model):
         res += str(self.out_layer)
         return res
 
-    def to_dict(self, **kwargs):
+    def to_dict(self, **kwargs) -> Dict[str, Any]:
         """
         Export neural network to dictionary
-
-        Parameters
-        ----------
-        kwargs
-
-        Returns
-        -------
-
         """
         res = {
             "net_type": "DenseNet",
+            "config": {
+                "layer_sizes": self.layer_sizes,
+                "activation_funcs": self.activation_funcs,
+                "optimizer": self.config.get_optimizer,
+                "loss_func": self.config.get_loss_func,
+                "input_size": self.input_size,
+                "output_size": self.output_size,
+            },
             "name": self.name,
-            "input_size": self.input_size,
-            "layer_sizes": self.layer_sizes,
-            "activation_funcs": self.activation_funcs,
-            "output_size": self.output_size,
             "layer": [],
             "out_layer": self.out_layer.to_dict(),
         }
 
-        for i, layer in enumerate(self.blocks):
+        for layer in self.blocks:
             res["layer"].append(layer.to_dict())
 
         return res
@@ -268,37 +264,34 @@ class TensorflowDenseNet(tf.keras.Model):
 
         return res
 
-    def from_dict(self, config, **kwargs):
+    @classmethod
+    def from_dict(cls, config_dict: Dict[str, Any], **kwargs):
         """
-        Restore neural network from dictionary of params
+        Create neural network instance from dictionary of params.
+
         Parameters
         ----------
-        config
-        kwargs
+        config_dict : Dict[str, Any]
+            Dictionary with network parameters.
 
         Returns
         -------
-
+        TensorflowDenseNet
+            New instance of the network.
         """
-        input_size = config["input_size"]
-        layer_sizes = config["layer_sizes"]
-        output_size = config["output_size"]
-        activation_funcs = config["activation_funcs"]
 
-        self.layer_sizes = list(layer_sizes)
-        self.input_size = input_size
-        self.output_size = output_size
-        self.activation_funcs = activation_funcs
+        config = DenseNetConfig.from_dict(config_dict["config"])
+        instance = cls(config=config, **kwargs)
 
         layers: List[TensorflowDense] = []
-        for layer_config in config["layer"]:
+        for layer_config in config_dict["layer"]:
             layers.append(layer_creator.from_dict(layer_config))
 
-        self.blocks: List[TensorflowDense] = []
-        for layer_num in range(len(layers)):
-            self.blocks.append(layers[layer_num])
+        instance.blocks = layers
+        instance.out_layer = layer_creator.from_dict(config_dict["out_layer"])
+        instance.name = config_dict["name"]
 
-        self.out_layer = layer_creator.from_dict(config["out_layer"])
+        return instance
 
     def export_to_cpp(
         self,

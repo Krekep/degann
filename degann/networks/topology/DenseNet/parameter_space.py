@@ -59,11 +59,11 @@ class DenseNetParameterSpace(ParameterSpace):
                                 )
                                 yield config, epoch
 
-    def get_random_config(self) -> Tuple[DenseNetConfig, int]:
+    def get_random_config(self) -> Iterator[Tuple[DenseNetConfig, int]]:
         """
         Creates random configuration.
 
-        Returns
+        Yields
         -------
         Tuple[DenseNetConfig, int]
             Random configuration and number of epochs.
@@ -83,11 +83,11 @@ class DenseNetParameterSpace(ParameterSpace):
             input_size=self.input_size,
             output_size=self.output_size,
         )
-        return config, epoch
+        yield config, epoch
 
     def generate_neighbour_config(
         self, config: DenseNetConfig, num_epochs: int, distance: float
-    ) -> Tuple[DenseNetConfig, int]:
+    ) -> Iterator[Tuple[DenseNetConfig, int]]:
         """
         Generate neighbour configuration based on distance value.
 
@@ -100,7 +100,7 @@ class DenseNetParameterSpace(ParameterSpace):
         distance: float
             Distance for generating neighbour configuration.
 
-        Returns
+        Yields
         -------
         Tuple[DenseNetConfig, int]
             Neighbour configuration and number of epochs.
@@ -127,4 +127,4 @@ class DenseNetParameterSpace(ParameterSpace):
             input_size=config.input_size,
             output_size=config.output_size,
         )
-        return neighbour_config, new_epochs
+        yield neighbour_config, new_epochs

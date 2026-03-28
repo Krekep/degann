@@ -78,7 +78,7 @@ def simulated_annealing(
         distance_method = distance_const(150)
 
     if start_config is None:
-        curr_config, curr_epochs = params.get_random_config()
+        curr_config, curr_epochs = next(params.get_random_config())
     else:
         curr_config = copy.deepcopy(start_config)
         if start_epochs == 0:
@@ -114,8 +114,8 @@ def simulated_annealing(
         t = temperature_method(k=k, k_max=max_iter, t=t)
         distance = distance_method(temperature=t)
 
-        neighbour_config, neighbour_epochs = params.generate_neighbour_config(
-            curr_config, curr_epochs, distance
+        neighbour_config, neighbour_epochs = next(
+            params.generate_neighbour_config(curr_config, curr_epochs, distance)
         )
 
         neighbour_result = train(

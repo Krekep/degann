@@ -5,7 +5,7 @@ from typing import Tuple, Any, Iterator, Dict
 class NetConfig(ABC):
     """
     Abstract base class for neural network configuration.
-    Defines the interface that all config classes must implement.
+    Defines the interface that all configuration classes must implement.
     """
 
     net_type: str
@@ -95,7 +95,7 @@ class ParameterSpace(ABC):
         pass
 
     @abstractmethod
-    def get_random_config(self) -> Tuple[NetConfig, int]:
+    def get_random_config(self) -> Iterator[Tuple[NetConfig, int]]:
         """
         Abstract method that creates and returns a random config.
         """
@@ -104,7 +104,7 @@ class ParameterSpace(ABC):
     @abstractmethod
     def generate_neighbour_config(
         self, config: NetConfig, num_epochs: int, distance: float
-    ) -> NetConfig:
+    ) -> Iterator[Tuple[NetConfig, int]]:
         """
         Abstract method that generates neighbour config.
         """

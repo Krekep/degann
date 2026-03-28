@@ -122,12 +122,12 @@ def test_expert_system(equation_data):
     )
 
     config = DenseNetConfig(
-        layer_sizes=result_nn["layer_sizes"],
-        activation_funcs=result_nn["activation_funcs"],
+        layer_sizes=result_nn["config"]["layer_sizes"],
+        activation_funcs=result_nn["config"]["activation_funcs"],
         optimizer=result_opt,
         loss_func=result_loss_func,
-        input_size=result_nn["input_size"],
-        output_size=result_nn["output_size"],
+        input_size=result_nn["config"]["input_size"],
+        output_size=result_nn["config"]["output_size"],
     )
     model_from_expert_system = IModel(config=config, net_type=result_nn["net_type"])
     model_from_expert_system.from_dict(result_nn)

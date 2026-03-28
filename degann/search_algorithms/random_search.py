@@ -67,7 +67,7 @@ def random_search(
                 datetime.today().strftime("%Y-%m-%d %H:%M:%S"),
             )
 
-        config, epoch = params.get_random_config()
+        config, epoch = next(params.get_random_config())
 
         curr_loss, curr_val_loss, curr_nn = train(
             config=config,

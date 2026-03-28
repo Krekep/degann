@@ -10,39 +10,8 @@ from degann.networks.config_format import HEADER_OF_APG_FILE
 from degann.networks.topology.DenseNet.tf_densenet import TensorflowDenseNet
 from degann.networks.topology.GAN.tf_gan import TensorflowGAN
 from degann.networks.topology.abstracts import NetConfig
-
-
-def _get_act_and_init(
-    kwargs: dict,
-    default_act,
-    default_dec: Optional[List[Optional[Dict[str, float]]]],
-    default_init,
-):
-    if kwargs.get("activation") is None:
-        activation = default_act
-    else:
-        activation = kwargs["activation"]
-        kwargs.pop("activation")
-
-    if kwargs.get("decorator_params") is None:
-        decorator_params = default_dec
-    else:
-        decorator_params = kwargs["decorator_params"]
-        kwargs.pop("decorator_params")
-
-    if kwargs.get("weight") is None:
-        weight = default_init
-    else:
-        weight = kwargs["weight"]
-        kwargs.pop("weight")
-
-    if kwargs.get("biases") is None:
-        biases = default_init
-    else:
-        biases = kwargs["biases"]
-        kwargs.pop("biases")
-
-    return activation, decorator_params, weight, biases, kwargs
+from degann.networks.topology.DenseNet.config import DenseNetConfig
+from degann.networks.topology.GAN.config import GANConfig
 
 
 class IModel(object):
@@ -206,16 +175,45 @@ class IModel(object):
         with open(path + ".apg", "w") as f:
             f.write(HEADER_OF_APG_FILE + json.dumps(config, indent=2))
 
-    def from_dict(self, config: dict, **kwargs) -> None:
+    @classmethod
+    def from_dict(cls, config: dict, **kwargs):
         """
-        Import neural network from dictionary
-        """
-        self.network.from_dict(config, **kwargs)
-        self._shape = self.network.config.get_shape
+        Create neural network instance from dictionary.
 
-    def from_file(self, path: str, **kwargs) -> None:
+        Parameters
+        ----------
+        config : dict
+            Dictionary with network parameters.
+
+        Returns
+        -------
+        IModel
+            New instance of the network.
         """
-        Import neural network as parameters from file
+        net_type = config["net_type"]
+        name = config["name"]
+
+        config_class = _create_config[net_type]
+        net_config = config_class.from_dict(config["config"])
+
+        instance = cls(config=net_config, net_type=net_type, name=name, **kwargs)
+        instance.network.from_dict(config, **kwargs)
+        return instance
+
+    @classmethod
+    def from_file(cls, path: str, **kwargs):
+        """
+        Create neural network instance from file.
+
+        Parameters
+        ----------
+        path : str
+            Path to file (without extension).
+
+        Returns
+        -------
+        IModel
+            New instance of the network.
         """
         with open(path + ".apg", "r") as f:
             for header in range(HEADER_OF_APG_FILE.count("\n")):
@@ -224,8 +222,7 @@ class IModel(object):
             for line in f:
                 config_str += line
             config = json.loads(config_str)
-            self.network.from_dict(config, **kwargs)
-            self.set_name(config["name"])
+        return cls.from_dict(config, **kwargs)
 
     def set_name(self, name: str) -> None:
         """
@@ -276,3 +273,7 @@ class IModel(object):
 _create_functions = defaultdict(lambda: TensorflowDenseNet)
 _create_functions["DenseNet"] = TensorflowDenseNet
 _create_functions["GAN"] = TensorflowGAN
+
+_create_config = defaultdict(lambda: NetConfig)
+_create_config["DenseNet"] = DenseNetConfig
+_create_config["GAN"] = GANConfig

@@ -96,11 +96,11 @@ class GANParameterSpace(ParameterSpace):
                     )
                     yield config, epoch
 
-    def get_random_config(self) -> Tuple[GANConfig, int]:
+    def get_random_config(self) -> Iterator[Tuple[GANConfig, int]]:
         """
         Creates random configuration.
 
-        Returns
+        Yields
         -------
         Tuple[GANConfig, int]
             Random configuration and number of epochs.
@@ -134,14 +134,14 @@ class GANParameterSpace(ParameterSpace):
             gen_config=gen_config,
             disc_config=disc_config,
         )
-        return config, epoch
+        yield config, epoch
 
     def generate_neighbour_config(
         self,
         config: GANConfig,
         num_epochs: int,
         distance: float,
-    ) -> Tuple[GANConfig, int]:
+    ) -> Iterator[Tuple[GANConfig, int]]:
         """
         Generate a neighbour configuration for GANConfig.
 
@@ -152,9 +152,9 @@ class GANParameterSpace(ParameterSpace):
         num_epochs: int
             Number of epochs.
         distance: float
-            A proxy for mutation strength (higher -> more changes).
+            A proxy for mutation strength.
 
-        Returns
+        Yields
         -------
         Tuple[GANConfig, int]
             New neighbour configuration and number of epochs.
@@ -195,4 +195,4 @@ class GANParameterSpace(ParameterSpace):
             disc_config=new_disc_config,
         )
 
-        return neighbour_config, new_epoch
+        yield neighbour_config, new_epoch

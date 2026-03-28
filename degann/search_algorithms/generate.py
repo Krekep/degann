@@ -91,36 +91,3 @@ def generate_neighbour(
         new_layers[idx] = random.choice(all_layers)
 
     return new_layers, new_activations, new_epochs
-
-
-def mutate_block_sizes(
-    block_sizes: List[int],
-    layer_sizes: List[int],
-    min_depth: int,
-    max_depth: int,
-    mutation_prob: float = 0.3,
-) -> List[int]:
-    new_blocks = block_sizes.copy()
-
-    if random.random() < mutation_prob:
-        if len(new_blocks) < max_depth and random.random() < 0.5:
-            new_blocks.append(random.choice(layer_sizes))
-        elif len(new_blocks) > min_depth:
-            new_blocks.pop()
-
-    for i in range(len(new_blocks)):
-        if random.random() < mutation_prob:
-            new_blocks[i] = random.choice(layer_sizes)
-    return new_blocks
-
-
-def mutate_activations(
-    activations: List[str],
-    all_activations: List[str],
-    mutation_prob: float = 0.3,
-) -> List[str]:
-    new_activations = activations.copy()
-    for i in range(len(new_activations) - 1):
-        if random.random() < mutation_prob:
-            new_activations[i] = random.choice(all_activations)
-    return new_activations
