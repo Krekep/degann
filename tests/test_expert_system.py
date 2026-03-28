@@ -114,7 +114,7 @@ def test_expert_system(equation_data):
         parameters={
             "launch_count_random_search": algorithms_parameters.launch_count_random_search,
             "launch_count_simulated_annealing": algorithms_parameters.launch_count_simulated_annealing,
-            "iteration_count": 10,
+            "iteration_count": algorithms_parameters.iteration_count,
             "loss_threshold": algorithms_parameters.metric_threshold,
         },
         val_data=validation_data,
