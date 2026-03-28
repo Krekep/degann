@@ -5,7 +5,7 @@ from degann.expert.tags import (
     ModelPredictTime,
     RequiredModelPrecision,
 )
-from typing import Optional, List
+from typing import List
 from degann.search_algorithms.simulated_annealing import *
 
 
@@ -63,7 +63,6 @@ def suggest_parameters(
     epoch_step = 100
 
     parameters = BaseParameters()
-
     simulated_annealing_params = BaseSamParameters()
 
     if tags.equation_type in [
@@ -74,6 +73,7 @@ def suggest_parameters(
         base_min_epoch *= 2
         base_max_epoch = 700
         parameters.nn_max_depth += 1
+        parameters.nn_min_depth = max(parameters.nn_min_depth, 3)
         parameters.iteration_count += 10
 
         simulated_annealing_params.distance_to_neighbor = distance_lin
@@ -89,18 +89,24 @@ def suggest_parameters(
 
     if tags.model_precision == RequiredModelPrecision.MINIMAL:
         parameters.metric_threshold *= 2
+        parameters.nn_min_depth = 1
     if tags.model_precision == RequiredModelPrecision.MEDIAN:
-        parameters.iteration_count = int(10 * parameters.iteration_count)
+        parameters.iteration_count += 20
+        parameters.nn_min_depth = max(parameters.nn_min_depth, 3)
     if tags.model_precision == RequiredModelPrecision.MAXIMAL:
         parameters.metric_threshold /= 10
-        parameters.iteration_count = int(40 * parameters.iteration_count)
+        parameters.iteration_count += 50
+        parameters.nn_min_depth = max(parameters.nn_min_depth, 5)
         base_max_epoch = 700
 
     if tags.predict_time == ModelPredictTime.SHORT:
-        parameters.nn_max_depth -= 1
-        parameters.nn_min_depth -= 1
+        parameters.nn_min_depth = 1
+        parameters.nn_max_depth = max(
+            parameters.nn_min_depth, parameters.nn_max_depth - 1
+        )
     elif tags.predict_time == ModelPredictTime.LONG:
         parameters.nn_max_depth += 1
+        parameters.nn_min_depth = max(parameters.nn_min_depth, 5)
 
     if tags.data_size == DataSize.AUTO:
         if data is None:
@@ -125,17 +131,20 @@ def suggest_parameters(
         parameters.iteration_count += 10
         parameters.launch_count_random_search += 2
         parameters.launch_count_simulated_annealing += 2
+        parameters.nn_min_depth = max(parameters.nn_min_depth, 2)
     elif tags.data_size == DataSize.SMALL:
         base_min_epoch = int(base_min_epoch * 1.5)
         parameters.iteration_count += 10
         parameters.launch_count_random_search += 1
         parameters.launch_count_simulated_annealing += 1
+        parameters.nn_min_depth = max(parameters.nn_min_depth, 3)
     elif tags.data_size == DataSize.MEDIAN:
         base_min_epoch = int(base_min_epoch * 1.25)
         parameters.iteration_count += 10
         parameters.launch_count_random_search += 1
     elif tags.data_size == DataSize.BIG:
         parameters.launch_count_random_search += 1
+        parameters.nn_min_depth = max(parameters.nn_min_depth, 5)
 
     if parameters.train_epochs is None:
         parameters.train_epochs = list(

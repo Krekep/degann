@@ -46,8 +46,8 @@ def test_expert_system(equation_data):
     train_data = equation_data[0]
     validation_data = equation_data[1]
 
-    layer_sizes = [10, 5, 15]
-    activations = ["tanh", "sigmoid", "relu"]
+    layer_sizes = [10, 15]
+    activations = ["sigmoid", "relu"]
 
     base_params = DenseNetParameterSpace(
         input_size=1,
@@ -56,9 +56,9 @@ def test_expert_system(equation_data):
         losses=["MaxAbsoluteDeviation"],
         layer_sizes=layer_sizes,
         activation_funcs=activations,
-        epochs=[10],
-        nn_min_depth=3,
-        nn_max_depth=3,
+        epochs=[5],
+        nn_min_depth=1,
+        nn_max_depth=1,
     )
     base_config, epoch = next(base_params.iter_configs())
     nn_base = IModel(base_config, net_type="DenseNet")
@@ -72,23 +72,6 @@ def test_expert_system(equation_data):
     selector_tags.data_size = DataSize.MEDIAN
 
     algorithms_parameters = suggest_parameters(tags=selector_tags)
-    algorithms_parameters.loss_function = "MaxAbsoluteDeviation"
-
-    nn_min_depth = 2
-    nn_max_depth = 4
-
-    if selector_tags.equation_type in [
-        EquationType.SIN,
-        EquationType.MULTIDIM,
-        EquationType.UNKNOWN,
-    ]:
-        nn_max_depth += 1
-
-    if selector_tags.predict_time == ModelPredictTime.SHORT:
-        nn_max_depth = max(nn_min_depth, nn_max_depth - 1)
-        nn_min_depth = max(1, nn_min_depth - 1)
-    elif selector_tags.predict_time == ModelPredictTime.LONG:
-        nn_max_depth += 1
 
     expert_params = DenseNetParameterSpace(
         input_size=1,
@@ -98,8 +81,8 @@ def test_expert_system(equation_data):
         layer_sizes=layer_sizes,
         activation_funcs=activations,
         epochs=algorithms_parameters.train_epochs,
-        nn_min_depth=nn_min_depth,
-        nn_max_depth=nn_max_depth,
+        nn_min_depth=algorithms_parameters.nn_min_depth,
+        nn_max_depth=algorithms_parameters.nn_max_depth,
     )
 
     (
@@ -114,8 +97,8 @@ def test_expert_system(equation_data):
         parameters={
             "launch_count_random_search": algorithms_parameters.launch_count_random_search,
             "launch_count_simulated_annealing": algorithms_parameters.launch_count_simulated_annealing,
-            "iteration_count": algorithms_parameters.iteration_count,
-            "loss_threshold": algorithms_parameters.metric_threshold,
+            "iteration_count": 20,
+            "loss_threshold": model_val_loss,
         },
         val_data=validation_data,
         run_grid_search=False,

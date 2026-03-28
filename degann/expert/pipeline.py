@@ -1,4 +1,6 @@
 from typing import Optional, Tuple
+
+from degann.networks import IModel
 from degann.search_algorithms import simulated_annealing, grid_search, random_search
 from degann.networks.topology.abstracts import ParameterSpace
 
@@ -32,7 +34,7 @@ def execute_pipeline(
     search_result: tuple[float, int, str, str, dict]
         Loss value, epochs, loss function, optimizer, and resulting neural network
     """
-    threshold = parameters.get("loss_threshold", 1.0)
+    threshold = parameters["loss_threshold"]
 
     for i in range(parameters["launch_count_random_search"]):
         result = random_search(
@@ -40,11 +42,18 @@ def execute_pipeline(
             params=params,
             iterations=parameters["iteration_count"],
             val_data=val_data,
+            verbose=True,
         )
-        if result[0] <= threshold:
-            return result
+        if val_data is not None:
+            model = IModel.from_dict(result[4])
+            model.compile(optimizer=result[3], loss_func=result[2])
+            val_loss = model.evaluate(val_data[0], val_data[1], verbose=0)
+            if val_loss <= threshold:
+                return result
+        else:
+            if result[0] <= threshold:
+                return result
     print("Random search didn't find any results")
-
     for i in range(parameters["launch_count_simulated_annealing"]):
         result = simulated_annealing(
             data=data,
@@ -52,10 +61,19 @@ def execute_pipeline(
             val_data=val_data,
             max_iter=parameters["iteration_count"],
             threshold=threshold,
+            verbose=True,
         )
         train_loss, best_epochs, loss_func, opt, best_net, k = result
-        if train_loss <= threshold:
-            return train_loss, best_epochs, loss_func, opt, best_net
+        if val_data is not None:
+            model = IModel.from_dict(best_net)
+            model.compile(optimizer=opt, loss_func=loss_func)
+            val_loss = model.evaluate(val_data[0], val_data[1], verbose=0)
+
+            if val_loss <= threshold:
+                return train_loss, best_epochs, loss_func, opt, best_net
+        else:
+            if train_loss <= threshold:
+                return train_loss, best_epochs, loss_func, opt, best_net
     print("Simulated annealing didn't find any results")
 
     if run_grid_search:
