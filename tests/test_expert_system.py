@@ -71,18 +71,22 @@ def test_expert_system(equation_data):
     selector_tags.predict_time = ModelPredictTime.MEDIUM
     selector_tags.data_size = DataSize.MEDIAN
 
-    algorithms_parameters = suggest_parameters(tags=selector_tags)
+    meta, space = suggest_parameters(train_data, selector_tags)
 
+    meta.threshold = model_val_loss
+    meta.iterations = 10
+
+    epochs = list(range(space.min_epoch, space.max_epoch + 1, space.epoch_step))
     expert_params = DenseNetParameterSpace(
         input_size=1,
         output_size=1,
-        optimizers=[algorithms_parameters.optimizer],
-        losses=[algorithms_parameters.loss_function],
-        layer_sizes=layer_sizes,
+        optimizers=["Adam"],
+        losses=["MaxAbsoluteDeviation"],
+        layer_sizes=space.layer_sizes,
         activation_funcs=activations,
-        epochs=algorithms_parameters.train_epochs,
-        nn_min_depth=algorithms_parameters.nn_min_depth,
-        nn_max_depth=algorithms_parameters.nn_max_depth,
+        epochs=epochs,
+        nn_min_depth=space.nn_min_depth,
+        nn_max_depth=space.nn_max_depth,
     )
 
     (
@@ -94,12 +98,7 @@ def test_expert_system(equation_data):
     ) = execute_pipeline(
         data=train_data,
         params=expert_params,
-        parameters={
-            "launch_count_random_search": algorithms_parameters.launch_count_random_search,
-            "launch_count_simulated_annealing": algorithms_parameters.launch_count_simulated_annealing,
-            "iteration_count": 20,
-            "loss_threshold": model_val_loss,
-        },
+        config=meta,
         val_data=validation_data,
         run_grid_search=False,
     )

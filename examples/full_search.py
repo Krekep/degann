@@ -29,13 +29,13 @@ nn_data_y = nn_data_y[train_idx, :]  # Y data
 # To complete the work faster, we will not go through all the variants,
 # but truncated ones by three
 #
-layer_sizes = [8, 11, 14, 17, 20]  # [CHANGED] вместо alph_n_div3
+layer_sizes = [8, 11, 14, 17, 20]
 activation_funcs = [
     "linear",
     "relu",
     "tanh",
     "sigmoid",
-]  # [CHANGED] вместо alphabet_activations_cut
+]
 print(file_name)
 print(f"Layer sizes: {len(layer_sizes)}, Activations: {len(activation_funcs)}")
 

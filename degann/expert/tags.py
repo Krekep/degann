@@ -68,7 +68,7 @@ class DataSize(Enum):
 class ExpertSystemTags:
     equation_type: EquationType = EquationType.UNKNOWN
     predict_time: ModelPredictTime = ModelPredictTime.LONG
-    model_precision: RequiredModelPrecision = RequiredModelPrecision.MINIMAL
+    model_precision: RequiredModelPrecision = RequiredModelPrecision.MAXIMAL
     data_size: DataSize = DataSize.AUTO
 
 
