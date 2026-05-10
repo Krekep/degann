@@ -197,7 +197,8 @@ class IModel(object):
         net_config = config_class.from_dict(config["config"])
 
         instance = cls(config=net_config, net_type=net_type, name=name, **kwargs)
-        instance.network.from_dict(config, **kwargs)
+        network = _create_functions[net_type].from_dict(config)
+        instance.network = network
         return instance
 
     @classmethod

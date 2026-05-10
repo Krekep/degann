@@ -27,8 +27,9 @@ def execute_pipeline(
     data: tuple,
     params: ParameterSpace,
     config: ExpertMetaConfig,
-    run_grid_search: bool,
+    run_grid_search: bool = False,
     val_data: Optional[tuple] = None,
+    verbose: bool = False
 ) -> Tuple[float, int, str, str, dict]:
     """
     This function sequentially launches algorithms for searching the topology of a neural network
@@ -46,6 +47,8 @@ def execute_pipeline(
         If `True`, then if the random search and the simulated annealing method fail, the grid search will be launched
     val_data: tuple
         Validation dataset
+    verbose: bool
+        Execution information
 
     Returns
     -------
@@ -61,7 +64,7 @@ def execute_pipeline(
             params=params,
             iterations=config.iterations,
             val_data=val_data,
-            verbose=config.verbose,
+            verbose=verbose,
         )
 
         if result[0] < best_loss:
@@ -81,7 +84,7 @@ def execute_pipeline(
             threshold=config.threshold,
             temperature_method=config.temperature_method,
             distance_method=config.distance_method,
-            verbose=config.verbose,
+            verbose=verbose,
         )
         train_loss, best_epochs, loss_func, opt, best_net, k = result
 

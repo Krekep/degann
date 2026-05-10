@@ -102,6 +102,7 @@ def from_dict(config):
     res = create(
         inp_size=config["inp_size"],
         shape=config["shape"],
+        activation=config["activation"],
         layer_type=config["layer_type"],
     )
     res.from_dict(config)

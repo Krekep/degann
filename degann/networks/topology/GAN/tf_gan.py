@@ -208,8 +208,11 @@ class TensorflowGAN(tf.keras.Model):
         """
         config = GANConfig.from_dict(config_dict["config"])
         model = cls(config=config, **kwargs)
-        model.generator.from_dict(config_dict["generator"])
-        model.discriminator.from_dict(config_dict["discriminator"])
+        generator = TensorflowDenseNet.from_dict(config_dict["generator"])
+        discriminator = TensorflowDenseNet.from_dict(config_dict["discriminator"])
+
+        model.generator = generator
+        model.discriminator = discriminator
         return model
 
     @property

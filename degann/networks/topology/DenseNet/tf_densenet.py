@@ -289,6 +289,7 @@ class TensorflowDenseNet(tf.keras.Model):
 
         instance.blocks = layers
         instance.out_layer = layer_creator.from_dict(config_dict["out_layer"])
+        instance._layers = instance.blocks + [instance.out_layer]
         instance.name = config_dict["name"]
 
         return instance

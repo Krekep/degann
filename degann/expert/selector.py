@@ -67,7 +67,7 @@ def suggest_parameters(
         EquationType.UNKNOWN,
     ]:
         space.min_epoch *= 2
-        space.max_epoch = 700
+        space.max_epoch *= 2
         space.nn_max_depth += 1
         space.nn_min_depth = max(space.nn_min_depth, 3)
 
@@ -78,7 +78,7 @@ def suggest_parameters(
         meta.launch_count_simulated_annealing = 10
 
     elif tags.equation_type in [EquationType.EXP, EquationType.LIN]:
-        meta.iterations += 30
+        meta.iterations += 20
 
     if tags.model_precision == RequiredModelPrecision.MINIMAL:
         meta.threshold *= 2
@@ -93,7 +93,7 @@ def suggest_parameters(
         meta.threshold /= 10
         meta.iterations += 50
         space.nn_min_depth = max(space.nn_min_depth, 5)
-        space.max_epoch = 700
+        space.max_epoch = max(space.max_epoch * 2, 400)
 
     if tags.predict_time == ModelPredictTime.SHORT:
         space.nn_min_depth = 1
@@ -108,7 +108,7 @@ def suggest_parameters(
 
     if tags.data_size == DataSize.VERY_SMALL:
         space.min_epoch *= 2
-        space.max_epoch = 700
+        space.max_epoch = max(space.max_epoch * 2, 400)
         space.nn_min_depth = max(space.nn_min_depth, 2)
 
         meta.iterations += 10
@@ -117,6 +117,7 @@ def suggest_parameters(
 
     elif tags.data_size == DataSize.SMALL:
         space.min_epoch = int(space.min_epoch * 1.5)
+        space.max_epoch = max(space.min_epoch + 1, space.max_epoch)
         space.nn_min_depth = max(space.nn_min_depth, 3)
 
         meta.iterations += 10
@@ -125,6 +126,7 @@ def suggest_parameters(
 
     elif tags.data_size == DataSize.MEDIAN:
         space.min_epoch = int(space.min_epoch * 1.25)
+        space.max_epoch = max(space.min_epoch + 1, space.max_epoch)
 
         meta.iterations += 10
         meta.launch_count_random_search += 1

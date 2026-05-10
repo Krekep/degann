@@ -5,22 +5,24 @@ from typing import List, Tuple
 def generate_neighbour(
     layer_sizes: List[int],
     activation_funcs: List[str],
+    optimizer: str,
     num_epochs: int,
     all_layers: List[int],
     all_activations: List[str],
+    all_optimizers: List[str],
     min_depth: int,
     max_depth: int,
     min_epoch: int,
     max_epoch: int,
     distance: float = 150.0,
-) -> Tuple[List[int], List[str], int]:
+) -> Tuple[List[int], List[str], str, int]:
     """
     Generator of a point in the neighbourhood of the current one in the parameter space.
     """
     new_layers = layer_sizes.copy()
     new_activations = activation_funcs.copy()
+    new_optimizer = optimizer
     new_epochs = num_epochs
-
     log_value = 1.05
     is_stop = 0
 
@@ -45,8 +47,7 @@ def generate_neighbour(
 
         elif branch < 1 and distance >= 1:  # change network topology
             chosen_layer = random.randint(0, len(new_layers) - 1)
-
-            command = random.randint(1, 5)
+            command = random.randint(1, 6)
             match command:
                 case 1:  # add layer
                     if len(new_layers) < max_depth:
@@ -79,6 +80,11 @@ def generate_neighbour(
                         chosen_act = random.randint(0, len(new_activations) - 2)
                         new_activations[chosen_act] = random.choice(all_activations)
                         distance -= 5
+                case 6:  # change optimizer
+                    available = [o for o in all_optimizers if o != new_optimizer]
+                    if available:
+                        new_optimizer = random.choice(available)
+                        distance -= 5
 
         is_stop = random.randint(0, 3)
 
@@ -86,8 +92,9 @@ def generate_neighbour(
         new_layers == layer_sizes
         and new_activations == activation_funcs
         and new_epochs == num_epochs
+        and new_optimizer == optimizer
     ):
         idx = random.randint(0, len(new_layers) - 1)
         new_layers[idx] = random.choice(all_layers)
 
-    return new_layers, new_activations, new_epochs
+    return new_layers, new_activations, new_optimizer, new_epochs

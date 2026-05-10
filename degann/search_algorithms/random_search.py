@@ -146,8 +146,8 @@ def random_search_threshold(
     loss = ""
     opt = ""
 
-    config, epoch = params.get_random_config()
-    curr_loss, curr_val_loss, curr_nn = params.train(
+    config, epoch = next(params.get_random_config())
+    curr_loss, curr_val_loss, curr_nn = train(
         config=config,
         num_epochs=epoch,
         data=data,
@@ -164,9 +164,9 @@ def random_search_threshold(
                 f"Random search until less than threshold. Last loss = {curr_loss}. Iterations = {i}"
             )
         update_random_generator(i, cycle_size=update_gen_cycle)
-        config, epoch = params.get_random_config()
+        config, epoch = next(params.get_random_config())
 
-        curr_loss, curr_val_loss, curr_nn = params.train(
+        curr_loss, curr_val_loss, curr_nn = train(
             config=config,
             num_epochs=epoch,
             data=data,
