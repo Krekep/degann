@@ -39,7 +39,7 @@ setup(
         "numpy~=1.26.4",
         "scipy~=1.13.1",
         "tensorflow~=2.16.1",
-        "py-cpuinfo>=9.0.0"
+        "py-cpuinfo>=9.0.0",
     ],
     python_requires=">=3.10",
     keywords=["python", "ode", "differential equation", "neural network"],
