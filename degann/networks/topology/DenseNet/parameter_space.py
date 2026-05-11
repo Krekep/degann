@@ -106,7 +106,12 @@ class DenseNetParameterSpace(ParameterSpace):
             Neighbour configuration and number of epochs.
         """
 
-        new_block_sizes, new_activations, new_optimizer, new_epochs = generate_neighbour(
+        (
+            new_block_sizes,
+            new_activations,
+            new_optimizer,
+            new_epochs,
+        ) = generate_neighbour(
             layer_sizes=config.layer_sizes,
             activation_funcs=config.activation_funcs,
             optimizer=config.optimizer,

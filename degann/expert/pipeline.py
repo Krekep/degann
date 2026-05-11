@@ -29,7 +29,7 @@ def execute_pipeline(
     config: ExpertMetaConfig,
     run_grid_search: bool = False,
     val_data: Optional[tuple] = None,
-    verbose: bool = False
+    verbose: bool = False,
 ) -> Tuple[float, int, str, str, dict]:
     """
     This function sequentially launches algorithms for searching the topology of a neural network

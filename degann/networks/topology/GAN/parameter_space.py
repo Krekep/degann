@@ -160,13 +160,17 @@ class GANParameterSpace(ParameterSpace):
             New neighbour configuration and number of epochs.
         """
 
-        new_gen_config, _ = next(self.gen_space.generate_neighbour_config(
-            config.gen_config, num_epochs, distance
-        ))
+        new_gen_config, _ = next(
+            self.gen_space.generate_neighbour_config(
+                config.gen_config, num_epochs, distance
+            )
+        )
 
-        new_disc_config, new_epoch = next(self.disc_space.generate_neighbour_config(
-            config.disc_config, num_epochs, distance
-        ))
+        new_disc_config, new_epoch = next(
+            self.disc_space.generate_neighbour_config(
+                config.disc_config, num_epochs, distance
+            )
+        )
 
         new_gen_activation_funcs = new_gen_config.activation_funcs[:-1] + [
             self.gen_out_activation

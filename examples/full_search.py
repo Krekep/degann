@@ -12,39 +12,43 @@ from experiments.functions import LH_ODE_1_solution
 # Prepare data for training. Equation is `sin(10 * x)`
 #
 num_epoch = 500
+# Specify the number of samples to randomly select for the training subset
 data_size = 40
-file_name = f"LH_ODE_1_solution"
-nn_data_x = np.array([[i / 1000] for i in range(0, 1_001)])  # X data
+# Set the base identifier for experiment logging
+file_name = "LH_ODE_1_solution"
+
+# Create a dense input grid from 0.0 to 1.0 with a step of 0.001
+nn_data_x = np.array([[i / 1000] for i in range(1_001)])
+# Evaluate the exact ODE solution for each input point to form target values
 nn_data_y = np.array([LH_ODE_1_solution(x) for x in nn_data_x])
+
+# Generate random indices for the training subset
 train_idx = [randint(0, len(nn_data_x) - 1) for _ in range(data_size)]
 train_idx.sort()
+# Generate random indices for the validation subset
 val_idx = [randint(0, len(nn_data_x) - 1) for _ in range(30)]
 val_idx.sort()
-val_data_x = nn_data_x[val_idx, :]  # validation X data
-val_data_y = nn_data_y[val_idx, :]  # validation Y data
-nn_data_x = nn_data_x[train_idx, :]  # X data
-nn_data_y = nn_data_y[train_idx, :]  # Y data
 
-#
-# To complete the work faster, we will not go through all the variants,
-# but truncated ones by three
-#
-layer_sizes = [8, 11, 14, 17, 20]
-activation_funcs = [
-    "linear",
-    "relu",
-    "tanh",
-    "sigmoid",
-]
+# Slice the full dataset to obtain the validation features and targets
+val_data_x = nn_data_x[val_idx, :]
+val_data_y = nn_data_y[val_idx, :]
+# Slice the full dataset to obtain the training features and targets
+nn_data_x = nn_data_x[train_idx, :]
+nn_data_y = nn_data_y[train_idx, :]
+
+# Print the experiment name for console tracking
 print(file_name)
+# Define the search space for layer widths and output the cardinality of each space
+layer_sizes = [8, 11, 14, 17, 20]
+activation_funcs = ["linear", "relu", "tanh", "sigmoid"]
 print(f"Layer sizes: {len(layer_sizes)}, Activations: {len(activation_funcs)}")
 
-opt = "Adam"  # optimizer
-loss = "MaxAbsoluteDeviation"  # loss function
+# Fix the optimizer to be used during model compilation
+opt = "Adam"
+# Fix the loss function to be minimized during training
+loss = "MaxAbsoluteDeviation"
 
-#
-# Start full search over specified parameters
-#
+# Instantiate the parameter space according to the library API (expects a list of epochs)
 params = DenseNetParameterSpace(
     input_size=1,
     output_size=1,
@@ -52,13 +56,12 @@ params = DenseNetParameterSpace(
     losses=[loss],
     layer_sizes=layer_sizes,
     activation_funcs=activation_funcs,
-    min_epoch=num_epoch,
-    max_epoch=num_epoch,
-    epoch_step=10,
+    epochs=[num_epoch],
     nn_min_depth=1,
     nn_max_depth=4,
 )
 
+# Execute the grid search algorithm over the defined parameter space
 grid_search(
     data=(nn_data_x, nn_data_y),
     params=params,
@@ -67,4 +70,5 @@ grid_search(
     file_name="full_search_example",
     verbose=True,
 )
+# Output the completion timestamp for the first search phase
 print("END 1, 4", datetime.today().strftime("%Y-%m-%d %H:%M:%S"))

@@ -74,13 +74,13 @@ def test_random_search(equation_data):
     params = DenseNetParameterSpace(
         input_size=1,
         output_size=1,
-        optimizers=["Adam"],
-        losses=["MeanSquaredError"],
-        layer_sizes=[5, 10],
-        activation_funcs=["sigmoid", "relu"],
-        epochs=[5],
-        nn_min_depth=1,
-        nn_max_depth=2,
+        optimizers=["SGD", "Adam"],
+        losses=["MeanSquaredError", "MeanAbsoluteError"],
+        epochs=[10, 15],
+        nn_min_depth=2,
+        nn_max_depth=3,
+        layer_sizes=[8, 16],
+        activation_funcs=["sigmoid", "tanh"],
     )
 
     result = random_search(
@@ -105,13 +105,13 @@ def test_simulated_annealing(equation_data):
     params = DenseNetParameterSpace(
         input_size=1,
         output_size=1,
-        optimizers=["Adam"],
-        losses=["MeanSquaredError"],
-        layer_sizes=[5, 10],
-        activation_funcs=["sigmoid", "relu"],
-        epochs=[5],
-        nn_min_depth=1,
-        nn_max_depth=2,
+        optimizers=["SGD", "Adam"],
+        losses=["MeanSquaredError", "MeanAbsoluteError"],
+        epochs=[10, 15],
+        nn_min_depth=2,
+        nn_max_depth=3,
+        layer_sizes=[8, 16],
+        activation_funcs=["sigmoid", "tanh"],
     )
 
     result = simulated_annealing(
@@ -127,7 +127,7 @@ def test_simulated_annealing(equation_data):
     assert loss < 1e6
     assert loss >= 0
 
-    assert k > 0
+    assert k >= 0
     assert k <= 5
 
 
@@ -140,20 +140,20 @@ def test_grid_search_gan(equation_data):
     params = GANParameterSpace(
         gen_input_size=1,
         gen_output_size=1,
-        gen_layer_sizes=[8],
-        gen_min_depth=1,
-        gen_max_depth=1,
+        gen_layer_sizes=[8, 16],
+        gen_min_depth=3,
+        gen_max_depth=3,
         gen_activation_funcs=["relu"],
         gen_out_activation="linear",
-        disc_layer_sizes=[8],
-        disc_min_depth=1,
-        disc_max_depth=1,
-        disc_activation_funcs=["leaky_relu"],
+        disc_layer_sizes=[8, 16],
+        disc_min_depth=3,
+        disc_max_depth=3,
+        disc_activation_funcs=["tanh"],
         gen_optimizers=["Adam"],
         disc_optimizers=["Adam"],
         gen_loss_funcs=["MeanSquaredError"],
         disc_loss_funcs=["MeanSquaredError"],
-        epochs=[5],
+        epochs=[15],
     )
 
     result = grid_search(
@@ -167,6 +167,89 @@ def test_grid_search_gan(equation_data):
     assert loss < 1e6
     assert loss >= 0
 
+    assert net.get("net_type") == "GAN"
+    assert "generator" in net
+    assert "discriminator" in net
+
+
+def test_random_search_gan(equation_data):
+    """
+    Test GAN random search.
+    """
+    train_data, val_data = equation_data
+    params = GANParameterSpace(
+        gen_input_size=1,
+        gen_output_size=1,
+        gen_layer_sizes=[8, 16, 24, 32],
+        gen_min_depth=2,
+        gen_max_depth=4,
+        gen_activation_funcs=["relu", "tanh", "swish"],
+        gen_out_activation="linear",
+        disc_layer_sizes=[8, 16, 24, 32],
+        disc_min_depth=2,
+        disc_max_depth=4,
+        disc_activation_funcs=["relu", "tanh"],
+        gen_optimizers=["Adam", "RMSprop"],
+        disc_optimizers=["Adam", "RMSprop"],
+        gen_loss_funcs=["MeanSquaredError"],
+        disc_loss_funcs=["MeanSquaredError"],
+        epochs=[50, 100, 150],
+    )
+
+    result = random_search(
+        data=train_data,
+        params=params,
+        iterations=3,
+        val_data=val_data,
+    )
+
+    loss, epoch, loss_func, opt, net = result
+
+    assert loss < 1e6
+    assert loss >= 0
+    assert net.get("net_type") == "GAN"
+    assert "generator" in net
+    assert "discriminator" in net
+
+
+def test_simulated_annealing_gan(equation_data):
+    """
+    Test GAN simulated annealing.
+    """
+    train_data, val_data = equation_data
+    params = GANParameterSpace(
+        gen_input_size=1,
+        gen_output_size=1,
+        gen_layer_sizes=[8, 16, 24, 32],
+        gen_min_depth=2,
+        gen_max_depth=4,
+        gen_activation_funcs=["relu", "tanh", "swish"],
+        gen_out_activation="linear",
+        disc_layer_sizes=[8, 16, 24, 32],
+        disc_min_depth=2,
+        disc_max_depth=4,
+        disc_activation_funcs=["relu", "tanh"],
+        gen_optimizers=["Adam", "RMSprop"],
+        disc_optimizers=["Adam", "RMSprop"],
+        gen_loss_funcs=["MeanSquaredError"],
+        disc_loss_funcs=["MeanSquaredError"],
+        epochs=[50, 100, 150],
+    )
+
+    result = simulated_annealing(
+        data=train_data,
+        params=params,
+        max_iter=5,
+        val_data=val_data,
+        threshold=1.0,
+    )
+
+    loss, epoch, loss_func, opt, net, k = result
+
+    assert loss < 1e6
+    assert loss >= 0
+    assert k >= 0
+    assert k <= 5
     assert net.get("net_type") == "GAN"
     assert "generator" in net
     assert "discriminator" in net

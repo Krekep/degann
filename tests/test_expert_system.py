@@ -103,16 +103,7 @@ def test_expert_system(equation_data):
         run_grid_search=False,
     )
 
-    config = DenseNetConfig(
-        layer_sizes=result_nn["config"]["layer_sizes"],
-        activation_funcs=result_nn["config"]["activation_funcs"],
-        optimizer=result_opt,
-        loss_func=result_loss_func,
-        input_size=result_nn["config"]["input_size"],
-        output_size=result_nn["config"]["output_size"],
-    )
-    model_from_expert_system = IModel(config=config, net_type=result_nn["net_type"])
-    model_from_expert_system.from_dict(result_nn)
+    model_from_expert_system = IModel.from_dict(result_nn)
     model_from_expert_system.compile(optimizer=result_opt, loss_func=result_loss_func)
     expert_val_loss = model_from_expert_system.evaluate(
         validation_data[0], validation_data[1], verbose=0

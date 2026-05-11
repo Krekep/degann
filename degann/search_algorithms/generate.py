@@ -18,6 +18,43 @@ def generate_neighbour(
 ) -> Tuple[List[int], List[str], str, int]:
     """
     Generator of a point in the neighbourhood of the current one in the parameter space.
+
+    Parameters
+    ----------
+    layer_sizes : List[int]
+        Current number of neurons in each hidden layer.
+    activation_funcs : List[str]
+        Current activation function for each hidden layer.
+    optimizer : str
+        Current optimizer name.
+    num_epochs : int
+        Current number of training epochs.
+    all_layers : List[int]
+        Pool of allowed layer sizes for mutation.
+    all_activations : List[str]
+        Pool of allowed activation functions for mutation.
+    all_optimizers : List[str]
+        Pool of allowed optimizers for mutation.
+    min_depth : int
+        Minimum allowed number of hidden layers.
+    max_depth : int
+        Maximum allowed number of hidden layers.
+    min_epoch : int
+        Minimum allowed number of training epochs.
+    max_epoch : int
+        Maximum allowed number of training epochs.
+    distance : float, optional
+        Proxy for mutation strength. Higher values permit larger jumps in the
+        search space. Decreases as mutations are applied.
+
+    Returns
+    -------
+    Tuple[List[int], List[str], str, int]
+        Tuple containing:
+        - new_layers: Modified hidden layer sizes.
+        - new_activations: Modified activation functions for hidden layers.
+        - new_optimizer: Possibly updated optimizer name.
+        - new_epochs: Possibly updated number of training epochs.
     """
     new_layers = layer_sizes.copy()
     new_activations = activation_funcs.copy()

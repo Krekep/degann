@@ -154,7 +154,9 @@ def train(
             output_size=output_len,
             activation_funcs=act,
         )
-        curr_net = imodel.IModel(net_cfg, net_type=net_cfg.net_type, decorator_params=decorator_param)
+        curr_net = imodel.IModel(
+            net_cfg, net_type=net_cfg.net_type, decorator_params=decorator_param
+        )
         nets.append(curr_net)
     if args.use_rand_net:
         rand_net_params = _create_random_network(input_len, output_len)
@@ -165,7 +167,9 @@ def train(
             output_size=output_len,
             activation_funcs=rand_net_params[1],
         )
-        rand_net = imodel.IModel(net_cfg, net_type="DenseNet", decorator_params=rand_net_params[2])
+        rand_net = imodel.IModel(
+            net_cfg, net_type="DenseNet", decorator_params=rand_net_params[2]
+        )
         nets.append(rand_net)
 
     # compile

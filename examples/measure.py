@@ -5,7 +5,7 @@ import numpy as np
 from degann.equations import build_plot
 from degann.networks import callbacks
 from degann.networks.imodel import IModel
-from degann.search_algorithms import decode
+from degann.networks.topology.DenseNet.config import DenseNetConfig
 from experiments.functions import ST_S_ODE_3_table
 
 
@@ -56,9 +56,14 @@ single_x_data_call = [
     for size in single_data_size_call
 ]
 
-for i, code in enumerate(codes):
-    b, a = decode(code, block_size=1, offset=8)
-    nn = IModel(input_size, b, output_size, a + ["linear"])
+for i, shape in enumerate(shapes):
+    config = DenseNetConfig(
+        input_size=input_size,
+        output_size=output_size,
+        layer_sizes=shape,
+        activation_funcs=["relu"] * len(shape) + ["linear"],
+    )
+    nn = IModel(config=config, net_type="DenseNet")
     for size in single_x_data_call:
         times = []
         for _ in range(20):
@@ -70,7 +75,7 @@ for i, code in enumerate(codes):
             times.append(call_time)
         l, r, m, d = confidence_interval(times)
         print(
-            f"Confidence interval for neural network {code} single time prediction on {len(size)} data size is [{l}, {r}] s, mean is {m} s, dev is +-{d}"
+            f"Confidence interval for neural network {codes[i] if i < len(codes) else shape} single time prediction on {len(size)} data size is [{l}, {r}] s, mean is {m} s, dev is +-{d}"
         )
     # nn.export_to_cpp(f"time_measure_{i}")
 
@@ -101,12 +106,13 @@ output_len = 3
 
 times = []
 for _ in range(20):
-    nn = IModel(
+    config = DenseNetConfig(
         input_size=input_len,
-        block_size=shapes,
         output_size=output_len,
-        activation_func=acts,
+        layer_sizes=shapes,
+        activation_funcs=acts,
     )
+    nn = IModel(config=config, net_type="DenseNet")
     opt = "Adam"  # training algorithm
 
     nn.compile(optimizer=opt, loss_func=los)
