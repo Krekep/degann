@@ -20,7 +20,7 @@ def temperature_lin(k: int, k_max: int, **kwargs) -> float:
     return 1 - (k + 1) / k_max
 
 
-def distance_const(d: float) -> Callable[..., float]:
+def distance_const(d: float, **kwargs) -> Callable[..., float]:
     """
     Calculate distance to neighbour for simulated annealing as constant
 
