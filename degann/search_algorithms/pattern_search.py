@@ -147,7 +147,6 @@ def train(
         shape: list[int] = parameters[0]
         act = parameters[1]
         decorator_param = parameters[2]
-        str_shape = "_".join(map(str, shape))
         net_cfg = DenseNetConfig(
             input_size=input_len,
             layer_sizes=shape,
@@ -155,12 +154,15 @@ def train(
             activation_funcs=act,
         )
         curr_net = imodel.IModel(
-            net_cfg, net_type=net_cfg.net_type, decorator_params=decorator_param
+            net_cfg,
+            net_type=net_cfg.net_type,
+            name=args.name_salt,
+            decorator_params=decorator_param,
+            is_debug=args.debug,
         )
         nets.append(curr_net)
     if args.use_rand_net:
         rand_net_params = _create_random_network(input_len, output_len)
-        str_shape = "_".join(map(str, rand_net_params[0]))
         net_cfg = DenseNetConfig(
             input_size=input_len,
             layer_sizes=rand_net_params[0],

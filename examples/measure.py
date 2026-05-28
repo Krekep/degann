@@ -40,12 +40,6 @@ shapes = [
     [100, 100, 100],
     [500, 500, 500],
 ]  # sizes of hidden layers
-codes = [
-    "2609404878",
-    "19d8d900c858",
-    "3840",
-    "06c8d6d8",
-]  # sizes of hidden layers
 output_size = 1
 
 # X data size
@@ -75,7 +69,7 @@ for i, shape in enumerate(shapes):
             times.append(call_time)
         l, r, m, d = confidence_interval(times)
         print(
-            f"Confidence interval for neural network {codes[i] if i < len(codes) else shape} single time prediction on {len(size)} data size is [{l}, {r}] s, mean is {m} s, dev is +-{d}"
+            f"Confidence interval for neural network {shape} single time prediction on {len(size)} data size is [{l}, {r}] s, mean is {m} s, dev is +-{d}"
         )
     # nn.export_to_cpp(f"time_measure_{i}")
 
