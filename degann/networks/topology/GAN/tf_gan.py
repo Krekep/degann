@@ -233,3 +233,35 @@ class TensorflowGAN(tf.keras.Model):
         gen_str = str(self.generator)
         disc_str = str(self.discriminator)
         return f"GAN Model:\nGenerator:\n{gen_str}\nDiscriminator:\n{disc_str}"
+
+    def export_to_cpp(
+        self,
+        path: str,
+        array_type: str = "[]",
+        path_to_compiler: str = None,
+        vectorized_level: str = "none",
+        **kwargs,
+    ) -> None:
+        """
+        Export GAN's generator as feedforward function on c++.
+
+        Parameters
+        ----------
+        path: str
+            path to file with name
+        array_type: str
+            c-style or cpp-style
+        path_to_compiler: str
+            path to c/c++ compiler
+        vectorized_level: str
+            vectorization level for C++ code
+        kwargs
+        """
+
+        self.generator.export_to_cpp(
+            path=path,
+            array_type=array_type,
+            path_to_compiler=path_to_compiler,
+            vectorized_level=vectorized_level,
+            **kwargs,
+        )

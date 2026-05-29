@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from typing import List, Optional, Callable
+from typing import List, Callable
+from degann.search_algorithms import distance_const, temperature_lin
 
 
 @dataclass
@@ -8,8 +9,8 @@ class ExpertMetaConfig:
     launch_count_simulated_annealing: int = 2
     iterations: int = 5
     threshold: float = 1.0
-    temperature_method: Optional[Callable] = None
-    distance_method: Optional[Callable] = None
+    temperature_method: Callable = temperature_lin
+    distance_method: Callable = distance_const
 
 
 @dataclass

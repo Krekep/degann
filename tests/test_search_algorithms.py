@@ -4,6 +4,10 @@ import numpy as np
 from degann.search_algorithms import grid_search, random_search, simulated_annealing
 from degann.networks.topology.DenseNet.parameter_space import DenseNetParameterSpace
 from degann.networks.topology.GAN.parameter_space import GANParameterSpace
+from degann.search_algorithms.simulated_annealing_functions import (
+    distance_const,
+    distance_lin,
+)
 
 
 @pytest.fixture
@@ -253,3 +257,20 @@ def test_simulated_annealing_gan(equation_data):
     assert net.get("net_type") == "GAN"
     assert "generator" in net
     assert "discriminator" in net
+
+
+def test_distance_methods():
+    """
+    Checks that distance_const and distance_lin are called with the same set of arguments.
+    """
+    const_dist = distance_const(d=50.0)
+    lin_dist = distance_lin(offset=10.0, multiplier=2.0)
+
+    sa_kwargs = {"k": 15, "k_max": 100, "extra_flag": True}
+    current_temperature = 30.0
+
+    res_const = const_dist(temperature=current_temperature, **sa_kwargs)
+    res_lin = lin_dist(temperature=current_temperature, **sa_kwargs)
+
+    assert res_const == 50.0
+    assert res_lin == 10.0 + 30.0 * 2.0

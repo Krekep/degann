@@ -136,7 +136,4 @@ def suggest_parameters(
 
         meta.launch_count_random_search += 1
 
-    meta.temperature_method = meta.temperature_method or temperature_lin
-    meta.distance_method = meta.distance_method or distance_const(150)
-
     return meta, space
