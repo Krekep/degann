@@ -66,12 +66,14 @@ def random_search(
     best_epoch = 0
     loss = ""
     opt = ""
+    i = 0
 
-    for i in range(iters):
+    while i < iters or (max_iter == 0 and threshold is not None):
         update_random_generator(i, cycle_size=update_gen_cycle)
         if verbose:
+            out = f"{i + 1}" if max_iter == 0 else f"{i + 1}/{iters}"
             print(
-                f"{i + 1}/{iters}",
+                out,
                 datetime.today().strftime("%Y-%m-%d %H:%M:%S"),
             )
 
@@ -98,5 +100,6 @@ def random_search(
             if verbose:
                 print(f"Threshold {threshold} reached at iteration {i}.")
             break
+        i += 1
 
     return best_loss, best_epoch, loss, opt, best_net
