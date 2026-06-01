@@ -170,7 +170,11 @@ def train(
             activation_funcs=rand_net_params[1],
         )
         rand_net = imodel.IModel(
-            net_cfg, net_type="DenseNet", decorator_params=rand_net_params[2]
+            net_cfg,
+            net_type=net_cfg.net_type,
+            name=args.name_salt,
+            decorator_params=rand_net_params[2],
+            is_debug=args.debug,
         )
         nets.append(rand_net)
 
@@ -180,7 +184,7 @@ def train(
             rate=args.eps,
             optimizer=args.optimizer,
             loss_func=args.loss_function,
-            metric_funcs=[args.eval_metric] + [args.metrics],
+            metric_funcs=[args.eval_metric] + args.metrics,
             # run_eagerly=True,
         )
 

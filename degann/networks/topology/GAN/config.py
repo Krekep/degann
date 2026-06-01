@@ -51,7 +51,7 @@ class GANConfig(NetConfig):
         return self.gen_config.get_optimizer, self.disc_config.get_optimizer
 
     @property
-    def get_compile_kwargs(self) -> Dict[str, Any]:
+    def get_compile_kwargs(self) -> Dict[str, str]:
         return {
             "gen_optimizer": self.gen_config.optimizer,
             "disc_optimizer": self.disc_config.optimizer,

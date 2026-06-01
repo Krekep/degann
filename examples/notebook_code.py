@@ -2,7 +2,7 @@ from degann.networks.imodel import IModel
 from degann.networks.topology.DenseNet.parameter_space import DenseNetParameterSpace
 from degann.networks.topology.DenseNet.config import DenseNetConfig
 from degann.search_algorithms import simulated_annealing, pattern_search, grid_search
-from degann.search_algorithms.random_search import random_search_threshold
+from degann.search_algorithms.random_search import random_search
 from degann.expert.tags import ExpertSystemTags
 from degann.expert.tags import (
     EquationType,
@@ -14,6 +14,7 @@ from degann.expert.selector import suggest_parameters
 from degann.expert.pipeline import execute_pipeline
 from degann.equations import build_plot
 from degann.equations import equation_solve, str_eq_to_params
+from degann.equations import SystemODE, system_ode_from_string
 
 import numpy as np
 from random import randint
@@ -82,7 +83,7 @@ nn_1_32_16_8_1.export_to_cpp("some_path")
 config = {
     "loss_functions": ["MeanSquaredError"],
     "optimizers": ["Adam"],
-    "metrics": ["MaxAbsoluteDeviation"],
+    "metrics": [["MaxAbsoluteDeviation"]],
     "net_shapes": [[], [5, 5]],  # neural network without hidden layers
     "activations": ["parabolic", "exponential"],
     "validation_split": 0,
@@ -138,9 +139,10 @@ random_params = DenseNetParameterSpace(
     result_loss_name,
     result_optimizer,
     result_nn,
-) = random_search_threshold(
+) = random_search(
     data=(train_data_x, train_data_y),
     params=random_params,
+    iterations=1,
     max_iter=10,
     threshold=0.01,
     verbose=True,
@@ -258,9 +260,8 @@ build_plot(
 )
 
 # Building dataset tables for system of ODE
-from degann.equations import SystemODE, system_ode_from_string
 
-str_sode = "y1 * y2 y0(0)=0\n" + "-y0 * y2 y1(0)=1\n" + "-0.5 * y0 * y1 y2(0)=1"
+str_sode = "y1*y2 y0(0)=0\n" + "-y0*y2 y1(0)=1\n" + "-0.5*y0*y1 y2(0)=1"
 parsed = system_ode_from_string(str_sode)  # transform to list of strings
 sode = SystemODE()
 sode.prepare_equations(len(parsed), parsed)  # build functions for each equation
@@ -273,7 +274,7 @@ for feature, value in zip(x_ode_data, y_ode_data):
     print(feature, value)
 
 # Building dataset tables for functions
-function = "3 * x + 2 * y + 4 * z"
+function = "3*x+2*y+4*z"
 bounds = {
     "x": "0, 2, 1",  # x from 0 to 2 with step = 1
     "y": "0, 2, 2",  # y from 0 to 2 with step = 2

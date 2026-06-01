@@ -45,5 +45,5 @@ class DenseNetConfig(NetConfig):
         return self.optimizer
 
     @property
-    def get_compile_kwargs(self) -> Dict[str, Any]:
+    def get_compile_kwargs(self) -> Dict[str, str]:
         return {"optimizer": self.optimizer, "loss_func": self.loss_func}

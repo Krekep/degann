@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Tuple, Any, Iterator, Dict
+from typing import Tuple, Any, Iterator, Dict, Union, List
 
 
 class NetConfig(ABC):
@@ -12,7 +12,7 @@ class NetConfig(ABC):
 
     @property
     @abstractmethod
-    def get_shape(self) -> Any:
+    def get_shape(self) -> Union[List[int], Tuple[List[int], List[int]]]:
         """
         Get the shape of the network configuration.
         """
@@ -20,7 +20,7 @@ class NetConfig(ABC):
 
     @property
     @abstractmethod
-    def get_activation_funcs(self) -> Any:
+    def get_activation_funcs(self) -> Union[List[str], Tuple[List[str], List[str]]]:
         """
         Get activation functions of the network configuration.
         """
@@ -28,7 +28,7 @@ class NetConfig(ABC):
 
     @property
     @abstractmethod
-    def get_input_size(self) -> Any:
+    def get_input_size(self) -> Union[int, Tuple[int, int]]:
         """
         Get the input size of the network.
         """
@@ -36,7 +36,7 @@ class NetConfig(ABC):
 
     @property
     @abstractmethod
-    def get_output_size(self) -> Any:
+    def get_output_size(self) -> Union[int, Tuple[int, int]]:
         """
         Get the output size of the network.
         """
@@ -44,7 +44,7 @@ class NetConfig(ABC):
 
     @property
     @abstractmethod
-    def get_loss_func(self) -> Any:
+    def get_loss_func(self) -> Union[str, Tuple[str, str]]:
         """
         Get the loss function name.
         """
@@ -52,7 +52,7 @@ class NetConfig(ABC):
 
     @property
     @abstractmethod
-    def get_optimizer(self) -> Any:
+    def get_optimizer(self) -> Union[str, Tuple[str, str]]:
         """
         Get the optimizer name.
         """
@@ -60,7 +60,7 @@ class NetConfig(ABC):
 
     @property
     @abstractmethod
-    def get_compile_kwargs(self) -> Dict[str, Any]:
+    def get_compile_kwargs(self) -> Dict[str, str]:
         """
         Get compile data.
         """
