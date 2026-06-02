@@ -108,7 +108,7 @@ def build_plot(
             y.append([])
 
         for i, x_i in enumerate(x):
-            temp = nn.feedforward(np.array([[x_i]]))
+            temp = nn.feedforward(np.array([[x_i]], dtype=np.float32))
             for j in range(output_size):
                 y[j].append(temp[0][j].numpy())
             if is_debug and i % (len(x) // 10) == 0:
