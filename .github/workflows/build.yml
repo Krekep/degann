@@ -46,7 +46,7 @@ jobs:
 
       - name: Build your application
         run: |
-          pyinstaller -n Degann --onefile --windowed .\gui\__main__.py
+          pyinstaller -n Degann --onefile --windowed --no-isolated .\gui\__main__.py
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

@@ -1,6 +1,6 @@
 import random
 from itertools import product
-from typing import Optional, Union, Any, Tuple, List, Iterable, Sized, Collection
+from typing import Optional, Union, Any, Tuple, List
 
 import numpy as np
 import tensorflow as tf
@@ -8,6 +8,7 @@ import tensorflow as tf
 from degann.networks.callbacks import MemoryCleaner
 from degann.networks import get_all_optimizers, get_all_metric_functions
 from degann.networks import activations, imodel, losses
+from degann.networks.topology.DenseNet.config import DenseNetConfig
 
 _default_shapes = [
     [10, 10, 10, 10, 10, 10],
@@ -146,42 +147,46 @@ def train(
         shape: list[int] = parameters[0]
         act = parameters[1]
         decorator_param = parameters[2]
-        str_shape = "_".join(map(str, shape))
-        net_cfg = imodel.DenseNetParams(
+        net_cfg = DenseNetConfig(
             input_size=input_len,
-            block_size=shape,
+            layer_sizes=shape,
             output_size=output_len,
-            activation_func=act,
-            net_type=args.net_type,
-            name=f"net{args.name_salt}_{str_shape}",
+            activation_funcs=act,
+        )
+        curr_net = imodel.IModel(
+            net_cfg,
+            net_type=net_cfg.net_type,
+            name=args.name_salt,
+            decorator_params=decorator_param,
             is_debug=args.debug,
         )
-        curr_net = imodel.IModel(net_cfg, decorator_params=decorator_param)
         nets.append(curr_net)
     if args.use_rand_net:
         rand_net_params = _create_random_network(input_len, output_len)
-        str_shape = "_".join(map(str, rand_net_params[0]))
-        net_cfg = imodel.DenseNetParams(
+        net_cfg = DenseNetConfig(
             input_size=input_len,
-            block_size=rand_net_params[0],
+            layer_sizes=rand_net_params[0],
             output_size=output_len,
-            activation_func=rand_net_params[1],
-            net_type=args.net_type,
-            name=f"net{args.name_salt}_{str_shape}",
+            activation_funcs=rand_net_params[1],
         )
-        rand_net = imodel.IModel(net_cfg, decorator_params=rand_net_params[2])
+        rand_net = imodel.IModel(
+            net_cfg,
+            net_type=net_cfg.net_type,
+            name=args.name_salt,
+            decorator_params=rand_net_params[2],
+            is_debug=args.debug,
+        )
         nets.append(rand_net)
 
     # compile
     for nn in nets:
-        compile_cfg = imodel.DenseNetCompileParams(
+        nn.compile(
             rate=args.eps,
             optimizer=args.optimizer,
             loss_func=args.loss_function,
             metric_funcs=[args.eval_metric] + args.metrics,
             # run_eagerly=True,
         )
-        nn.compile(compile_cfg)
 
     if args.debug:
         print("Success prepared")
@@ -278,9 +283,6 @@ def pattern_search(
                     [None],
                 ]
             )
-
-    # too long for mypy checking
-    # metaparams = list(map(lambda x: dict(x) | kwargs,product(*list(map(lambda x: [x] if isinstance(x[0], str) else x,(list(map(lambda kv: ([(kv[0], v) for v in kv[1]]if isinstance(kv[1], (Iterable, Sized))and len(kv[1]) > 0else (kv[0], kv[1])), args.__dict__.items()))))))))
 
     list_of_decomposed_args = list(
         map(

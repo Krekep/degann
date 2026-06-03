@@ -1,7 +1,8 @@
 import numpy as np
 
 from degann.networks import losses
-from degann.networks import IModel
+from degann.networks.imodel import IModel
+from degann.networks.topology.DenseNet.config import DenseNetConfig
 from experiments.functions import LF_ODE_1_solution
 from tests.utils import init_params
 
@@ -15,8 +16,16 @@ weight_initializer1, bias_initializer = init_params(
 #
 # Create simple neural network with 1 input neuron, 1 output neuron and one hidden layer with 1 neuron
 #
-nn = IModel.create_neuron(
-    1, 1, [1], weight=weight_initializer1, biases=bias_initializer
+nn = IModel(
+    config=DenseNetConfig(
+        input_size=1,
+        output_size=1,
+        layer_sizes=[1],
+        activation_funcs=["linear", "linear"],
+    ),
+    net_type="DenseNet",
+    weight=weight_initializer1,
+    biases=bias_initializer,
 )
 
 # print description for nn
@@ -40,18 +49,17 @@ print(acts_name)
 
 inp = np.array([[1]], dtype=float)
 nn = IModel(
-    1,  # input size
-    [1],  # size of hidden layers
-    1,  # output size
+    config=DenseNetConfig(
+        input_size=1,
+        output_size=1,
+        layer_sizes=[1],
+        activation_funcs=["linear", "linear"],
+    ),
+    net_type="DenseNet",
 )
 nn.export_to_file("./test_export")
 
-nn_loaded = IModel(
-    1,  # input size
-    [1],  # size of hidden layers
-    1,  # output size
-)
-nn_loaded.from_file(
+nn_loaded = IModel.from_file(
     "./test_export"
 )  # restore neural network from file (now weights must be equal to nn weights)
 
@@ -105,7 +113,15 @@ f_x_data = np.array([f_x2(x) for x in x_data])
 # Export neural network to cpp
 #
 
-nn = IModel.create_neuron(2, 2, [2])
+nn = IModel(
+    config=DenseNetConfig(
+        input_size=2,
+        output_size=2,
+        layer_sizes=[2],
+        activation_funcs=["linear", "linear", "linear"],
+    ),
+    net_type="DenseNet",
+)
 # Export neural network as c-style function
 nn.export_to_cpp("test1")
 # Export neural network as c++-style function
@@ -136,11 +152,17 @@ f_x_data = np.array([sin_x(x) for x in x_data])  # Y data
 all_l = [key for key in losses.get_all_loss_functions()]  # All loss function names
 for los in all_l:
     nn = IModel(
-        input_size=1,  # Input vector len
-        block_size=[10, 10],  # Size of hidden layers (two layer, each have 10 neurons)
-        output_size=1,  # Output vector size
-        activation_func=["swish", "swish", "linear"],
-        # activation functions for layers (2 hidden layer, 1 output layer)
+        config=DenseNetConfig(
+            input_size=1,  # Input vector len
+            output_size=1,  # Output vector size
+            layer_sizes=[
+                10,
+                10,
+            ],  # Size of hidden layers (two layer, each have 10 neurons)
+            activation_funcs=["swish", "swish", "linear"],
+            # activation functions for layers (2 hidden layer, 1 output layer)
+        ),
+        net_type="DenseNet",
     )
     nn.compile(optimizer="Adam", loss_func=los)
 
@@ -190,10 +212,13 @@ for opt in optimizers:
     for act in acts:
         nets.append(
             IModel(
-                input_size=input_len,
-                block_size=shape,
-                output_size=output_len,
-                activation_func=act,
+                config=DenseNetConfig(
+                    input_size=input_len,
+                    output_size=output_len,
+                    layer_sizes=shape,
+                    activation_funcs=act,
+                ),
+                net_type="DenseNet",
             )
         )
     for i, nn in enumerate(nets):

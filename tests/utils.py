@@ -8,16 +8,19 @@ def array_compare(a, b, eps=-6):
     if len(a) != len(b):
         return False
     for i in range(len(a)):
-        if isinstance(a[i], (list, np.ndarray)):
-            if isinstance(b[i], (list, np.ndarray)):
-                fl = fl & array_compare(a[i], b[i], eps=eps)
-            else:
-                fl = fl & False
-        else:
-            if isinstance(b[i], (list, np.ndarray)):
-                fl = fl & False
-            elif abs(a[i] - b[i]) > locality:
-                fl = fl & False
+        if isinstance(a[i], (list, np.ndarray)) and isinstance(
+            b[i], (list, np.ndarray)
+        ):
+            fl = fl & array_compare(a[i], b[i], eps=eps)
+        elif isinstance(a[i], tuple) and isinstance(b[i], tuple):
+            fl = fl & array_compare(list(a[i]), list(b[i]), eps=eps)
+        elif isinstance(a[i], (int, float, np.number)) and isinstance(
+            b[i], (int, float, np.number)
+        ):
+            if abs(a[i] - b[i]) > locality:
+                fl = False
+        elif a[i] != b[i]:
+            fl = False
     return fl
 
 

@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Any
 
 
 def temperature_lin(k: int, k_max: int, **kwargs) -> float:
@@ -20,7 +20,28 @@ def temperature_lin(k: int, k_max: int, **kwargs) -> float:
     return 1 - (k + 1) / k_max
 
 
-def temperature_exp(alpha: float) -> Callable[[float], float]:
+def distance_const(d: float, **kwargs) -> Callable[..., float]:
+    """
+    Calculate distance to neighbour for simulated annealing as constant
+
+    Parameters
+    ----------
+    d: float
+        Constant distance
+
+    Returns
+    -------
+    d_c: Callable
+        Function returning a constant distance
+    """
+
+    def d_c(**kwargs) -> float:
+        return d
+
+    return d_c
+
+
+def temperature_exp(alpha: float) -> Callable[[float, Any], float]:
     """
     Calculate new temperature for simulated annealing as *t * alpha*
 
@@ -52,28 +73,7 @@ def temperature_exp(alpha: float) -> Callable[[float], float]:
     return t_e
 
 
-def distance_const(d: float, **kwargs) -> Callable:
-    """
-    Calculate distance to neighbour for simulated annealing as constant
-
-    Parameters
-    ----------
-    d: float
-        Constant distance
-
-    Returns
-    -------
-    d_c: Callable
-        Function returning a constant distance
-    """
-
-    def d_c(**kwargs) -> float:
-        return d
-
-    return d_c
-
-
-def distance_lin(offset: float, multiplier: float) -> Callable:
+def distance_lin(offset: float, multiplier: float) -> Callable[..., float]:
     """
     Calculate distance to neighbour for simulated annealing as *offset + temperature * multiplier*
 
@@ -88,7 +88,7 @@ def distance_lin(offset: float, multiplier: float) -> Callable:
         Function returning a new distance depending on current temperature
     """
 
-    def d_l(temperature: float, **kwargs) -> float:
+    def d_l(temperature, **kwargs):
         return offset + temperature * multiplier
 
     return d_l

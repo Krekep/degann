@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from degann.networks.imodel import IModel
-from degann.networks.topology.base_topology_configs import TensorflowDenseNetParams
+from degann.networks.topology.DenseNet.config import DenseNetConfig
 from tests.utils import array_compare, init_params
 from degann.equations import simple_equation
 
@@ -21,7 +21,6 @@ from degann.equations import simple_equation
 )
 def test_str_vars_to_float_vars(inp, expected):
     actual = simple_equation.str_eq_to_params(inp)
-
     assert array_compare(actual, expected)
 
 
@@ -63,10 +62,9 @@ def test_str_vars_to_float_vars(inp, expected):
         ),
     ],
 )
-def test_str_vars_to_float_vars(eq, eq_vars, expected):
+def test_equation_solve(eq, eq_vars, expected):
     variables = simple_equation.str_eq_to_params(eq_vars)
     actual = simple_equation.equation_solve(eq, variables)
-
     assert array_compare(actual, expected)
 
 
@@ -119,15 +117,19 @@ def test_build_network_answer(eq_vars, shape, act_init, w_init, b_init, expected
         weight_name=w_init, bias_name=b_init
     )
 
-    nn_cfg = TensorflowDenseNetParams(
+    config = DenseNetConfig(
         input_size=shape[0],
-        block_size=shape[1],
         output_size=shape[2],
-        activation_func=act_init,
+        layer_sizes=shape[1],
+        activation_funcs=[act_init] * (len(shape[1]) + 1),
+    )
+
+    nn = IModel(
+        config=config,
+        net_type="DenseNet",
         weight=weight_initializer,
         biases=bias_initializer,
     )
-    nn = IModel(nn_cfg)
 
     variables = simple_equation.str_eq_to_params(eq_vars)
     actual = simple_equation.build_table(nn, variables)

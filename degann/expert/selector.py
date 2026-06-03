@@ -5,47 +5,20 @@ from degann.expert.tags import (
     ModelPredictTime,
     RequiredModelPrecision,
 )
-from degann.search_algorithms.nn_code import default_alphabet
-from typing import Optional, Callable
-
+from typing import Optional, Tuple
+from degann.expert.config import ExpertMetaConfig, ExpertSpaceConfig
 from degann.search_algorithms.simulated_annealing_functions import (
-    distance_lin,
-    distance_const,
     temperature_lin,
     temperature_exp,
+    distance_const,
+    distance_lin,
 )
-
-
-class BaseSamParameters:
-    distance_to_neighbor: Callable = distance_const
-    dist_offset: int = 300
-    dist_scale: int = 0
-    temperature_reduction_method: Callable = temperature_lin
-    temperature_speed: float = 0
-
-
-class BaseParameters:
-    launch_count_random_search: int = 2
-    launch_count_simulated_annealing: int = 2
-    nn_max_length: int = 4
-    nn_min_length: int = 1
-    nn_alphabet_block_size: int = 1
-    nn_alphabet_offset: int = 8
-    nn_alphabet: list[str] = default_alphabet
-    min_train_epoch: int = 200
-    max_train_epoch: int = 500
-    iteration_count: int = 5
-    loss_function: str = "MaxAbsoluteDeviation"
-    eval_metric: str = "root_mean_squared_error"
-    metric_threshold: float = 1
-    optimizer: str = "Adam"
-    simulated_annealing_params: BaseSamParameters = BaseSamParameters()
 
 
 def suggest_parameters(
     data: Optional[tuple] = None,
     tags: Optional[ExpertSystemTags] = None,
-) -> BaseParameters:
+) -> Tuple[ExpertMetaConfig, ExpertSpaceConfig]:
     """
     Builds many parameters of search algorithms using labels supplied by the user,
      describing the requirements for the result and hints on the data.
@@ -54,62 +27,17 @@ def suggest_parameters(
     ----------
     data: Optional[tuple]
         Dataset
-    tags: dict[ExpertSystemTags]
+    tags: Optional[ExpertSystemTags]
         A subset of tags described in expert_system_tags
 
     Returns
     -------
-    parameters: BaseParameters
-        Parameters for search algorithms
+    parameters: Tuple[ExpertMetaConfig, ExpertSpaceConfig]
+        Parameters for search algorithms and parameter space
     """
+
     if tags is None:
         tags = ExpertSystemTags()
-        tags.equation_type = EquationType.UNKNOWN
-        tags.model_precision = RequiredModelPrecision.MAXIMAL
-        tags.predict_time = ModelPredictTime.LONG
-        tags.data_size = DataSize.AUTO
-
-    parameters = BaseParameters()
-
-    simulated_annealing_params = BaseSamParameters()
-
-    if tags.equation_type in [
-        EquationType.SIN,
-        EquationType.MULTIDIM,
-        EquationType.UNKNOWN,
-    ]:
-        parameters.min_train_epoch *= 2
-        parameters.max_train_epoch = 700
-        parameters.nn_max_length += 1
-        parameters.iteration_count += 10
-
-        # simulated_annealing_params["distance_to_neighbor"] = [distance_const(300), distance_lin(50, 400)]
-        # simulated_annealing_params["temperature_reduction_method"] = [temperature_exp(0.95), temperature_exp(0.95)]
-        simulated_annealing_params.distance_to_neighbor = distance_lin
-        simulated_annealing_params.dist_offset = 50
-        simulated_annealing_params.dist_scale = 400
-        simulated_annealing_params.temperature_reduction_method = temperature_exp
-        simulated_annealing_params.temperature_speed = 0.95
-
-        parameters.launch_count_random_search += 2
-        parameters.launch_count_simulated_annealing = 10
-    elif tags.equation_type in [EquationType.EXP, EquationType.LIN]:
-        parameters.iteration_count += 30
-
-    if tags.model_precision == RequiredModelPrecision.MINIMAL:
-        parameters.metric_threshold *= 2
-    if tags.model_precision == RequiredModelPrecision.MEDIAN:
-        parameters.iteration_count = int(10 * parameters.iteration_count)
-    if tags.model_precision == RequiredModelPrecision.MAXIMAL:
-        parameters.metric_threshold /= 10
-        parameters.iteration_count = int(40 * parameters.iteration_count)
-        parameters.max_train_epoch = 700
-
-    if tags.predict_time == ModelPredictTime.SHORT:
-        parameters.nn_max_length -= 1
-        parameters.nn_min_length -= 1
-    elif tags.predict_time == ModelPredictTime.LONG:
-        parameters.nn_max_length += 1
 
     if tags.data_size == DataSize.AUTO:
         if data is None:
@@ -128,23 +56,84 @@ def suggest_parameters(
                     tags.data_size = DataSize.MEDIAN
                 case 3:
                     tags.data_size = DataSize.BIG
-    if tags.data_size == DataSize.VERY_SMALL:
-        parameters.min_train_epoch *= 2
-        parameters.max_train_epoch = 700
-        parameters.iteration_count += 10
-        parameters.launch_count_random_search += 2
-        parameters.launch_count_simulated_annealing += 2
-    elif tags.data_size == DataSize.SMALL:
-        parameters.min_train_epoch = int(parameters.min_train_epoch * 1.5)
-        parameters.iteration_count += 10
-        parameters.launch_count_random_search += 1
-        parameters.launch_count_simulated_annealing += 1
-    elif tags.data_size == DataSize.MEDIAN:
-        parameters.min_train_epoch = int(parameters.min_train_epoch * 1.25)
-        parameters.iteration_count += 10
-        parameters.launch_count_random_search += 1
-    elif tags.data_size == DataSize.BIG:
-        parameters.launch_count_random_search += 1
 
-    parameters.simulated_annealing_params = simulated_annealing_params
-    return parameters
+    meta = ExpertMetaConfig()
+    space = ExpertSpaceConfig()
+    space.layer_sizes = [8, 16, 32]
+
+    if tags.equation_type in [
+        EquationType.SIN,
+        EquationType.MULTIDIM,
+        EquationType.UNKNOWN,
+    ]:
+        space.min_epoch *= 2
+        space.max_epoch *= 2
+        space.nn_max_depth += 1
+        space.nn_min_depth = max(space.nn_min_depth, 3)
+
+        meta.iterations += 10
+        meta.distance_method = distance_lin(50, 400)
+        meta.temperature_method = temperature_exp(0.95)
+        meta.launch_count_random_search += 2
+        meta.launch_count_simulated_annealing = 10
+
+    elif tags.equation_type in [EquationType.EXP, EquationType.LIN]:
+        meta.iterations += 20
+
+    if tags.model_precision == RequiredModelPrecision.MINIMAL:
+        meta.threshold *= 2
+        space.nn_min_depth = 1
+        space.layer_sizes = [x // 2 for x in space.layer_sizes]
+
+    if tags.model_precision == RequiredModelPrecision.MEDIAN:
+        meta.iterations += 20
+        space.nn_min_depth = max(space.nn_min_depth, 3)
+
+    if tags.model_precision == RequiredModelPrecision.MAXIMAL:
+        meta.threshold /= 10
+        meta.iterations += 50
+        space.nn_min_depth = max(space.nn_min_depth, 5)
+        space.max_epoch = max(space.max_epoch * 2, 400)
+
+    if tags.predict_time == ModelPredictTime.SHORT:
+        space.nn_min_depth = 1
+        space.nn_max_depth = max(space.nn_min_depth, space.nn_max_depth - 1)
+        if len(space.layer_sizes) > 2:
+            space.layer_sizes = space.layer_sizes[:-1]
+
+    elif tags.predict_time == ModelPredictTime.LONG:
+        space.nn_min_depth = max(space.nn_min_depth, 5)
+        space.nn_max_depth = max(space.nn_min_depth, space.nn_max_depth + 1)
+        space.layer_sizes.append(space.layer_sizes[-1] * 2)
+
+    if tags.data_size == DataSize.VERY_SMALL:
+        space.min_epoch *= 2
+        space.max_epoch = max(space.max_epoch * 2, 400)
+        space.nn_min_depth = max(space.nn_min_depth, 2)
+
+        meta.iterations += 10
+        meta.launch_count_random_search += 2
+        meta.launch_count_simulated_annealing += 2
+
+    elif tags.data_size == DataSize.SMALL:
+        space.min_epoch = int(space.min_epoch * 1.5)
+        space.max_epoch = max(space.min_epoch + 1, space.max_epoch)
+        space.nn_min_depth = max(space.nn_min_depth, 3)
+
+        meta.iterations += 10
+        meta.launch_count_random_search += 1
+        meta.launch_count_simulated_annealing += 1
+
+    elif tags.data_size == DataSize.MEDIAN:
+        space.min_epoch = int(space.min_epoch * 1.25)
+        space.max_epoch = max(space.min_epoch + 1, space.max_epoch)
+
+        meta.iterations += 10
+        meta.launch_count_random_search += 1
+
+    elif tags.data_size == DataSize.BIG:
+        space.nn_min_depth = max(space.nn_min_depth, 5)
+
+        meta.launch_count_random_search += 1
+
+    return meta, space

@@ -1,228 +1,150 @@
 import math
 import random
-from typing import Optional, Tuple
-
-from .nn_code import decode, default_alphabet
-from degann.networks import imodel
-from degann.search_algorithms.generate import (
-    random_generate,
-    choose_neighbor,
-)
-from .search_algorithms_parameters import SimulatedAnnealingSearchParameters
-from .utils import update_random_generator, log_search_step
+import copy
+from datetime import datetime
+from typing import Tuple, Optional
+from .utils import update_random_generator
+from degann.networks.topology.abstracts import ParameterSpace, NetConfig
+from degann.networks.topology.trainer import train
+from .simulated_annealing_functions import *
 
 
 def simulated_annealing(
-    parameters: SimulatedAnnealingSearchParameters,
+    data: tuple,
+    params: ParameterSpace,
+    val_data: Optional[tuple] = None,
+    max_iter: int = 100,
+    threshold: float = 1,
+    start_config: Optional[NetConfig] = None,
+    start_epochs: int = 0,
+    temperature_method: Optional[Callable] = None,
+    distance_method: Optional[Callable] = None,
+    update_gen_cycle: int = 0,
+    logging: bool = False,
+    file_name: str = "",
+    callbacks: Optional[list] = None,
+    verbose: bool = False,
 ) -> Tuple[float, int, str, str, dict, int]:
     """
-    Method of simulated annealing in the parameter space of neural networks
+    Performs a simulated annealing algorithm to find the best neural network configuration.
 
     Parameters
     ----------
-    parameters: SimulatedAnnealingSearchParameters
-        Search algorithm parameters
+    data: Tuple[Any, Any]
+        Training data.
+    params: ParameterSpace
+        Parameter space for neural network configurations.
+    val_data: Tuple[Any, Any]
+        Validation data.
+    max_iter: int
+        Maximum number of iterations.
+    threshold: float
+        Loss threshold for early stopping.
+    start_config: NetConfig
+        Starting configuration for the algorithm.
+    start_epochs: int
+        Starting number of epochs.
+    temperature_method: Callable
+        Function for temperature calculation.
+    distance_method: Callable
+        Function for distance calculation.
+    update_gen_cycle: int
+        Cycle size for random generator update.
+    logging: bool
+        Flag to enable logging.
+    file_name: str
+        Name for log files.
+    callbacks: List[Any]
+        List of training callbacks.
+    verbose: bool
+        Flag to enable verbose output.
 
     Returns
     -------
-    search_results: tuple[float, int, str, str, dict]
-        Results of the algorithm are described by these parameters
-
-        best_metric_value: float
-            The value of the loss function during training of the best neural network
-        best_epoch: int
-            Number of training epochs for the best neural network
-        best_loss_func: str
-            Name of the loss function of the best neural network
-        best_opt: str
-            Name of the optimizer of the best neural network
-        best_net: dict
-            Best neural network presented as a dictionary
-        iterations: int
-            The number of iterations performed during the search.
+    best_loss: float
+        Best training loss achieved.
+    best_config: NetConfig
+        Best configuration object.
+    best_net: dict
+        Dictionary representation of the best network.
+    k: int
+        Number of iterations performed.
     """
-    if parameters.nn_alphabet is None:
-        parameters.nn_alphabet = default_alphabet
 
-    gen = random_generate(
-        min_epoch=parameters.min_epoch,
-        max_epoch=parameters.max_epoch,
-        min_length=parameters.nn_min_length,
-        max_length=parameters.nn_max_length,
-        alphabet=parameters.nn_alphabet,
-        block_size=parameters.nn_alphabet_block_size,
-    )
-    if parameters.start_net is None:
-        b, a = decode(
-            gen[0].value(),
-            block_size=parameters.nn_alphabet_block_size,
-            offset=parameters.nn_alphabet_offset,
-        )
-        cfg = imodel.DenseNetParams(
-            input_size=parameters.input_size,
-            block_size=b,
-            output_size=parameters.output_size,
-            activation_func=a + ["linear"],
-        )
-        curr_best = imodel.IModel(cfg)
+    if temperature_method is None:
+        temperature_method = temperature_lin
+
+    if distance_method is None:
+        distance_method = distance_const(150)
+
+    if start_config is None:
+        curr_config, curr_epochs = next(params.get_random_config())
     else:
-        cfg = imodel.DenseNetParams(
-            input_size=parameters.input_size,
-            block_size=[],
-            output_size=parameters.output_size,
-            activation_func=["linear"],
-        )
-        curr_best = imodel.IModel(cfg)
-        curr_best = curr_best.from_dict(parameters.start_net)
-
-    compile_cfg = imodel.DenseNetCompileParams(
-        optimizer=parameters.optimizer,
-        loss_func=parameters.loss_function,
-        metric_funcs=[parameters.eval_metric] + parameters.metrics,
-    )
-    curr_best.compile(compile_cfg)
-
-    curr_epoch = gen[1].value()
-    hist = curr_best.train(
-        parameters.data[0],
-        parameters.data[1],
-        epochs=curr_epoch,
-        verbose=0,
-        callbacks=parameters.callbacks,
-    )
-    curr_loss = hist.history["loss"][-1]
-    curr_metric_value = hist.history[parameters.eval_metric][-1]
-    if parameters.val_data is not None:
-        val_metrics = curr_best.evaluate(
-            parameters.val_data[0], parameters.val_data[1], verbose=0, return_dict=True
-        )
-        best_val_loss = val_metrics["loss"]
-        best_val_metric_value = val_metrics[parameters.eval_metric]
-    else:
-        best_val_loss = None
-        best_val_metric_value = None
-    best_epoch = curr_epoch
-    best_nn = curr_best.to_dict()
-    best_gen = gen
-    best_a = curr_best.get_activations
-    best_metric_value = curr_metric_value
-
-    if parameters.logging:
-        fn = f"{parameters.file_name}_{len(parameters.data[0])}_0_{parameters.loss_function}_{parameters.optimizer}"
-        log_search_step(
-            model=curr_best,
-            activations=best_a,
-            code=best_gen[0].value(),
-            epoch=best_gen[1].value(),
-            optimizer=parameters.optimizer,
-            loss_function=parameters.loss_function,
-            loss=curr_loss,
-            validation_loss=best_val_loss,
-            metric_value=best_metric_value,
-            validation_metric_value=best_val_metric_value,
-            file_name=fn,
-        )
-
-    k = 0
-    t = 1
-    while (
-        k < parameters.max_launches - 1
-        and curr_metric_value > parameters.metric_threshold
-    ):
-        t = parameters.temperature_method(k=k, k_max=parameters.max_launches, t=t)
-        print(parameters.distance_method)
-        distance = parameters.distance_method(temperature=t)
-
-        gen_neighbor = choose_neighbor(
-            parameters.method_for_generate_next_nn,
-            alphabet=parameters.nn_alphabet,
-            block_size=parameters.nn_alphabet_block_size,
-            parameters=(gen[0].value(), gen[1].value()),
-            distance=distance,
-            min_epoch=parameters.min_epoch,
-            max_epoch=parameters.max_epoch,
-            min_length=parameters.nn_min_length,
-            max_length=parameters.nn_max_length,
-        )
-        b, a = decode(
-            gen_neighbor[0].value(),
-            block_size=parameters.nn_alphabet_block_size,
-            offset=parameters.nn_alphabet_offset,
-        )
-        neighbor_cfg = imodel.DenseNetParams(
-            input_size=parameters.input_size,
-            block_size=b,
-            output_size=parameters.output_size,
-            activation_func=a + ["linear"],
-        )
-        neighbor = imodel.IModel(neighbor_cfg)
-        neighbor_compile_cfg = imodel.DenseNetCompileParams(
-            optimizer=parameters.optimizer,
-            loss_func=parameters.loss_function,
-            metric_funcs=[parameters.eval_metric] + parameters.metrics,
-        )
-        neighbor.compile(neighbor_compile_cfg)
-        neighbor_hist = neighbor.train(
-            parameters.data[0],
-            parameters.data[1],
-            epochs=gen_neighbor[1].value(),
-            verbose=0,
-            callbacks=parameters.callbacks,
-        )
-        if parameters.val_data is not None:
-            val_metrics = neighbor.evaluate(
-                parameters.val_data[0],
-                parameters.val_data[1],
-                verbose=0,
-                return_dict=True,
-            )
-            neighbor_val_loss = val_metrics[parameters.eval_metric]
-            neighbor_val_metric_value = val_metrics["loss"]
+        curr_config = copy.deepcopy(start_config)
+        if start_epochs == 0:
+            curr_epochs = 10
         else:
-            neighbor_val_loss = None
-            neighbor_val_metric_value = None
-        neighbor_loss = neighbor_hist.history["loss"][-1]
-        neighbor_metric_value = neighbor_hist.history[parameters.eval_metric][-1]
+            curr_epochs = start_epochs
+
+    train_result = train(
+        config=curr_config,
+        num_epochs=curr_epochs,
+        data=data,
+        val_data=val_data,
+        logging=logging,
+        file_name=file_name,
+        callbacks=callbacks,
+    )
+    curr_loss = train_result[0]
+    curr_net = train_result[2]
+
+    best_epochs = curr_epochs
+    best_loss = curr_loss
+    loss_func = curr_config.get_loss_func
+    opt = curr_config.get_optimizer
+    best_net = curr_net
+    k = 0
+    t = 1.0
+
+    while k < max_iter and curr_loss > threshold:
+        update_random_generator(k, cycle_size=update_gen_cycle)
+        if verbose:
+            print(f"{k + 1}/{max_iter}", datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
+
+        t = temperature_method(k=k, k_max=max_iter, t=t)
+        distance = distance_method(temperature=t)
+
+        neighbour_config, neighbour_epochs = next(
+            params.generate_neighbour_config(curr_config, curr_epochs, distance)
+        )
+
+        neighbour_result = train(
+            config=neighbour_config,
+            num_epochs=neighbour_epochs,
+            data=data,
+            val_data=val_data,
+            logging=logging,
+            file_name=file_name,
+            callbacks=callbacks,
+        )
+        neighbour_loss = neighbour_result[0]
+        neighbour_net = neighbour_result[2]
 
         if (
-            neighbor_metric_value < curr_metric_value
-            or math.e ** ((curr_metric_value - neighbor_metric_value) / t)
-            > random.random()
+            neighbour_loss < curr_loss
+            or math.exp((curr_loss - neighbour_loss) / max(t, 1e-8)) > random.random()
         ):
-            curr_best = neighbor
-            gen = gen_neighbor
-            curr_epoch = gen_neighbor[1].value()
-            curr_metric_value = neighbor_metric_value
-            curr_val_metric_value = neighbor_val_metric_value
+            curr_config = neighbour_config
+            curr_epochs = neighbour_epochs
+            curr_loss = neighbour_loss
 
-            if curr_metric_value < best_metric_value:
-                best_metric_value = curr_metric_value
-                best_epoch = curr_epoch
-                best_nn = curr_best.to_dict()
-                best_val_metric_value = curr_val_metric_value
+            if curr_loss < best_loss:
+                best_loss = curr_loss
+                loss_func = curr_config.get_loss_func
+                opt = curr_config.get_optimizer
+                best_net = neighbour_net
+                best_epochs = curr_epochs
+
         k += 1
 
-        if parameters.logging:
-            fn = f"{parameters.file_name}_{len(parameters.data[0])}_0_{parameters.loss_function}_{parameters.optimizer}"
-            log_search_step(
-                model=neighbor,
-                activations=a,
-                code=gen_neighbor[0].value(),
-                epoch=gen_neighbor[1].value(),
-                optimizer=parameters.optimizer,
-                loss_function=parameters.loss_function,
-                loss=neighbor_loss,
-                validation_loss=neighbor_val_loss,
-                metric_value=neighbor_metric_value,
-                validation_metric_value=neighbor_val_metric_value,
-                file_name=fn,
-            )
-
-    return (
-        best_metric_value,
-        best_epoch,
-        parameters.loss_function,
-        parameters.optimizer,
-        best_nn,
-        k,
-    )
+    return best_loss, best_epochs, loss_func, opt, best_net, k

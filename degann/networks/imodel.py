@@ -1,51 +1,17 @@
 import json
 from collections import defaultdict
-from typing import List, Optional, Dict, Union, Type
+from typing import List, Optional, Dict, Union, Any, Tuple
 
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
 from degann.networks.config_format import HEADER_OF_APG_FILE
-from degann.networks.topology.densenet.tf_densenet import TensorflowDenseNet
-from degann.networks.topology.densenet.topology_config import DenseNetParams
-from degann.networks.topology.densenet.compile_config import DenseNetCompileParams
-from degann.networks.topology.gan.gan import GAN
-from degann.networks.topology.base_topology_configs import BaseTopologyParams
-from degann.networks.topology.base_compile_configs import BaseCompileParams
-
-
-def _get_act_and_init(
-    kwargs: dict,
-    default_act,
-    default_dec: Optional[List[Optional[Dict[str, float]]]],
-    default_init,
-):
-    if kwargs.get("activation") is None:
-        activation = default_act
-    else:
-        activation = kwargs["activation"]
-        kwargs.pop("activation")
-
-    if kwargs.get("decorator_params") is None:
-        decorator_params = default_dec
-    else:
-        decorator_params = kwargs["decorator_params"]
-        kwargs.pop("decorator_params")
-
-    if kwargs.get("weight") is None:
-        weight = default_init
-    else:
-        weight = kwargs["weight"]
-        kwargs.pop("weight")
-
-    if kwargs.get("biases") is None:
-        biases = default_init
-    else:
-        biases = kwargs["biases"]
-        kwargs.pop("biases")
-
-    return activation, decorator_params, weight, biases, kwargs
+from degann.networks.topology.DenseNet.tf_densenet import TensorflowDenseNet
+from degann.networks.topology.GAN.tf_gan import TensorflowGAN
+from degann.networks.topology.abstracts import NetConfig
+from degann.networks.topology.DenseNet.config import DenseNetConfig
+from degann.networks.topology.GAN.config import GANConfig
 
 
 class IModel(object):
@@ -53,30 +19,34 @@ class IModel(object):
     Interface class for working with neural topology
     """
 
-    def __init__(self, config: BaseTopologyParams = DenseNetParams(), **kwargs):
-        self.network = _create_functions[config.net_type](config, **kwargs)
-        self._input_size = config.input_size
-        self._shape = config.block_size
-        self._output_size = config.output_size
-        self._name = config.name
-        self._is_debug = config.is_debug
-        self.set_name(config.name)
+    def __init__(
+        self,
+        config: NetConfig,
+        net_type: str,
+        name: str = "net",
+        is_debug: bool = False,
+        **kwargs,
+    ):
+        self.network = _create_functions[net_type](
+            config,
+            is_debug=is_debug,
+            **kwargs,
+        )
 
-    def compile(self, config: BaseCompileParams = DenseNetCompileParams()) -> None:
+        self._input_size = config.get_input_size
+        self._output_size = config.get_output_size
+        self._shape = config.get_shape
+
+        self._name = name
+        self._is_debug = is_debug
+        self.set_name(name)
+        self._evaluate_history = None
+
+    def compile(self, **kwargs) -> None:
         """
         Configures the model for training
-
-        Parameters
-        ----------
-        config: BaseCompileParams
-            Subclass of `BaseCompileParams` containing compilation parameters
-            for a particular topology
-
-        Returns
-        -------
-
         """
-        self.network.custom_compile(config)
+        self.network.custom_compile(**kwargs)
 
     def feedforward(self, inputs: np.ndarray) -> tf.Tensor:
         """
@@ -92,67 +62,21 @@ class IModel(object):
         outputs: tf.Tensor
             Network answer
         """
-
         return self.network(inputs, training=False)
-
-    def predict(
-        self, inputs: np.ndarray, callbacks: Optional[List] = None
-    ) -> np.ndarray:
-        """
-        Return network answer for passed input by network predict()
-
-        Parameters
-        ----------
-        inputs: np.ndarray
-            Input activation vector
-        callbacks: list
-            List of tensorflow callbacks for predict function
-
-        Returns
-        -------
-        outputs: np.ndarray
-            Network answer
-        """
-
-        return self.network.predict(inputs, verbose=0, callbacks=callbacks)
 
     def train(
         self,
-        x_data: np.ndarray | tf.Tensor,
-        y_data: np.ndarray | tf.Tensor,
-        validation_split=0.0,
-        validation_data=None,
-        epochs=10,
-        mini_batch_size=None,
+        x_data: np.ndarray,
+        y_data: np.ndarray,
+        validation_split: float = 0.0,
+        validation_data: Optional[tuple] = None,
+        epochs: int = 10,
+        batch_size: int = 32,
         callbacks: Optional[List] = None,
-        verbose="auto",
+        verbose: Union[int, str] = "auto",
     ) -> keras.callbacks.History:
         """
         Train network on passed dataset and return training history
-
-        Parameters
-        ----------
-        x_data: np.ndarray
-            Array of input vectors
-        y_data: np.ndarray
-            Array of output vectors
-        validation_split: float
-            Percentage of data to validate
-        validation_data: tuple[np.ndarray, np.ndarray]
-            Validation dataset
-        epochs: int
-            Count of epochs for training
-        mini_batch_size: int
-            Size of batches
-        callbacks: list
-            List of tensorflow callbacks for fit function
-        verbose: int
-            Output accompanying training
-
-        Returns
-        -------
-        history: tf.keras.callbacks.History
-            History of training
         """
         if self._is_debug:
             if callbacks is not None:
@@ -170,7 +94,7 @@ class IModel(object):
         temp = self.network.fit(
             x_data,
             y_data,
-            batch_size=mini_batch_size,
+            batch_size=batch_size,
             callbacks=callbacks,
             validation_split=validation_split,
             validation_data=validation_data,
@@ -181,33 +105,15 @@ class IModel(object):
 
     def evaluate(
         self,
-        x_data: np.ndarray | tf.Tensor,
-        y_data: np.ndarray | tf.Tensor,
-        batch_size=None,
+        x_data: np.ndarray,
+        y_data: np.ndarray,
+        batch_size: Optional[int] = None,
         callbacks: Optional[List] = None,
-        verbose="auto",
+        verbose: Union[int, str] = "auto",
         **kwargs,
-    ) -> dict[str, float]:
+    ) -> Union[float, List[float]]:
         """
         Evaluate network on passed dataset and return evaluate history
-
-        Parameters
-        ----------
-        x_data: np.ndarray
-            Array of input vectors
-        y_data: np.ndarray
-            Array of output vectors
-        batch_size: int
-            Size of batches
-        callbacks: list
-            List of tensorflow callbacks for evaluate function
-        verbose: int
-            Output accompanying evaluating
-
-        Returns
-        -------
-        history: dict[str, float]
-            Scalar validation loss
         """
         if self._is_debug:
             if callbacks is not None:
@@ -222,8 +128,7 @@ class IModel(object):
                         f"log_{self.get_name}.csv", separator=",", append=False
                     )
                 ]
-        # In debug evaluate returns the dictionary of metric (and loss) values on validation data
-        self._evaluate_history: dict[str, float] = self.network.evaluate(  # type: ignore
+        self._evaluate_history = self.network.evaluate(
             x_data,
             y_data,
             batch_size=batch_size,
@@ -241,89 +146,75 @@ class IModel(object):
         self,
         path: str,
         array_type: str = "[]",
-        path_to_compiler: Optional[str] = None,
+        path_to_compiler: str = None,
+        vectorized_level: str = "none",
         **kwargs,
     ) -> None:
         """
         Export neural network as feedforward function on c++
-
-        Parameters
-        ----------
-        path: str
-            path to file with name, without extension
-        array_type: str
-            c-style or cpp-style ("[]" or "vector")
-        path_to_compiler: str
-            path to c/c++ compiler, if `None` then the resulting code will not be compiled
-        kwargs
-
-        Returns
-        -------
-
         """
-        self.network.export_to_cpp(path, array_type, path_to_compiler)
+        self.network.export_to_cpp(
+            path,
+            array_type,
+            path_to_compiler,
+            vectorized_level=vectorized_level,
+            **kwargs,
+        )
 
-    def to_dict(self, **kwargs):
+    def to_dict(self, **kwargs) -> Dict[str, Any]:
         """
         Export neural network to dictionary
-
-        Parameters
-        ----------
-        kwargs
-
-        Returns
-        -------
-
         """
         return self.network.to_dict(**kwargs)
 
-    def export_to_file(self, path, **kwargs):
+    def export_to_file(self, path: str, **kwargs) -> None:
         """
         Export neural network as parameters to file
-
-        Parameters
-        ----------
-        path:
-            path to file with name, without extension
-        kwargs
-
-        Returns
-        -------
-
         """
         config = self.to_dict(**kwargs)
         with open(path + ".apg", "w") as f:
             f.write(HEADER_OF_APG_FILE + json.dumps(config, indent=2))
 
-    def from_dict(self, config: dict, **kwargs):
+    @classmethod
+    def from_dict(cls, config: dict, **kwargs):
         """
-        Import neural network from dictionary
+        Create neural network instance from dictionary.
 
         Parameters
         ----------
-        config: dict
-            Network configuration
+        config : dict
+            Dictionary with network parameters.
 
         Returns
         -------
-
+        IModel
+            New instance of the network.
         """
-        self._shape = config["block_size"]
-        self.network.from_dict(config, **kwargs)
+        net_type = config["net_type"]
+        name = config["name"]
 
-    def from_file(self, path: str, **kwargs):
+        config_class = _create_config[net_type]
+        net_config = config_class.from_dict(config["config"])
+
+        instance = cls(config=net_config, net_type=net_type, name=name, **kwargs)
+        network = _create_functions[net_type].from_dict(config)
+        instance.network = network
+        return instance
+
+    @classmethod
+    def from_file(cls, path: str, **kwargs):
         """
-        Import neural network as parameters from file
+        Create neural network instance from file.
 
         Parameters
         ----------
-        path:
-            path to file with name, without extension
-        kwargs
+        path : str
+            Path to file (without extension).
 
         Returns
         -------
-
+        IModel
+            New instance of the network.
         """
         with open(path + ".apg", "r") as f:
             for header in range(HEADER_OF_APG_FILE.count("\n")):
@@ -332,20 +223,11 @@ class IModel(object):
             for line in f:
                 config_str += line
             config = json.loads(config_str)
-            self.network.from_dict(config)
-            self.set_name(config["name"])
+        return cls.from_dict(config, **kwargs)
 
     def set_name(self, name: str) -> None:
         """
         Set network name
-
-        Parameters
-        ----------
-        name: str
-            New name
-        Returns
-        -------
-        None
         """
         self.network.set_name(name)
         self._name = name
@@ -355,114 +237,44 @@ class IModel(object):
         return self._name
 
     @property
-    def get_shape(self) -> List[int]:
+    def get_shape(self) -> Any:
         """
         Get shape for current network
-
-        Returns
-        -------
-        shape: List[int]
-            Network shape
         """
-
         return self._shape
 
     @property
-    def get_input_size(self) -> int:
+    def get_input_size(self) -> Any:
         """
         Get input vector size for current network
-
-        Returns
-        -------
-        size: int
-            Input vector size
         """
-
         return self._input_size
 
     @property
-    def get_output_size(self) -> int:
+    def get_output_size(self) -> Any:
         """
         Get output vector size for current network
-
-        Returns
-        -------
-        size: int
-            Output vector size
         """
-
         return self._output_size
 
     @property
-    def get_activations(self) -> list:
+    def get_activations(self) -> Union[List[str], Tuple[List[str], List[str]]]:
         """
         Get list of activations for each layer
-
-        Returns
-        -------
-        activations: list
         """
-
         return self.network.get_activations
 
     def __str__(self) -> str:
         """
         Get a string representation of the neural network
-
-        Returns
-        -------
-        result: str
         """
-
         return str(self.network)
 
-    @classmethod
-    def create_neuron(
-        cls, input_size: int, output_size: int, shape: list[int], **kwargs
-    ):
-        """
-        Create neural network with passed size and sigmoid activation
 
-        Parameters
-        ----------
-        input_size: int
-        output_size: int
-        shape: list[int]
-            Sizes of hidden layers
-        kwargs
-
-        Returns
-        -------
-        net: imodel.IModel
-            Neural network
-        """
-        activation, decorator_params, weight, biases, kwargs = _get_act_and_init(
-            kwargs,
-            "sigmoid",
-            None,
-            tf.random_normal_initializer(),
-        )
-
-        neuron_cfg = DenseNetParams(
-            input_size=input_size,
-            block_size=shape,
-            output_size=output_size,
-            activation_func=activation,
-            biases=biases,
-            weight=weight,
-        )
-
-        res = cls(
-            neuron_cfg,
-            decorator_params=decorator_params,
-            **kwargs,
-        )
-
-        return res
-
-
-_create_functions: defaultdict[str, Type[tf.keras.Model]] = defaultdict(
-    lambda: TensorflowDenseNet
-)
+_create_functions = defaultdict(lambda: TensorflowDenseNet)
 _create_functions["DenseNet"] = TensorflowDenseNet
-_create_functions["GAN"] = GAN
+_create_functions["GAN"] = TensorflowGAN
+
+_create_config = defaultdict(lambda: NetConfig)
+_create_config["DenseNet"] = DenseNetConfig
+_create_config["GAN"] = GANConfig
